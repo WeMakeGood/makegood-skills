@@ -1,0 +1,104 @@
+{
+  "name": "makegood-skills",
+  "owner": {
+    "name": "Make Good",
+    "email": "hello@wemakegood.org"
+  },
+  "metadata": {
+    "description": "Agent skills for Claude Code covering writing, research, client work, and web design — built by Make Good.",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "article-pipeline",
+      "source": "./plugins/article-pipeline",
+      "description": "Complete pipeline for researching, designing, drafting, and repurposing long-form articles. Includes series design, article drafting, video scripting, writing standards, and voice extraction.",
+      "category": "writing",
+      "tags": ["writing", "articles", "content", "voice", "pipeline"]
+    },
+    {
+      "name": "web-design",
+      "source": "./plugins/web-design",
+      "description": "Interactive website content strategy and Divi 5 design token pipeline. Covers website content architecture and Divi 5-compatible variable import generation.",
+      "category": "design",
+      "tags": ["web", "design", "divi", "content-strategy"]
+    },
+    {
+      "name": "writing-case-studies",
+      "source": "./plugins/writing-case-studies",
+      "description": "Guides creation of comprehensive case studies from interview transcripts, notes, or outlines. Produces the case study plus supporting assets.",
+      "category": "writing",
+      "tags": ["case-studies", "writing", "content"]
+    },
+    {
+      "name": "writing-project-dossiers",
+      "source": "./plugins/writing-project-dossiers",
+      "description": "Creates comprehensive project dossiers through interactive guided conversation. Produces scope documents covering objectives, deliverables, timeline, budget, and team roles.",
+      "category": "client-work",
+      "tags": ["projects", "dossiers", "scope", "planning"]
+    },
+    {
+      "name": "creating-organization-dossiers",
+      "source": "./plugins/creating-organization-dossiers",
+      "description": "Creates structured organizational dossiers following a 6-phase research workflow. Produces comprehensive profiles with executive summary, leadership, financials, and strategic analysis.",
+      "category": "research",
+      "tags": ["research", "dossier", "organization", "prospect"]
+    },
+    {
+      "name": "planning-social-campaigns",
+      "source": "./plugins/planning-social-campaigns",
+      "description": "Plans social media campaigns from source content, producing a campaign strategy, asset calendar, per-asset content files, and optional engagement plan.",
+      "category": "marketing",
+      "tags": ["social-media", "campaigns", "content", "marketing"]
+    },
+    {
+      "name": "synthesizing-interviews",
+      "source": "./plugins/synthesizing-interviews",
+      "description": "Synthesizes interview transcripts into comprehensive research documents with structured insights, key quotes, speaker information, and verified references.",
+      "category": "research",
+      "tags": ["interviews", "research", "synthesis", "transcripts"]
+    },
+    {
+      "name": "researching-youtube-channels",
+      "source": "./plugins/researching-youtube-channels",
+      "description": "Researches YouTube channels and retrieves video metadata, descriptions, and transcripts. Search a channel's library or find videos on specific topics.",
+      "category": "research",
+      "tags": ["youtube", "research", "transcripts", "video"]
+    },
+    {
+      "name": "processing-docx-edits",
+      "source": "./plugins/processing-docx-edits",
+      "description": "Processes DOCX files containing tracked changes and comments, synthesizes all edits, and produces clean final documents.",
+      "category": "writing",
+      "tags": ["docx", "word", "editing", "tracked-changes"]
+    },
+    {
+      "name": "generating-meeting-reports",
+      "source": "./plugins/generating-meeting-reports",
+      "description": "Generates structured meeting reports from transcripts. Extracts attendees, topics, decisions, action items, and resources into a standardized executive summary format.",
+      "category": "productivity",
+      "tags": ["meetings", "reports", "transcripts", "summaries"]
+    },
+    {
+      "name": "building-context-libraries",
+      "source": "./plugins/building-context-libraries",
+      "description": "Builds modular context libraries that change how AI agents behave with organizational knowledge. Transforms source documents into metaprompt modules.",
+      "category": "ai-development",
+      "tags": ["context", "ai", "metaprompt", "knowledge-base"]
+    },
+    {
+      "name": "creating-skills",
+      "source": "./plugins/creating-skills",
+      "description": "Guides creation of new Agent Skills from prompts, context files, and requirements. Provides skill architecture knowledge, best practices, and testing procedures.",
+      "category": "ai-development",
+      "tags": ["skills", "agent-skills", "development"]
+    },
+    {
+      "name": "auditing-skills",
+      "source": "./plugins/auditing-skills",
+      "description": "Audits existing Agent Skills against current best practices. Reviews structure, behavioral guardrails, phase boundaries, and commitment gates.",
+      "category": "ai-development",
+      "tags": ["skills", "auditing", "quality"]
+    }
+  ]
+}

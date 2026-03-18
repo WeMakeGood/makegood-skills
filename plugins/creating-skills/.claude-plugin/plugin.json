@@ -1,0 +1,17 @@
+{
+  "name": "creating-skills",
+  "version": "1.0.0",
+  "description": "Guides creation of new Agent Skills from prompts, context files, and requirements. Provides skill architecture knowledge, best practices, and testing procedures.",
+  "author": {
+    "name": "Make Good",
+    "url": "https://wemakegood.org"
+  },
+  "homepage": "https://github.com/WeMakeGood/makegood-skills",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "agent-skills",
+    "development",
+    "meta"
+  ]
+}

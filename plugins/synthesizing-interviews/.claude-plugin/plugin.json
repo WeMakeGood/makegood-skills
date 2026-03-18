@@ -1,0 +1,17 @@
+{
+  "name": "synthesizing-interviews",
+  "version": "1.0.0",
+  "description": "Synthesizes interview transcripts into comprehensive research documents with structured insights, key quotes, speaker information, and verified references.",
+  "author": {
+    "name": "Make Good",
+    "url": "https://wemakegood.org"
+  },
+  "homepage": "https://github.com/WeMakeGood/makegood-skills",
+  "license": "MIT",
+  "keywords": [
+    "interviews",
+    "research",
+    "synthesis",
+    "transcripts"
+  ]
+}

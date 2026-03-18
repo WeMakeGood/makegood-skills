@@ -1,0 +1,17 @@
+{
+  "name": "auditing-skills",
+  "version": "1.0.0",
+  "description": "Audits existing Agent Skills against current best practices. Reviews structure, behavioral guardrails, phase boundaries, and commitment gates.",
+  "author": {
+    "name": "Make Good",
+    "url": "https://wemakegood.org"
+  },
+  "homepage": "https://github.com/WeMakeGood/makegood-skills",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "auditing",
+    "quality",
+    "agent-skills"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "writing-project-dossiers",
+  "version": "1.0.0",
+  "description": "Creates comprehensive project dossiers through interactive guided conversation. Produces scope documents covering objectives, deliverables, timeline, budget, and team roles.",
+  "author": {
+    "name": "Make Good",
+    "url": "https://wemakegood.org"
+  },
+  "homepage": "https://github.com/WeMakeGood/makegood-skills",
+  "license": "MIT",
+  "keywords": [
+    "projects",
+    "dossiers",
+    "scope",
+    "planning"
+  ]
+}

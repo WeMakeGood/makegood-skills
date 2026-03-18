@@ -1,0 +1,17 @@
+{
+  "name": "generating-meeting-reports",
+  "version": "1.0.0",
+  "description": "Generates structured meeting reports from transcripts. Extracts attendees, topics, decisions, action items, and resources into a standardized executive summary format.",
+  "author": {
+    "name": "Make Good",
+    "url": "https://wemakegood.org"
+  },
+  "homepage": "https://github.com/WeMakeGood/makegood-skills",
+  "license": "MIT",
+  "keywords": [
+    "meetings",
+    "reports",
+    "transcripts",
+    "summaries"
+  ]
+}

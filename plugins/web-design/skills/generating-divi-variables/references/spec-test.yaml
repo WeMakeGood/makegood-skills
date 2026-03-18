@@ -1,0 +1,52 @@
+name: "Test Spec"
+id_namespace: "test"
+
+# ── System colors ────────────────────────────────────────────────────────────
+system_colors:
+  primary: "#ff9e3d"
+  secondary: "#d47b10"
+  heading: "#f6f6f1"
+  body: "#d5d4c1"
+  link: "#ff9e3d"
+
+# ── System fonts ─────────────────────────────────────────────────────────────
+fonts:
+  heading: "Inter Tight"
+  body: "Inter"
+
+# ── Number variables (type scale + spacing) ──────────────────────────────────
+numbers:
+  type-body: "1rem"
+  leading-body: "1.65em"
+  type-d-xl: "clamp(3.157rem, 7vw, 5.61rem)"
+  type-d-lg: "clamp(2.369rem, 5.25vw, 4.209rem)"
+  type-d-md: "clamp(1.777rem, 4vw, 3.157rem)"
+  type-d-sm: "clamp(1.333rem, 3vw, 2.369rem)"
+  type-d-xs: "1.777rem"
+  leading-display: "0.91em"
+  border-radius: "1rem"
+
+# ── Presets ──────────────────────────────────────────────────────────────────
+# Attribute paths match the module reference (divi-module-reference.json).
+# Use $var(name) to reference a number/string variable from above.
+# Use $color(name) to reference a color variable.
+
+presets:
+  divi/text:
+    name: "Brand Text"
+    default: true
+    attrs:
+      # Body font
+      content.decoration.bodyFont.body.font.desktop.value.size: "$var(type-body)"
+      content.decoration.bodyFont.body.font.desktop.value.lineHeight: "$var(leading-body)"
+      # Heading sizes — h1 through h5
+      content.decoration.headingFont.h1.font.desktop.value.size: "$var(type-d-xl)"
+      content.decoration.headingFont.h1.font.desktop.value.lineHeight: "$var(leading-display)"
+      content.decoration.headingFont.h2.font.desktop.value.size: "$var(type-d-lg)"
+      content.decoration.headingFont.h2.font.desktop.value.lineHeight: "$var(leading-display)"
+      content.decoration.headingFont.h3.font.desktop.value.size: "$var(type-d-md)"
+      content.decoration.headingFont.h3.font.desktop.value.lineHeight: "$var(leading-display)"
+      content.decoration.headingFont.h4.font.desktop.value.size: "$var(type-d-sm)"
+      content.decoration.headingFont.h4.font.desktop.value.lineHeight: "$var(leading-display)"
+      content.decoration.headingFont.h5.font.desktop.value.size: "$var(type-d-xs)"
+      content.decoration.headingFont.h5.font.desktop.value.lineHeight: "$var(leading-display)"

@@ -1,0 +1,17 @@
+{
+  "name": "writing-case-studies",
+  "version": "1.0.0",
+  "description": "Guides creation of comprehensive case studies from interview transcripts, notes, or outlines. Produces the case study plus supporting assets including social posts and platform versions.",
+  "author": {
+    "name": "Make Good",
+    "url": "https://wemakegood.org"
+  },
+  "homepage": "https://github.com/WeMakeGood/makegood-skills",
+  "license": "MIT",
+  "keywords": [
+    "case-studies",
+    "writing",
+    "content",
+    "marketing"
+  ]
+}

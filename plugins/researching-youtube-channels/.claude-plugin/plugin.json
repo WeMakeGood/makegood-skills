@@ -1,0 +1,17 @@
+{
+  "name": "researching-youtube-channels",
+  "version": "1.0.0",
+  "description": "Researches YouTube channels and retrieves video metadata, descriptions, and transcripts. Search a channel's library or find videos on specific topics.",
+  "author": {
+    "name": "Make Good",
+    "url": "https://wemakegood.org"
+  },
+  "homepage": "https://github.com/WeMakeGood/makegood-skills",
+  "license": "MIT",
+  "keywords": [
+    "youtube",
+    "research",
+    "transcripts",
+    "video"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "creating-organization-dossiers",
+  "version": "1.0.0",
+  "description": "Creates structured organizational dossiers following a 6-phase research workflow. Produces comprehensive profiles with executive summary, leadership, financials, and strategic analysis.",
+  "author": {
+    "name": "Make Good",
+    "url": "https://wemakegood.org"
+  },
+  "homepage": "https://github.com/WeMakeGood/makegood-skills",
+  "license": "MIT",
+  "keywords": [
+    "research",
+    "dossier",
+    "organization",
+    "prospect"
+  ]
+}

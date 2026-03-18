@@ -1,0 +1,17 @@
+{
+  "name": "processing-docx-edits",
+  "version": "1.0.0",
+  "description": "Processes DOCX files containing tracked changes and comments, synthesizes all edits, and produces clean final documents.",
+  "author": {
+    "name": "Make Good",
+    "url": "https://wemakegood.org"
+  },
+  "homepage": "https://github.com/WeMakeGood/makegood-skills",
+  "license": "MIT",
+  "keywords": [
+    "docx",
+    "word",
+    "editing",
+    "tracked-changes"
+  ]
+}
