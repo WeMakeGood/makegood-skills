@@ -36,6 +36,132 @@ TIMESTAMP = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
 # Regex to find all $ref(name) tokens inside a string value.
 _REF_PATTERN = re.compile(r'\$ref\(([^)]+)\)')
 
+# ── Modular type scales ───────────────────────────────────────────────────────
+# Ordered from smallest to largest ratio. Two steps down from desktop = mobile.
+
+MODULAR_SCALES = [
+    ("minor-second",    1.067),
+    ("major-second",    1.125),
+    ("minor-third",     1.200),
+    ("major-third",     1.250),
+    ("perfect-fourth",  1.333),
+    ("augmented-fourth",1.414),
+    ("perfect-fifth",   1.500),
+    ("golden-ratio",    1.618),
+]
+
+# Lookup by name or by float value (rounded to 3 decimal places).
+_SCALE_BY_NAME  = {name: ratio for name, ratio in MODULAR_SCALES}
+_SCALE_BY_VALUE = {round(ratio, 3): (name, i) for i, (name, ratio) in enumerate(MODULAR_SCALES)}
+_SCALE_ORDER    = [name for name, _ in MODULAR_SCALES]
+
+
+def resolve_scale(scale_input) -> tuple[str, float, int]:
+    """
+    Accept a scale name (str) or ratio (float/int).
+    Returns (name, ratio, index) or raises ValueError.
+    """
+    if isinstance(scale_input, str):
+        key = scale_input.strip().lower()
+        if key not in _SCALE_BY_NAME:
+            raise ValueError(
+                f"Unknown scale name '{scale_input}'. "
+                f"Valid names: {', '.join(_SCALE_ORDER)}"
+            )
+        ratio = _SCALE_BY_NAME[key]
+        idx   = _SCALE_ORDER.index(key)
+        return key, ratio, idx
+    else:
+        rounded = round(float(scale_input), 3)
+        if rounded not in _SCALE_BY_VALUE:
+            raise ValueError(
+                f"Unknown scale ratio {scale_input}. "
+                f"Valid ratios: {', '.join(str(r) for _, r in MODULAR_SCALES)}"
+            )
+        name, idx = _SCALE_BY_VALUE[rounded]
+        return name, rounded, idx
+
+
+def build_type_scale_numbers(spec: dict) -> dict:
+    """
+    Expand a type_scale section into number variable entries.
+
+    YAML format:
+      type_scale:
+        scale: "perfect-fourth"   # or 1.333
+        base: "1rem"              # default: "1rem"
+        steps: 6                  # heading levels h1–h6, default 6
+        mobile_steps_down: 2      # how many scale positions down for mobile, default 2
+        viewport_min: 375         # px, default 375
+        viewport_max: 1200        # px, default 1200
+        prefix: "type-d"          # variable name prefix, default "type-d"
+        body_prefix: "type"       # prefix for body/sm/caption, default "type"
+
+    Generates:
+      type-scale-base:  "1rem"
+      type-d-h6 through type-d-h1: clamp(mobile, vw, desktop)
+      type-body:   "1rem"
+      type-body-lg: derived from base * mobile_ratio
+      type-sm:     "0.875rem"
+      type-caption: "0.75rem"
+
+    Only type-scale-base and the display stops are generated. Body/sm/caption
+    are only added if not already present in the numbers section.
+    """
+    ts = spec.get("type_scale")
+    if not ts:
+        return {}
+
+    scale_input     = ts.get("scale", "perfect-fourth")
+    base_str        = ts.get("base", "1rem")
+    steps           = int(ts.get("steps", 6))
+    mobile_down     = int(ts.get("mobile_steps_down", 2))
+    vp_min          = int(ts.get("viewport_min", 375))
+    vp_max          = int(ts.get("viewport_max", 1200))
+    prefix          = ts.get("prefix", "type-d")
+
+    desktop_name, desktop_ratio, desktop_idx = resolve_scale(scale_input)
+    mobile_idx   = max(0, desktop_idx - mobile_down)
+    _, mobile_ratio = MODULAR_SCALES[mobile_idx]
+
+    # Parse base value — extract numeric part and unit.
+    base_match = re.match(r'^([0-9.]+)(rem|px|em)$', base_str.strip())
+    if not base_match:
+        raise ValueError(f"type_scale.base must be a simple CSS value like '1rem' or '16px', got '{base_str}'")
+    base_num  = float(base_match.group(1))
+    base_unit = base_match.group(2)
+
+    # Convert base to px for vw calculation (assumes 1rem = 16px browser default).
+    BASE_PX = {"rem": 16.0, "px": 1.0, "em": 16.0}
+    base_px = base_num * BASE_PX[base_unit]
+
+    def step_value(ratio: float, n: int) -> float:
+        """Value at step n above base in the original unit (n=1 → base*ratio, etc.)"""
+        return base_num * (ratio ** n)
+
+    def fmt(v: float) -> str:
+        return f"{round(v, 3)}{base_unit}"
+
+    # Heading levels: h1 is highest step, h6 is lowest (step 1 above base).
+    # h6 = base * ratio^1, h5 = base * ratio^2, ... h1 = base * ratio^steps
+    result = {}
+    result["type-scale-base"] = base_str
+
+    for level in range(steps, 0, -1):  # level=steps → h1, level=1 → h6
+        label = f"h{steps - level + 1}"
+        desktop_val = step_value(desktop_ratio, level)
+        mobile_val  = step_value(mobile_ratio, level)
+
+        # vw midpoint: hit desktop_val at vp_max.
+        # desktop_val_px / vp_max * 100 = vw%
+        desktop_px = desktop_val * BASE_PX[base_unit]
+        vw_val = (desktop_px / vp_max) * 100
+
+        key = f"{prefix}-{label}"
+        result[key] = f"clamp({fmt(mobile_val)}, {round(vw_val, 2)}vw, {fmt(desktop_val)})"
+
+    return result
+
 # Divi's 5 built-in system color slot IDs.
 SYSTEM_COLOR_SLOTS = {
     "primary":   "gcid-primary-color",
@@ -213,8 +339,9 @@ def validate_preset_refs(spec: dict, all_color_names: set) -> list[str]:
     if not presets_spec:
         return errors
 
-    # Collect valid $var() targets: numbers, strings, links, custom fonts.
+    # Collect valid $var() targets: numbers (including type_scale-generated), strings, links, custom fonts.
     var_names = set()
+    var_names.update(build_type_scale_numbers(spec).keys())
     for section in ("numbers", "strings", "links"):
         var_names.update(spec.get(section, {}).keys())
     for name in spec.get("fonts", {}).get("custom", {}).keys():
@@ -551,8 +678,10 @@ def build_divi_json(spec: dict) -> dict:
             "type": "fonts",
         })
 
-    # Numbers — resolve $ref() references and validate.
-    numbers_spec = spec.get("numbers", {})
+    # Numbers — merge type_scale-generated tokens first, then explicit numbers.
+    # Explicit numbers take precedence (allow overriding generated stops).
+    type_scale_numbers = build_type_scale_numbers(spec)
+    numbers_spec = {**type_scale_numbers, **spec.get("numbers", {})}
     ref_errors = validate_number_refs(namespace, numbers_spec)
     if ref_errors:
         print("Error: unresolved $ref() in numbers:", file=sys.stderr)

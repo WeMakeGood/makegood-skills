@@ -52,6 +52,49 @@ fonts:
     display: "Playfair Display"   # Creates a gvid- font variable
 ```
 
+### type_scale
+
+Optional. Generates fluid heading size variables from a modular scale — no hardcoded rem values needed. The generator computes desktop sizes, derives mobile sizes from a smaller ratio, and produces `clamp()` values with a vw midpoint calibrated to hit the desktop max at `viewport_max`.
+
+```yaml
+type_scale:
+  scale: "perfect-fourth"   # scale name or ratio (e.g. 1.333)
+  base: "1rem"              # base size — default: "1rem"
+  steps: 6                  # heading levels to generate (h1–h6) — default: 6
+  mobile_steps_down: 2      # positions down the scale list for mobile ratio — default: 2
+  viewport_max: 1200        # px — desktop breakpoint where max size is reached — default: 1200
+  prefix: "type-d"          # variable name prefix — default: "type-d"
+```
+
+Available scale names (ordered smallest to largest):
+
+| Name | Ratio |
+|------|-------|
+| `minor-second` | 1.067 |
+| `major-second` | 1.125 |
+| `minor-third` | 1.200 |
+| `major-third` | 1.250 |
+| `perfect-fourth` | 1.333 |
+| `augmented-fourth` | 1.414 |
+| `perfect-fifth` | 1.500 |
+| `golden-ratio` | 1.618 |
+
+`mobile_steps_down: 2` with `perfect-fourth` (position 4) uses `minor-third` (position 2) for mobile — two steps smaller, same harmonic system.
+
+**Generated variables** (with `prefix: "type-d"`, `steps: 6`):
+
+```
+type-scale-base: "1rem"
+type-d-h1: "clamp(2.986rem, 7.48vw, 5.61rem)"
+type-d-h2: "clamp(2.488rem, 5.61vw, 4.209rem)"
+type-d-h3: "clamp(2.074rem, 4.21vw, 3.157rem)"
+type-d-h4: "clamp(1.728rem, 3.16vw, 2.369rem)"
+type-d-h5: "clamp(1.44rem, 2.37vw, 1.777rem)"
+type-d-h6: "clamp(1.2rem, 1.78vw, 1.333rem)"
+```
+
+These become available as `$var(type-d-h1)` etc. in preset attrs. Any generated token can be overridden by defining the same key in `numbers`.
+
 ### numbers
 
 Numeric/measurement variables. Values are strings (CSS values).

@@ -57,9 +57,9 @@ Ask the user about their design system. Gather what's available — not every ca
 1. **Brand name** — Used for the spec name and ID namespace
 2. **Colors** — Primary, secondary, heading, body, link (system slots). Additional custom colors. Full palette CSS file if available.
 3. **Typography** — Heading and body fonts. Type scale approach:
-   - Modular scale: ratio + base size (e.g., 1.333 ratio, 1rem base) — **preferred**: generates a live calc chain
-   - Explicit sizes: specific values for each heading level — use only when values are non-negotiable
-   - Fluid typography: `clamp()` values — can combine with derived base tokens
+   - **Modular scale (preferred):** Ask for a scale name or ratio. The `type_scale` section generates all heading sizes as fluid `clamp()` values automatically — desktop from the named ratio, mobile from two steps down the scale list. Scales: minor-second (1.067), major-second (1.125), minor-third (1.200), major-third (1.250), perfect-fourth (1.333), augmented-fourth (1.414), perfect-fifth (1.500), golden-ratio (1.618).
+   - **Explicit sizes:** specific values for each heading level — use only when values are non-negotiable and cannot be derived
+   - **Fluid typography:** `clamp()` values — can combine with derived base tokens via `$ref()`
 4. **Spacing** — Base spacing unit and scale multipliers (preferred over hardcoded stops), border radii
 5. **Links/Social** — Social media URLs, frequently-used links
 6. **Strings** — Taglines, repeated text snippets
@@ -122,15 +122,13 @@ fonts:
   custom:
     display: "Font Name"
 
+type_scale:
+  scale: "perfect-fourth"   # generates type-d-h1 through type-d-h6 as fluid clamp() values
+  base: "1rem"              # mobile ratio auto-derived 2 steps down (minor-third)
+
 numbers:
   # Base tokens — tune these, derived values follow automatically
-  base-size:    "1rem"
   section-unit: "32px"
-
-  # Derived type scale
-  type-h5: "calc($ref(base-size) * 1.333)"
-  type-h4: "calc($ref(base-size) * 1.777)"
-  # ... etc
 
   # Derived spacing
   section-sm: "calc($ref(section-unit) * 1.75)"
@@ -235,7 +233,8 @@ Stable ID generation ensures re-importing doesn't create duplicates.
 - **Generating JSON without the script:** The format has too many undocumented requirements (tuple format for colors, both attrs and styleAttrs, stable ID hashing). Always use the generator.
 - **Guessing preset attribute paths:** Divi 5 module schemas are not intuitive. A path like `content.decoration.font` looks plausible but doesn't exist. Always verify against the module reference.
 - **Importing with Visual Builder open:** The VB's save operation overwrites the import. Every time.
-- **Hardcoding a full type scale:** If all size values are literal `rem` values, changing the base size requires recalculating every step manually. Use `$ref(base-size)` with `calc()` instead — one value to change, all steps follow.
+- **Hardcoding a full type scale:** If all size values are literal `rem` values, changing the base size requires recalculating every step manually. Use `type_scale` instead — one scale name, all steps generated automatically.
+- **Hardcoding clamp() min values without a scale:** A common mistake is setting the mobile min too large (e.g. clamp min = one step below desktop max on the same scale). The correct mobile minimum comes from a different, smaller ratio applied to the same step. Two scale positions down is the standard — `perfect-fourth` desktop → `minor-third` mobile. The `type_scale` section handles this automatically.
 - **Setting button padding on `button.decoration.spacing`:** This path is hidden from the builder UI. Any value set there is locked — the user has no way to see or override it. Button padding must go on `module.decoration.spacing`, which is what the builder exposes.
 - **Omitting `button.decoration.button.desktop.value.enable: "on"` from button presets:** Without this flag, none of the button decoration attrs apply. Every `divi/button` preset must include it.
 </failed_attempts>
