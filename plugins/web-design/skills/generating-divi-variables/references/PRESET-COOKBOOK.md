@@ -62,6 +62,46 @@ Text and post-content first because they affect the most content with the least 
 
 ---
 
+## Composition Patterns
+
+These are architectural decisions that affect which modules to reach for and how to combine presets. Get these wrong and you end up with the right visual but the wrong structure — harder to maintain and harder to extend.
+
+### divi/text over divi/cta for content blocks
+
+`divi/cta` is purpose-built for heading + body + button, but that specificity makes it inflexible. `divi/text` covers more ground with a single UI — use it for body content, callout blocks, key statements, and eyebrows by creating named presets for each treatment. The module stays generic; the preset defines the role. Reserve `divi/cta` for cases where the three-part structure (heading, body, button) is truly fixed.
+
+### Post content on CPTs
+
+On custom post types, a `divi/text` module pointed at the post content variable picks up text presets automatically — the same type scale and body styles apply without extra configuration. `divi/post-content` is still worth setting up for theme builder templates (it renders the post body directly), but `divi/text` is the right tool when you need preset inheritance on CPT content fields.
+
+### Card architecture — two valid approaches
+
+Choose based on what the card needs:
+
+**Blurb as card** — the blurb module has a built-in structure (icon/image, title, body) and supports stacking sub-elements including buttons. Use when the card has a fixed structure and you want a single self-contained module. The blurb preset styles the card shell; a button preset applied to the embedded button styles the CTA.
+
+**Column as card** — a column preset carries the card's visual treatment (background, border-radius, padding) while modules dropped inside (text, button, heading) each use their own presets. The column IS the card; its contents style independently. Use when card content varies or when the layout needs flexibility. Especially powerful with loop columns — define the card treatment once on the column preset and it propagates across every loop item.
+
+The choice is structural, not stylistic. Both can look identical. The difference is in how content is managed and how much flexibility interior modules need.
+
+### CTA bands are compositions, not single presets
+
+A full-width CTA band is a section + columns + modules, each with its own preset:
+- `divi/section` preset: background color and vertical padding
+- Column layout: typically image left, text + button right
+- `divi/text` preset: handles the heading and body copy
+- `divi/button` preset: handles the CTA
+
+No CTA-specific module preset is needed. The composition carries the design. Keep section presets minimal — most builds vary sections heavily, and aggressive section defaults create more overrides than they save.
+
+### What presets control — and what they don't
+
+Presets set decoration-level styling: backgrounds, borders, radius, spacing, font size, color, weight, line-height, letter-spacing. They do not control content (text, images), layout grid choices, heading level, or icon selection.
+
+Interior elements of a composed module still need their own presets. A blurb card preset styles the card shell — the button embedded in the blurb needs a button preset applied separately. A column card preset styles the container — the text and button modules inside need their own presets.
+
+---
+
 ## Module Catalog
 
 ### Tier 1: Typography Modules
@@ -99,10 +139,11 @@ Define how actions look site-wide.
 
 #### divi/button
 **Role:** Primary interactive element. Also embedded in CTA, contact form, slider.
-**Tokens:** T, C, S, R
-**Key element:** `button` — has `font`, `background`, `border`, `boxShadow`, `spacing`
-**Gotcha:** Styling lives on `button` element, not `module`. Module only controls outer positioning.
-**Note:** Buttons commonly need variants (primary, secondary, ghost). Use the list syntax for multiple presets per module.
+**Tokens:** T, C, R
+**Key element:** `button` — has `font`, `background`, `border`, `boxShadow`
+**Required attr:** `button.decoration.button.desktop.value.enable: "on"` — activates custom styles. Without this, none of the decoration attrs apply.
+**Padding gotcha:** Button padding goes on `module.decoration.spacing`, NOT `button.decoration.spacing`. The `module` spacing is what the builder exposes. `button.decoration.spacing` is hidden from the UI — setting it there locks the value silently with no way for the user to override it. Never set `button.decoration.spacing` in a preset.
+**Note:** Buttons commonly need variants (primary, secondary, tertiary). Use the list syntax for multiple presets per module. Tertiary (text-only) buttons still need padding on `module.decoration.spacing` to maintain an adequate hit area.
 
 #### divi/cta
 **Role:** Call-to-action block — heading + body + button. Conversion-focused sections.

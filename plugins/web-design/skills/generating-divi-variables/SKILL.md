@@ -57,18 +57,19 @@ Ask the user about their design system. Gather what's available — not every ca
 1. **Brand name** — Used for the spec name and ID namespace
 2. **Colors** — Primary, secondary, heading, body, link (system slots). Additional custom colors. Full palette CSS file if available.
 3. **Typography** — Heading and body fonts. Type scale approach:
-   - Modular scale: ratio + base size (e.g., 1.333 ratio, 1rem base)
-   - Explicit sizes: specific values for each heading level
-   - Fluid typography: `clamp()` values for responsive sizing
-4. **Spacing** — Spacing scale, border radii, standard measurements
+   - Modular scale: ratio + base size (e.g., 1.333 ratio, 1rem base) — **preferred**: generates a live calc chain
+   - Explicit sizes: specific values for each heading level — use only when values are non-negotiable
+   - Fluid typography: `clamp()` values — can combine with derived base tokens
+4. **Spacing** — Base spacing unit and scale multipliers (preferred over hardcoded stops), border radii
 5. **Links/Social** — Social media URLs, frequently-used links
 6. **Strings** — Taglines, repeated text snippets
 7. **CSS source** — Existing `palette.css` or design tokens file to bulk-import colors
 8. **Presets** — Which modules need presets? (text, button, section, etc.)
 
-For type scales, calculate values from the user's parameters:
-- **Modular scale:** Each step = base * ratio^step. For ratio 1.333, base 1rem: h5=1.333rem, h4=1.777rem, h3=2.369rem, h2=3.157rem, h1=4.209rem
-- **Fluid clamp:** `clamp(min, preferred, max)` where min is the modular scale value, max is min * fluid-factor, preferred is a vw unit that interpolates between them
+For type scales, prefer the base token + derived calc approach over hardcoding:
+- **Modular scale (preferred):** Store `base-size` and derive each step with `calc($ref(base-size) * {multiplier})`. Multipliers for 1.333 (Perfect Fourth): h5=1.333, h4=1.777, h3=2.369, h2=3.157, h1=4.209. Changing `base-size` updates the whole scale.
+- **Fluid clamp:** Can reference derived stops: `clamp($ref(type-h5), 3vw, $ref(type-h3))`. If the clamp max doesn't map to an existing step, use a literal: `calc($ref(base-size) * 5.61)`.
+- **Spacing:** Store a `section-unit` base and derive stops with integer multipliers. Same principle — one value to tune, everything follows.
 
 **GATE (self-check — document and proceed, no user approval needed):**
 - "Brand: [name]"
@@ -122,8 +123,19 @@ fonts:
     display: "Font Name"
 
 numbers:
-  type-body: "1rem"
-  type-d-xl: "clamp(3.157rem, 7vw, 5.61rem)"
+  # Base tokens — tune these, derived values follow automatically
+  base-size:    "1rem"
+  section-unit: "32px"
+
+  # Derived type scale
+  type-h5: "calc($ref(base-size) * 1.333)"
+  type-h4: "calc($ref(base-size) * 1.777)"
+  # ... etc
+
+  # Derived spacing
+  section-sm: "calc($ref(section-unit) * 1.75)"
+  section-md: "calc($ref(section-unit) * 3)"
+
   border-radius: "1rem"
 
 strings:
@@ -158,6 +170,9 @@ Read [PRESET-COOKBOOK.md](references/PRESET-COOKBOOK.md) for complete preset tem
 Reference shortcuts in preset `attrs` values:
 - `$var(name)` — References a number, string, font, or link variable by its YAML key
 - `$color(name)` — References a color by its YAML key (system or custom)
+
+Reference shortcuts in `numbers` values:
+- `$ref(name)` — References another number variable by key. Expands to `var(--gvid-xxx)`. Use inside `calc()` or `clamp()` to build derived tokens from base values.
 
 The generator resolves these to full `$variable()` syntax with correct `gvid-`/`gcid-` prefixes.
 
@@ -220,6 +235,9 @@ Stable ID generation ensures re-importing doesn't create duplicates.
 - **Generating JSON without the script:** The format has too many undocumented requirements (tuple format for colors, both attrs and styleAttrs, stable ID hashing). Always use the generator.
 - **Guessing preset attribute paths:** Divi 5 module schemas are not intuitive. A path like `content.decoration.font` looks plausible but doesn't exist. Always verify against the module reference.
 - **Importing with Visual Builder open:** The VB's save operation overwrites the import. Every time.
+- **Hardcoding a full type scale:** If all size values are literal `rem` values, changing the base size requires recalculating every step manually. Use `$ref(base-size)` with `calc()` instead — one value to change, all steps follow.
+- **Setting button padding on `button.decoration.spacing`:** This path is hidden from the builder UI. Any value set there is locked — the user has no way to see or override it. Button padding must go on `module.decoration.spacing`, which is what the builder exposes.
+- **Omitting `button.decoration.button.desktop.value.enable: "on"` from button presets:** Without this flag, none of the button decoration attrs apply. Every `divi/button` preset must include it.
 </failed_attempts>
 
 ## File Reference

@@ -33,6 +33,9 @@ except ImportError:
 
 TIMESTAMP = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
+# Regex to find all $ref(name) tokens inside a string value.
+_REF_PATTERN = re.compile(r'\$ref\(([^)]+)\)')
+
 # Divi's 5 built-in system color slot IDs.
 SYSTEM_COLOR_SLOTS = {
     "primary":   "gcid-primary-color",
@@ -134,6 +137,42 @@ def _stable_preset_id(namespace: str, module_name: str, preset_name: str) -> str
     """Stable 10-char alphanumeric ID for a preset."""
     h = hashlib.md5(f"{namespace}-preset:{module_name}:{preset_name}".encode()).hexdigest()[:10]
     return h
+
+
+def resolve_number_value(raw_value: str, namespace: str, numbers: dict) -> str:
+    """
+    Resolve $ref(name) tokens inside a number variable's value.
+
+    $ref(name) expands to var(--gvid-xxx), allowing derived tokens like:
+      type-h4: "calc($ref(base-size) * 1.777)"
+      section-md: "calc($ref(section-unit) * 3)"
+
+    The referenced name must be defined elsewhere in the numbers section.
+    Unrecognised names are left as-is so the caller can catch them in validation.
+    """
+    def replace(match):
+        ref_name = match.group(1).strip()
+        if ref_name in numbers:
+            return f"var(--{make_gvid(namespace, ref_name)})"
+        return match.group(0)  # leave unresolved — validation will catch it
+
+    return _REF_PATTERN.sub(replace, raw_value)
+
+
+def validate_number_refs(namespace: str, numbers: dict) -> list[str]:
+    """
+    Check that every $ref() inside a number value points to a defined key.
+    Returns a list of error messages (empty = valid).
+    """
+    errors = []
+    for name, raw_value in numbers.items():
+        if not isinstance(raw_value, str):
+            continue
+        for match in _REF_PATTERN.finditer(raw_value):
+            ref_name = match.group(1).strip()
+            if ref_name not in numbers:
+                errors.append(f"  numbers.{name}: $ref({ref_name}) — not defined in numbers")
+    return errors
 
 
 def resolve_preset_value(raw_value: str, namespace: str, spec: dict) -> str:
@@ -512,14 +551,23 @@ def build_divi_json(spec: dict) -> dict:
             "type": "fonts",
         })
 
-    # Numbers.
+    # Numbers — resolve $ref() references and validate.
+    numbers_spec = spec.get("numbers", {})
+    ref_errors = validate_number_refs(namespace, numbers_spec)
+    if ref_errors:
+        print("Error: unresolved $ref() in numbers:", file=sys.stderr)
+        for err in ref_errors:
+            print(err, file=sys.stderr)
+        sys.exit(1)
+
     num_order = 0
-    for name, value in spec.get("numbers", {}).items():
+    for name, value in numbers_spec.items():
         num_order += 1
+        resolved = resolve_number_value(str(value), namespace, numbers_spec)
         global_variables.append({
             "id": make_gvid(namespace, name),
             "label": name,
-            "value": str(value),
+            "value": resolved,
             "status": "active",
             "order": num_order,
             "lastUpdated": TIMESTAMP,

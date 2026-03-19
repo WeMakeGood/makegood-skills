@@ -61,16 +61,42 @@ numbers:
   type-body: "1rem"
   leading-body: "1.65em"
   type-d-xl: "clamp(3.157rem, 7vw, 5.61rem)"
-  type-d-lg: "clamp(2.369rem, 5.25vw, 4.209rem)"
-  type-d-md: "clamp(1.777rem, 4vw, 3.157rem)"
-  type-d-sm: "clamp(1.333rem, 3vw, 2.369rem)"
-  type-d-xs: "1.777rem"
-  leading-display: "0.91em"
   border-radius: "1rem"
   spacing-sm: "0.5rem"
   spacing-md: "1rem"
-  spacing-lg: "2rem"
 ```
+
+#### $ref() — derived variables
+
+Inside any number value, `$ref(name)` expands to `var(--gvid-xxx)`, where `name` is another key in the `numbers` section. This lets you define base tokens once and derive everything else with `calc()`.
+
+```yaml
+numbers:
+  # Base tokens — the only values you hand-tune
+  base-size:    "1rem"
+  section-unit: "32px"
+
+  # Type scale derived from base-size (Perfect Fourth, ratio 1.333)
+  type-h5: "calc($ref(base-size) * 1.333)"
+  type-h4: "calc($ref(base-size) * 1.777)"
+  type-h3: "calc($ref(base-size) * 2.369)"
+  type-h2: "calc($ref(base-size) * 3.157)"
+  type-h1: "calc($ref(base-size) * 4.209)"
+
+  # Fluid display sizes — clamp between two derived stops
+  type-d-sm: "clamp($ref(type-h5), 3vw, $ref(type-h3))"
+  type-d-xl: "clamp($ref(type-h2), 7vw, calc($ref(base-size) * 5.61))"
+
+  # Spacing derived from section-unit
+  section-xs: "$ref(section-unit)"
+  section-sm: "calc($ref(section-unit) * 1.75)"
+  section-md: "calc($ref(section-unit) * 3)"
+  section-xl: "calc($ref(section-unit) * 4)"
+```
+
+The generator resolves each `$ref()` to the corresponding `var(--gvid-xxx)` CSS custom property before writing the variable value. Divi resolves the chain at render time — changing `base-size` updates every derived token automatically.
+
+`$ref()` names must exist in the `numbers` section. The generator validates this and exits with an error if any reference is undefined.
 
 ### strings
 
