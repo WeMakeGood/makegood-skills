@@ -1,0 +1,1129 @@
+{
+  "context": "et_builder",
+  "data": [],
+  "presets": {
+    "group": {},
+    "module": {
+      "divi/text": {
+        "default": "boilerplate-text-body",
+        "items": {
+          "boilerplate-text-body": {
+            "id": "boilerplate-text-body",
+            "name": "Body",
+            "moduleName": "divi/text",
+            "version": "5.0.0",
+            "type": "module",
+            "attrs": {
+              "content": {
+                "decoration": {
+                  "bodyFont": {
+                    "body": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-body)",
+                            "lineHeight": "var(--gvid-leading-body)",
+                            "weight": "var(--gvid-weight-body)"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "headingFont": {
+                    "h1": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h1)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)",
+                            "letterSpacing": "var(--gvid-tracking-tight)"
+                          }
+                        }
+                      }
+                    },
+                    "h2": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h2)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    },
+                    "h3": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h3)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    },
+                    "h4": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h4)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    },
+                    "h5": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h5)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    },
+                    "h6": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h6)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "styleAttrs": {
+              "content": {
+                "decoration": {
+                  "bodyFont": {
+                    "body": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-body)",
+                            "lineHeight": "var(--gvid-leading-body)",
+                            "weight": "var(--gvid-weight-body)"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "headingFont": {
+                    "h1": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h1)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)",
+                            "letterSpacing": "var(--gvid-tracking-tight)"
+                          }
+                        }
+                      }
+                    },
+                    "h2": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h2)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    },
+                    "h3": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h3)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    },
+                    "h4": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h4)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    },
+                    "h5": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h5)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    },
+                    "h6": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h6)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "divi/post-content": {
+        "default": "boilerplate-post-content-body",
+        "items": {
+          "boilerplate-post-content-body": {
+            "id": "boilerplate-post-content-body",
+            "name": "Body",
+            "moduleName": "divi/post-content",
+            "version": "5.0.0",
+            "type": "module",
+            "attrs": {
+              "module": {
+                "decoration": {
+                  "bodyFont": {
+                    "body": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-body)",
+                            "lineHeight": "var(--gvid-leading-body)",
+                            "weight": "var(--gvid-weight-body)"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "headingFont": {
+                    "h1": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h1)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)",
+                            "letterSpacing": "var(--gvid-tracking-tight)"
+                          }
+                        }
+                      }
+                    },
+                    "h2": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h2)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    },
+                    "h3": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h3)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    },
+                    "h4": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h4)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    },
+                    "h5": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h5)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    },
+                    "h6": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h6)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "styleAttrs": {
+              "module": {
+                "decoration": {
+                  "bodyFont": {
+                    "body": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-body)",
+                            "lineHeight": "var(--gvid-leading-body)",
+                            "weight": "var(--gvid-weight-body)"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "headingFont": {
+                    "h1": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h1)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)",
+                            "letterSpacing": "var(--gvid-tracking-tight)"
+                          }
+                        }
+                      }
+                    },
+                    "h2": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h2)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    },
+                    "h3": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h3)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    },
+                    "h4": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h4)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    },
+                    "h5": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h5)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    },
+                    "h6": {
+                      "font": {
+                        "desktop": {
+                          "value": {
+                            "size": "var(--gvid-type-d-h6)",
+                            "lineHeight": "var(--gvid-leading-display)",
+                            "weight": "var(--gvid-weight-heading)"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "divi/button": {
+        "default": "boilerplate-button",
+        "items": {
+          "boilerplate-button": {
+            "id": "boilerplate-button",
+            "name": "Button",
+            "moduleName": "divi/button",
+            "version": "5.0.0",
+            "type": "module",
+            "attrs": {},
+            "styleAttrs": {}
+          }
+        }
+      },
+      "divi/column": {
+        "default": "boilerplate-column",
+        "items": {
+          "boilerplate-column": {
+            "id": "boilerplate-column",
+            "name": "Column",
+            "moduleName": "divi/column",
+            "version": "5.0.0",
+            "type": "module",
+            "attrs": {
+              "module": {
+                "decoration": {
+                  "layout": {
+                    "desktop": {
+                      "value": {
+                        "columnGap": "var(--gvid-space-md)",
+                        "rowGap": "var(--gvid-space-md)"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "styleAttrs": {
+              "module": {
+                "decoration": {
+                  "layout": {
+                    "desktop": {
+                      "value": {
+                        "columnGap": "var(--gvid-space-md)",
+                        "rowGap": "var(--gvid-space-md)"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "divi/group": {
+        "default": "boilerplate-group",
+        "items": {
+          "boilerplate-group": {
+            "id": "boilerplate-group",
+            "name": "Group",
+            "moduleName": "divi/group",
+            "version": "5.0.0",
+            "type": "module",
+            "attrs": {
+              "module": {
+                "decoration": {
+                  "layout": {
+                    "desktop": {
+                      "value": {
+                        "columnGap": "var(--gvid-space-md)",
+                        "rowGap": "var(--gvid-space-md)"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "styleAttrs": {
+              "module": {
+                "decoration": {
+                  "layout": {
+                    "desktop": {
+                      "value": {
+                        "columnGap": "var(--gvid-space-md)",
+                        "rowGap": "var(--gvid-space-md)"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "divi/section": {
+        "default": "boilerplate-section",
+        "items": {
+          "boilerplate-section": {
+            "id": "boilerplate-section",
+            "name": "Section",
+            "moduleName": "divi/section",
+            "version": "5.0.0",
+            "type": "module",
+            "attrs": {
+              "module": {
+                "decoration": {
+                  "layout": {
+                    "desktop": {
+                      "value": {
+                        "columnGap": "var(--gvid-space-2xl)",
+                        "rowGap": "var(--gvid-space-2xl)"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "styleAttrs": {
+              "module": {
+                "decoration": {
+                  "layout": {
+                    "desktop": {
+                      "value": {
+                        "columnGap": "var(--gvid-space-2xl)",
+                        "rowGap": "var(--gvid-space-2xl)"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "divi/row": {
+        "default": "boilerplate-row",
+        "items": {
+          "boilerplate-row": {
+            "id": "boilerplate-row",
+            "name": "Row",
+            "moduleName": "divi/row",
+            "version": "5.0.0",
+            "type": "module",
+            "attrs": {
+              "module": {
+                "decoration": {
+                  "layout": {
+                    "desktop": {
+                      "value": {
+                        "flexWrap": "wrap",
+                        "columnGap": "var(--gvid-space-xl)",
+                        "rowGap": "var(--gvid-space-lg)"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "styleAttrs": {
+              "module": {
+                "decoration": {
+                  "layout": {
+                    "desktop": {
+                      "value": {
+                        "flexWrap": "wrap",
+                        "columnGap": "var(--gvid-space-xl)",
+                        "rowGap": "var(--gvid-space-lg)"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "divi/image": {
+        "default": "boilerplate-image",
+        "items": {
+          "boilerplate-image": {
+            "id": "boilerplate-image",
+            "name": "Image",
+            "moduleName": "divi/image",
+            "version": "5.0.0",
+            "type": "module",
+            "attrs": {},
+            "styleAttrs": {}
+          }
+        }
+      },
+      "divi/icon": {
+        "default": "boilerplate-icon",
+        "items": {
+          "boilerplate-icon": {
+            "id": "boilerplate-icon",
+            "name": "Icon",
+            "moduleName": "divi/icon",
+            "version": "5.0.0",
+            "type": "module",
+            "attrs": {},
+            "styleAttrs": {}
+          }
+        }
+      },
+      "divi/divider": {
+        "default": "boilerplate-divider",
+        "items": {
+          "boilerplate-divider": {
+            "id": "boilerplate-divider",
+            "name": "Divider",
+            "moduleName": "divi/divider",
+            "version": "5.0.0",
+            "type": "module",
+            "attrs": {},
+            "styleAttrs": {}
+          }
+        }
+      },
+      "divi/menu": {
+        "default": "boilerplate-menu",
+        "items": {
+          "boilerplate-menu": {
+            "id": "boilerplate-menu",
+            "name": "Menu",
+            "moduleName": "divi/menu",
+            "version": "5.0.0",
+            "type": "module",
+            "attrs": {},
+            "styleAttrs": {}
+          }
+        }
+      }
+    }
+  },
+  "page_settings_meta": null,
+  "canvases": [],
+  "images": [],
+  "thumbnails": [],
+  "global_colors": [
+    [
+      "gcid-primary-color",
+      {
+        "color": "",
+        "status": "active",
+        "label": "Primary Color"
+      }
+    ],
+    [
+      "gcid-secondary-color",
+      {
+        "color": "",
+        "status": "active",
+        "label": "Secondary Color"
+      }
+    ],
+    [
+      "gcid-heading-color",
+      {
+        "color": "",
+        "status": "active",
+        "label": "Heading Text Color"
+      }
+    ],
+    [
+      "gcid-body-color",
+      {
+        "color": "",
+        "status": "active",
+        "label": "Body Text Color"
+      }
+    ],
+    [
+      "gcid-link-color",
+      {
+        "color": "",
+        "status": "active",
+        "label": "Link Color"
+      }
+    ],
+    [
+      "gcid-color-ground",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-ground"
+      }
+    ],
+    [
+      "gcid-color-surface",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-surface"
+      }
+    ],
+    [
+      "gcid-color-surface-alt",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-surface-alt"
+      }
+    ],
+    [
+      "gcid-color-border",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-border"
+      }
+    ],
+    [
+      "gcid-color-text-primary",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-text-primary"
+      }
+    ],
+    [
+      "gcid-color-text-secondary",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-text-secondary"
+      }
+    ],
+    [
+      "gcid-color-text-dim",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-text-dim"
+      }
+    ],
+    [
+      "gcid-color-text-on-interactive",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-text-on-interactive"
+      }
+    ],
+    [
+      "gcid-color-interactive",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-interactive"
+      }
+    ],
+    [
+      "gcid-color-interactive-hover",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-interactive-hover"
+      }
+    ],
+    [
+      "gcid-color-interactive-text",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-interactive-text"
+      }
+    ],
+    [
+      "gcid-color-interactive-text-hover",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-interactive-text-hover"
+      }
+    ],
+    [
+      "gcid-color-error",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-error"
+      }
+    ],
+    [
+      "gcid-color-error-hover",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-error-hover"
+      }
+    ],
+    [
+      "gcid-color-success",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-success"
+      }
+    ],
+    [
+      "gcid-color-success-hover",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-success-hover"
+      }
+    ],
+    [
+      "gcid-color-info",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-info"
+      }
+    ],
+    [
+      "gcid-color-info-hover",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-info-hover"
+      }
+    ],
+    [
+      "gcid-color-warning",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-warning"
+      }
+    ],
+    [
+      "gcid-color-surface-scrim",
+      {
+        "color": "",
+        "status": "active",
+        "label": "color-surface-scrim"
+      }
+    ]
+  ],
+  "global_variables": [
+    {
+      "id": "--et_global_heading_font",
+      "label": "Heading Font",
+      "value": "",
+      "status": "active",
+      "order": 100,
+      "type": "fonts"
+    },
+    {
+      "id": "--et_global_body_font",
+      "label": "Body Font",
+      "value": "",
+      "status": "active",
+      "order": 101,
+      "type": "fonts"
+    },
+    {
+      "id": "gvid-type-base",
+      "label": "type-base",
+      "value": "1rem",
+      "status": "active",
+      "order": 200,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-scale",
+      "label": "type-scale",
+      "value": "1.333",
+      "status": "active",
+      "order": 201,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-scale-mobile",
+      "label": "type-scale-mobile",
+      "value": "1.200",
+      "status": "active",
+      "order": 202,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-d-h1",
+      "label": "type-d-h1",
+      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 6)), 7.48vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 6)))",
+      "status": "active",
+      "order": 700,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-d-h2",
+      "label": "type-d-h2",
+      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 5)), 5.61vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 5)))",
+      "status": "active",
+      "order": 701,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-d-h3",
+      "label": "type-d-h3",
+      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 4)), 4.21vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 4)))",
+      "status": "active",
+      "order": 702,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-d-h4",
+      "label": "type-d-h4",
+      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 3)), 3.16vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 3)))",
+      "status": "active",
+      "order": 703,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-d-h5",
+      "label": "type-d-h5",
+      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 2)), 2.37vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 2)))",
+      "status": "active",
+      "order": 704,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-d-h6",
+      "label": "type-d-h6",
+      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 1)), 1.78vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 1)))",
+      "status": "active",
+      "order": 705,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-body-lg",
+      "label": "type-body-lg",
+      "value": "calc(var(--gvid-type-base) * var(--gvid-type-scale))",
+      "status": "active",
+      "order": 800,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-body",
+      "label": "type-body",
+      "value": "var(--gvid-type-base)",
+      "status": "active",
+      "order": 801,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-sm",
+      "label": "type-sm",
+      "value": "calc(var(--gvid-type-base) * 0.875)",
+      "status": "active",
+      "order": 802,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-caption",
+      "label": "type-caption",
+      "value": "calc(var(--gvid-type-base) * 0.75)",
+      "status": "active",
+      "order": 803,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-leading-display",
+      "label": "leading-display",
+      "value": "0.91em",
+      "status": "active",
+      "order": 300,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-leading-body",
+      "label": "leading-body",
+      "value": "1.65em",
+      "status": "active",
+      "order": 301,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-leading-tight",
+      "label": "leading-tight",
+      "value": "1.1em",
+      "status": "active",
+      "order": 302,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-tracking-tight",
+      "label": "tracking-tight",
+      "value": "-0.04em",
+      "status": "active",
+      "order": 310,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-tracking-normal",
+      "label": "tracking-normal",
+      "value": "0em",
+      "status": "active",
+      "order": 311,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-tracking-wide",
+      "label": "tracking-wide",
+      "value": "0.13em",
+      "status": "active",
+      "order": 312,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-weight-heading",
+      "label": "weight-heading",
+      "value": "800",
+      "status": "active",
+      "order": 400,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-weight-body",
+      "label": "weight-body",
+      "value": "400",
+      "status": "active",
+      "order": 401,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-weight-emphasis",
+      "label": "weight-emphasis",
+      "value": "600",
+      "status": "active",
+      "order": 402,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-space-base",
+      "label": "space-base",
+      "value": "1rem",
+      "status": "active",
+      "order": 600,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-space-scale",
+      "label": "space-scale",
+      "value": "1.333",
+      "status": "active",
+      "order": 601,
+      "type": "numbers"
+    },
+    {
+      "status": "active",
+      "type": "numbers",
+      "id": "gvid-space-xs",
+      "label": "space-xs",
+      "value": "calc(var(--gvid-space-base) / var(--gvid-space-scale))",
+      "order": 900
+    },
+    {
+      "status": "active",
+      "type": "numbers",
+      "id": "gvid-space-sm",
+      "label": "space-sm",
+      "value": "var(--gvid-space-base)",
+      "order": 901
+    },
+    {
+      "status": "active",
+      "type": "numbers",
+      "id": "gvid-space-md",
+      "label": "space-md",
+      "value": "calc(var(--gvid-space-base) * var(--gvid-space-scale))",
+      "order": 902
+    },
+    {
+      "status": "active",
+      "type": "numbers",
+      "id": "gvid-space-lg",
+      "label": "space-lg",
+      "value": "calc(var(--gvid-space-base) * pow(var(--gvid-space-scale), 2))",
+      "order": 903
+    },
+    {
+      "status": "active",
+      "type": "numbers",
+      "id": "gvid-space-xl",
+      "label": "space-xl",
+      "value": "calc(var(--gvid-space-base) * pow(var(--gvid-space-scale), 3))",
+      "order": 904
+    },
+    {
+      "status": "active",
+      "type": "numbers",
+      "id": "gvid-space-2xl",
+      "label": "space-2xl",
+      "value": "calc(var(--gvid-space-base) * pow(var(--gvid-space-scale), 4))",
+      "order": 905
+    },
+    {
+      "id": "gvid-container-max",
+      "label": "container-max",
+      "value": "1200px",
+      "status": "active",
+      "order": 602,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-container-padding",
+      "label": "container-padding",
+      "value": "clamp(var(--gvid-space-md), 2vw, var(--gvid-space-xl))",
+      "status": "active",
+      "order": 1000,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-radius-pill",
+      "label": "radius-pill",
+      "value": "999px",
+      "status": "active",
+      "order": 500,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-radius-lg",
+      "label": "radius-lg",
+      "value": "1rem",
+      "status": "active",
+      "order": 501,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-radius-md",
+      "label": "radius-md",
+      "value": "0.5rem",
+      "status": "active",
+      "order": 502,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-radius-sm",
+      "label": "radius-sm",
+      "value": "4px",
+      "status": "active",
+      "order": 503,
+      "type": "numbers"
+    }
+  ]
+}

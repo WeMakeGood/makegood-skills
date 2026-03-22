@@ -24,7 +24,7 @@ attribute paths.
 2. All `$var()` and `$color()` references in the YAML resolve to defined variables
 3. The summary counts match expectations
 
-**PROFESSIONAL CHALLENGE:** If the user requests a preset attribute path that doesn't exist in the module reference, flag it rather than guessing. Offer the closest valid path. If they request a color in `global_variables` instead of `global_colors`, explain why it won't work (see [DIVI-IMPORT-CONSTRAINTS.md](references/DIVI-IMPORT-CONSTRAINTS.md)).
+**PROFESSIONAL CHALLENGE:** If the user requests a preset attribute path that doesn't exist in the module reference, flag it rather than guessing. Offer the closest valid path. If they request a color in `global_variables` instead of `global_colors`, explain why it won't work (see [DIVI-SPEC.md](references/DIVI-SPEC.md)).
 
 **IMPORT SAFETY:** Always warn users to close the Visual Builder before importing. Divi's Visual Builder save overwrites imports if both happen simultaneously.
 
@@ -236,17 +236,20 @@ Stable ID generation ensures re-importing doesn't create duplicates.
 - **Hardcoding a full type scale:** If all size values are literal `rem` values, changing the base size requires recalculating every step manually. Use `type_scale` instead — one scale name, all steps generated automatically.
 - **Hardcoding clamp() min values without a scale:** A common mistake is setting the mobile min too large (e.g. clamp min = one step below desktop max on the same scale). The correct mobile minimum comes from a different, smaller ratio applied to the same step. Two scale positions down is the standard — `perfect-fourth` desktop → `minor-third` mobile. The `type_scale` section handles this automatically.
 - **Setting button padding on `button.decoration.spacing`:** This path is hidden from the builder UI. Any value set there is locked — the user has no way to see or override it. Button padding must go on `module.decoration.spacing`, which is what the builder exposes.
-- **Omitting `button.decoration.button.desktop.value.enable: "on"` from button presets:** Without this flag, none of the button decoration attrs apply. Every `divi/button` preset must include it.
+- **Omitting `button.decoration.button.desktop.value.enable: "on"` from any button preset:** Without this flag, none of the button decoration attrs apply. This must be in **every** `divi/button` preset — base presets, color variants, environment overrides. A stacked color variant without it will not render even if the base preset has it.
+- **`calc(var(--gvid-xxx))` showing "Invalid unit" in the Divi UI:** This is a false positive in the UI validator. The expression works correctly in the browser and in the editor preview. Divi's variable system outputs `--gvid-xxx` as the CSS custom property name, and `calc(var(--gvid-xxx) * N)` resolves correctly at runtime. Do not remove the `gvid-` prefix — `calc(var(--xxx))` without it does not resolve.
 </failed_attempts>
 
 ## File Reference
 
 | File | Purpose |
 |------|---------|
-| [references/YAML-SPEC-FORMAT.md](references/YAML-SPEC-FORMAT.md) | Complete YAML spec format documentation |
-| [references/DIVI-IMPORT-CONSTRAINTS.md](references/DIVI-IMPORT-CONSTRAINTS.md) | Hard requirements for Divi's import format |
-| [references/PRESET-COOKBOOK.md](references/PRESET-COOKBOOK.md) | Preset templates by module with verified paths |
-| [references/divi-module-reference.json](references/divi-module-reference.json) | All 75 Divi 5 modules with attribute paths |
-| [references/spec-test.yaml](references/spec-test.yaml) | Working example YAML spec |
+| [references/boilerplate.json](references/boilerplate.json) | Static base — variable system + primitive presets. Load with `boilerplate:` key in brand YAML. |
+| [references/YAML-SPEC-FORMAT.md](references/YAML-SPEC-FORMAT.md) | Brand YAML format — how to write a brand spec |
+| [references/PRESET-COOKBOOK.md](references/PRESET-COOKBOOK.md) | Design recipes — colors, variables, composition patterns |
+| [references/DIVI-SPEC.md](references/DIVI-SPEC.md) | Technical rules — bugs, constraints, exact paths, import requirements |
+| [references/divi-module-reference.json](references/divi-module-reference.json) | Complete module element and path reference |
+| [references/spec-test.yaml](references/spec-test.yaml) | Working example brand YAML spec |
 | [references/spec-test.json](references/spec-test.json) | Generated JSON from the example spec |
-| [scripts/generate_divi_variables.py](scripts/generate_divi_variables.py) | Python generator — YAML to Divi JSON |
+| [scripts/generate_divi_variables.py](scripts/generate_divi_variables.py) | Generator — boilerplate + brand YAML → Divi import JSON |
+| [scripts/extract_module_reference.py](scripts/extract_module_reference.py) | Extracts module reference from Divi source |

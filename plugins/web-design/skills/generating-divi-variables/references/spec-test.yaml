@@ -1,52 +1,100 @@
-name: "Test Spec"
+name: "Test Brand"
 id_namespace: "test"
+boilerplate: "boilerplate.json"
 
-# ── System colors ────────────────────────────────────────────────────────────
-system_colors:
-  primary: "#ff9e3d"
-  secondary: "#d47b10"
-  heading: "#f6f6f1"
-  body: "#d5d4c1"
-  link: "#ff9e3d"
+# ── Scale overrides ───────────────────────────────────────────────────────────
+# Omit to use boilerplate defaults (1.333 / 1.200 / 1rem / 1200px)
+overrides:
+  type-scale:    1.333
+  space-scale:   1.333
+  container-max: "1200px"
 
-# ── System fonts ─────────────────────────────────────────────────────────────
+# ── Fonts ─────────────────────────────────────────────────────────────────────
 fonts:
   heading: "Inter Tight"
-  body: "Inter"
+  body:    "Inter"
 
-# ── Number variables (type scale + spacing) ──────────────────────────────────
-numbers:
-  type-body: "1rem"
-  leading-body: "1.65em"
-  type-d-xl: "clamp(3.157rem, 7vw, 5.61rem)"
-  type-d-lg: "clamp(2.369rem, 5.25vw, 4.209rem)"
-  type-d-md: "clamp(1.777rem, 4vw, 3.157rem)"
-  type-d-sm: "clamp(1.333rem, 3vw, 2.369rem)"
-  type-d-xs: "1.777rem"
-  leading-display: "0.91em"
-  border-radius: "1rem"
+# ── Divi system color slots ───────────────────────────────────────────────────
+system_colors:
+  primary:   "#4a90d9"
+  secondary: "#2c6fad"
+  heading:   "#1a1a1a"
+  body:      "#444444"
+  link:      "#4a90d9"
 
-# ── Presets ──────────────────────────────────────────────────────────────────
-# Attribute paths match the module reference (divi-module-reference.json).
-# Use $var(name) to reference a number/string variable from above.
-# Use $color(name) to reference a color variable.
+# ── Semantic color assignments ────────────────────────────────────────────────
+colors:
+  color-ground:                 "#f8f8f8"
+  color-surface:                "#ffffff"
+  color-surface-alt:            "#eeeeee"
+  color-border:                 "#dddddd"
+  color-text-primary:           "#1a1a1a"
+  color-text-secondary:         "#444444"
+  color-text-dim:               "#888888"
+  color-text-on-interactive:    "#ffffff"
+  color-interactive:            "#4a90d9"
+  color-interactive-hover:      "#2c6fad"
+  color-interactive-text:       "#4a90d9"
+  color-interactive-text-hover: "#2c6fad"
+  color-error:                  "#c6232b"
+  color-error-hover:            "#980617"
+  color-success:                "#1f823a"
+  color-success-hover:          "#046124"
+  color-info:                   "#1e779a"
+  color-info-hover:             "#045875"
+  color-warning:                "#d47b10"
+  color-surface-scrim:          "rgba(0,0,0,0.6)"
 
+# ── Role presets ──────────────────────────────────────────────────────────────
 presets:
+
   divi/text:
-    name: "Brand Text"
-    default: true
-    attrs:
-      # Body font
-      content.decoration.bodyFont.body.font.desktop.value.size: "$var(type-body)"
-      content.decoration.bodyFont.body.font.desktop.value.lineHeight: "$var(leading-body)"
-      # Heading sizes — h1 through h5
-      content.decoration.headingFont.h1.font.desktop.value.size: "$var(type-d-xl)"
-      content.decoration.headingFont.h1.font.desktop.value.lineHeight: "$var(leading-display)"
-      content.decoration.headingFont.h2.font.desktop.value.size: "$var(type-d-lg)"
-      content.decoration.headingFont.h2.font.desktop.value.lineHeight: "$var(leading-display)"
-      content.decoration.headingFont.h3.font.desktop.value.size: "$var(type-d-md)"
-      content.decoration.headingFont.h3.font.desktop.value.lineHeight: "$var(leading-display)"
-      content.decoration.headingFont.h4.font.desktop.value.size: "$var(type-d-sm)"
-      content.decoration.headingFont.h4.font.desktop.value.lineHeight: "$var(leading-display)"
-      content.decoration.headingFont.h5.font.desktop.value.size: "$var(type-d-xs)"
-      content.decoration.headingFont.h5.font.desktop.value.lineHeight: "$var(leading-display)"
+    - name: "Body"
+      default: true
+      attrs:
+        content.decoration.bodyFont.body.font.desktop.value.size: "var(--gvid-type-body)"
+        content.decoration.bodyFont.body.font.desktop.value.lineHeight: "var(--gvid-leading-body)"
+        content.decoration.bodyFont.body.font.desktop.value.weight: "var(--gvid-weight-body)"
+        content.decoration.headingFont.h1.font.desktop.value.size: "var(--gvid-type-d-h1)"
+        content.decoration.headingFont.h1.font.desktop.value.lineHeight: "var(--gvid-leading-display)"
+        content.decoration.headingFont.h1.font.desktop.value.weight: "var(--gvid-weight-heading)"
+        content.decoration.headingFont.h1.font.desktop.value.letterSpacing: "var(--gvid-tracking-tight)"
+        content.decoration.headingFont.h2.font.desktop.value.size: "var(--gvid-type-d-h2)"
+        content.decoration.headingFont.h2.font.desktop.value.lineHeight: "var(--gvid-leading-display)"
+        content.decoration.headingFont.h2.font.desktop.value.weight: "var(--gvid-weight-heading)"
+        content.decoration.headingFont.h3.font.desktop.value.size: "var(--gvid-type-d-h3)"
+        content.decoration.headingFont.h3.font.desktop.value.lineHeight: "var(--gvid-leading-display)"
+        content.decoration.headingFont.h3.font.desktop.value.weight: "var(--gvid-weight-heading)"
+        content.decoration.headingFont.h4.font.desktop.value.size: "var(--gvid-type-d-h4)"
+        content.decoration.headingFont.h4.font.desktop.value.lineHeight: "var(--gvid-leading-display)"
+        content.decoration.headingFont.h4.font.desktop.value.weight: "var(--gvid-weight-heading)"
+        content.decoration.headingFont.h5.font.desktop.value.size: "var(--gvid-type-d-h5)"
+        content.decoration.headingFont.h5.font.desktop.value.lineHeight: "var(--gvid-leading-display)"
+        content.decoration.headingFont.h5.font.desktop.value.weight: "var(--gvid-weight-heading)"
+        content.decoration.headingFont.h6.font.desktop.value.size: "var(--gvid-type-d-h6)"
+        content.decoration.headingFont.h6.font.desktop.value.lineHeight: "var(--gvid-leading-display)"
+        content.decoration.headingFont.h6.font.desktop.value.weight: "var(--gvid-weight-heading)"
+
+  divi/button:
+    - name: "Primary"
+      default: true
+      attrs:
+        button.decoration.button.desktop.value.enable: "on"
+        button.decoration.button.desktop.value.icon.enable: "off"
+        button.decoration.font.font.desktop.value.size: "var(--gvid-type-sm)"
+        button.decoration.font.font.desktop.value.weight: "var(--gvid-weight-emphasis)"
+        button.decoration.font.font.desktop.value.letterSpacing: "var(--gvid-tracking-wide)"
+        button.decoration.background.desktop.value.color: "$color(color-interactive)"
+        button.decoration.font.font.desktop.value.color: "$color(color-text-on-interactive)"
+        button.decoration.border.desktop.value.styles.all.color: "$color(color-interactive)"
+        button.decoration.border.desktop.value.styles.all.width: "2px"
+        button.decoration.border.desktop.value.styles.all.style: "solid"
+        button.decoration.border.desktop.value.radius.topLeft: "var(--gvid-radius-pill)"
+        button.decoration.border.desktop.value.radius.topRight: "var(--gvid-radius-pill)"
+        button.decoration.border.desktop.value.radius.bottomLeft: "var(--gvid-radius-pill)"
+        button.decoration.border.desktop.value.radius.bottomRight: "var(--gvid-radius-pill)"
+        button.decoration.border.desktop.value.radius.sync: "true"
+        module.decoration.spacing.desktop.value.padding.top: "var(--gvid-space-sm)"
+        module.decoration.spacing.desktop.value.padding.right: "var(--gvid-space-lg)"
+        module.decoration.spacing.desktop.value.padding.bottom: "var(--gvid-space-sm)"
+        module.decoration.spacing.desktop.value.padding.left: "var(--gvid-space-lg)"

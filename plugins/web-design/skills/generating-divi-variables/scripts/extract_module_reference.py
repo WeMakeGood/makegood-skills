@@ -1,331 +1,362 @@
 #!/usr/bin/env python3
 """
-Extract a flat reference of all Divi 5 module attribute paths and their defaults.
+Extract a complete Divi 5 module preset reference.
 
-Reads:
-  - module.json files from each module component directory (attribute schemas)
-  - _all_modules_default_printed_style_attributes.php (default values)
+For each module, combines four source files:
+  - module.json                              — element structure, decoration groups, hover flags
+  - conversion-outline.json                  — maps properties to styleAttrs vs renderAttrs
+  - module-default-printed-style-attributes  — value shapes for decoration.* (styleAttrs)
+  - module-default-render-attributes         — value shapes for advanced.*/meta.* (renderAttrs)
 
-Outputs:
-  divi-module-reference.json — a flat map of every module's settable attribute
-  paths, organized by module name, element, and category.
+Output: tmp/module-reference-v2.json
 
 Usage:
-  python3 extract_module_reference.py
-  python3 extract_module_reference.py --divi-path ./Divi
-  python3 extract_module_reference.py -o custom-output.json
+  python3 tmp/extract_module_reference_v2.py
+  python3 tmp/extract_module_reference_v2.py --divi-path /path/to/Divi
+  python3 tmp/extract_module_reference_v2.py --module button   # single module
 """
 
 import argparse
 import json
-import re
 from pathlib import Path
 
 
-# ── PHP array parser (minimal) ───────────────────────────────────────────────
-# The defaults file is a PHP array literal. We convert it to JSON-parseable
-# form rather than exec'ing PHP.
+DIVI_DEFAULT = Path(__file__).parent.parent / ".." / ".." / ".." / "Divi" / "Divi"
 
-def parse_php_defaults(php_path: Path) -> dict:
+
+# ── Conversion outline analysis ──────────────────────────────────────────────
+
+def _walk_outline(node, path_so_far: list, results: dict):
     """
-    Parse the _all_modules_default_printed_style_attributes.php file into a
-    Python dict. Uses PHP CLI to evaluate the file and output JSON, which
-    avoids the complexity of converting PHP array syntax to JSON in Python.
-    Falls back to a regex-based parser if PHP is not available.
+    Recursively walk a conversion outline node and collect leaf mappings.
+
+    Each leaf value is a string like:
+      "module.decoration.spacing"         → styleAttrs  (decoration.*)
+      "module.advanced.text"              → renderAttrs (advanced.*)
+      "module.meta.adminLabel"            → renderAttrs (meta.*)
+      "button.innerContent.*.text"        → renderAttrs (innerContent)
+      "button.decoration.button.*.enable" → renderAttrs (decoration.button)
+      "button"                            → element self-reference, skip
+
+    We classify by the mapped target path.
     """
-    import subprocess
-
-    # Try using PHP CLI to evaluate the file directly.
-    try:
-        result = subprocess.run(
-            ["php", "-r", f"echo json_encode(require '{php_path}');"],
-            capture_output=True, text=True, timeout=10,
-        )
-        if result.returncode == 0 and result.stdout:
-            return json.loads(result.stdout)
-    except (FileNotFoundError, subprocess.TimeoutExpired, json.JSONDecodeError):
-        pass
-
-    # Fallback: token-based conversion for environments without PHP.
-    # PHP single-quoted strings can contain double quotes (unescaped), so we
-    # must escape them when converting to JSON double-quoted strings.
-    text = php_path.read_text()
-
-    # Remove PHP comments.
-    text = re.sub(r'//.*?\n', '\n', text)
-    text = re.sub(r'/\*.*?\*/', '', text, flags=re.DOTALL)
-
-    # Strip PHP opening and return statement.
-    text = re.sub(r'^<\?php\s*', '', text, flags=re.DOTALL)
-    text = re.sub(r'^return\s+', '', text.strip(), flags=re.DOTALL)
-    text = re.sub(r'\];\s*$', ']', text.strip())
-
-    # Convert PHP single-quoted strings to JSON double-quoted strings.
-    # Inside PHP single quotes, only \' and \\ are escape sequences.
-    # Double quotes inside are literal and must be escaped for JSON.
-    def convert_php_string(match):
-        content = match.group(1)
-        # Unescape PHP single-quote escapes.
-        content = content.replace("\\'", "'")
-        content = content.replace("\\\\", "\\")
-        # Escape for JSON double-quoted string.
-        content = content.replace("\\", "\\\\")
-        content = content.replace('"', '\\"')
-        content = content.replace("\n", "\\n")
-        content = content.replace("\t", "\\t")
-        return f'"{content}"'
-
-    # Match PHP single-quoted strings (handling escaped single quotes inside).
-    text = re.sub(r"'((?:[^'\\]|\\.)*)'", convert_php_string, text)
-
-    # Replace => with :
-    text = text.replace('=>', ':')
-
-    # Convert PHP [] to JSON {} for associative arrays.
-    # Parse character by character, tracking whether each [] is an object or array.
-    result_chars = []
-    brace_stack = []
-    i = 0
-    while i < len(text):
-        ch = text[i]
-        if ch == '[':
-            # Distinguish associative arrays (objects) from indexed arrays.
-            # Associative: [ "key" => ...  (after conversion: [ "key" : ...)
-            # Indexed:     [ "value", ... ] or [ ]
-            rest = text[i+1:].lstrip()
-            is_assoc = False
-            if rest and rest[0] == '"':
-                # Find the closing quote, then check if : follows.
-                close_q = rest.find('"', 1)
-                if close_q > 0:
-                    after_str = rest[close_q+1:].lstrip()
-                    is_assoc = after_str.startswith(':')
-            if is_assoc:
-                result_chars.append('{')
-                brace_stack.append('object')
+    if isinstance(node, str):
+        # Skip bare element self-references (e.g. "button" with no dot path).
+        if "." in node:
+            results[node] = _classify_target(node)
+    elif isinstance(node, dict):
+        for k, v in node.items():
+            if k == "default":
+                _walk_outline(v, path_so_far, results)
             else:
-                result_chars.append('[')
-                brace_stack.append('array')
-        elif ch == ']':
-            if brace_stack and brace_stack[-1] == 'object':
-                result_chars.append('}')
-            else:
-                result_chars.append(']')
-            if brace_stack:
-                brace_stack.pop()
-        elif ch == '"':
-            # Skip over the entire string literal without modifying it.
-            result_chars.append('"')
-            i += 1
-            while i < len(text) and text[i] != '"':
-                if text[i] == '\\':
-                    result_chars.append(text[i])
-                    i += 1
-                    if i < len(text):
-                        result_chars.append(text[i])
-                else:
-                    result_chars.append(text[i])
-                i += 1
-            if i < len(text):
-                result_chars.append('"')
-        else:
-            result_chars.append(ch)
-        i += 1
+                _walk_outline(v, path_so_far + [k], results)
+    elif isinstance(node, list):
+        for item in node:
+            _walk_outline(item, path_so_far, results)
 
-    text = ''.join(result_chars)
 
-    # Remove trailing commas.
-    text = re.sub(r',\s*([}\]])', r'\1', text)
+def _classify_target(target: str) -> str:
+    """
+    Classify a conversion outline target path as 'styleAttrs' or 'renderAttrs'.
 
-    # PHP literals.
-    text = re.sub(r'\btrue\b', 'true', text)
-    text = re.sub(r'\bfalse\b', 'false', text)
-    text = re.sub(r'\bnull\b', 'null', text)
+    Rules derived from Divi source (Conversion.php):
+      - *.decoration.* → styleAttrs  (CSS properties)
+      - *.advanced.*   → renderAttrs (HTML/script)
+      - *.meta.*       → renderAttrs
+      - *.innerContent.* → renderAttrs (content fields)
+      - css.*          → styleAttrs
 
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError as e:
-        print(f"  Warning: Could not parse PHP defaults (no PHP CLI, fallback failed): {e}")
+    Special case: *.decoration.button.* — the button decoration group controls
+    HTML rendering state (enable flag, icon), not CSS. Routes to renderAttrs
+    despite being under decoration.
+    """
+    parts = target.split(".")
+    for i, part in enumerate(parts):
+        if part == "decoration":
+            # Check if the next part is "button" — that's renderAttrs territory.
+            next_part = parts[i + 1] if i + 1 < len(parts) else ""
+            if next_part == "button":
+                return "renderAttrs"
+            return "styleAttrs"
+        if part in ("advanced", "meta", "innerContent"):
+            return "renderAttrs"
+        if part == "css":
+            return "styleAttrs"
+    return "unknown"
+
+
+def parse_conversion_outline(path: Path) -> dict:
+    """
+    Parse a conversion-outline.json and return a dict of:
+      {
+        "styleAttrs_paths": [...],   # target paths that go to styleAttrs
+        "renderAttrs_paths": [...],  # target paths that go to renderAttrs
+        "raw": {...}                 # full outline for reference
+      }
+    """
+    if not path.exists():
+        return {"styleAttrs_paths": [], "renderAttrs_paths": [], "raw": {}}
+
+    outline = json.loads(path.read_text())
+    # Remove comment key
+    outline.pop("_comment", None)
+
+    mappings = {}
+    for section_key, section in outline.items():
+        _walk_outline(section, [section_key], mappings)
+
+    style_paths = sorted(p for p, cls in mappings.items() if cls == "styleAttrs")
+    render_paths = sorted(p for p, cls in mappings.items() if cls == "renderAttrs")
+    unknown_paths = sorted(p for p, cls in mappings.items() if cls == "unknown")
+
+    return {
+        "styleAttrs_paths": style_paths,
+        "renderAttrs_paths": render_paths,
+        "unknown_paths": unknown_paths,
+        "raw": outline,
+    }
+
+
+# ── Module.json analysis ──────────────────────────────────────────────────────
+
+def _extract_hover_disabled_fields(settings: dict, path_prefix: str, results: list):
+    """
+    Walk a settings subtree looking for fields with features.hover = false.
+    Only collects top-level attrName values — skips component prop paths.
+    """
+    if not isinstance(settings, dict):
+        return
+    for key, val in settings.items():
+        if key == "component":
+            # Skip component prop trees — these are UI definition, not preset paths.
+            continue
+        if isinstance(val, dict):
+            item = val.get("item", val)
+            if isinstance(item, dict):
+                features = item.get("features", {})
+                if isinstance(features, dict) and features.get("hover") is False:
+                    attr_name = item.get("attrName")
+                    if attr_name:
+                        results.append(attr_name)
+            _extract_hover_disabled_fields(val, f"{path_prefix}.{key}", results)
+
+
+def parse_module_json(path: Path) -> dict:
+    """
+    Parse a module.json and return structured element info:
+      {
+        "name": "divi/button",
+        "title": "Button",
+        "category": "module",
+        "elements": {
+          "module": {
+            "selector": "...",
+            "decoration_groups": [...],
+            "advanced_groups": [...],
+            "style_props": [...],
+            "hover_disabled_fields": [...]
+          },
+          ...
+        }
+      }
+    """
+    if not path.exists():
         return {}
 
+    data = json.loads(path.read_text())
+    data.pop("_comment", None)
 
-# ── Path flattening ──────────────────────────────────────────────────────────
+    result = {
+        "name": data.get("name", ""),
+        "title": data.get("title", ""),
+        "category": data.get("category", ""),
+        "elements": {},
+    }
 
-def flatten_paths(obj, prefix="", separator=".") -> dict:
-    """
-    Flatten a nested dict into dot-separated paths with leaf values.
-    Example: {"a": {"b": "x"}} -> {"a.b": "x"}
-    """
+    for elem_name, elem_def in data.get("attributes", {}).items():
+        if not isinstance(elem_def, dict):
+            continue
+
+        settings = elem_def.get("settings", {})
+        decoration = settings.get("decoration", {})
+        advanced = settings.get("advanced", {})
+        style_props = elem_def.get("styleProps", {})
+
+        hover_disabled = []
+        _extract_hover_disabled_fields(settings, elem_name, hover_disabled)
+
+        result["elements"][elem_name] = {
+            "selector": elem_def.get("selector", ""),
+            "elementType": elem_def.get("elementType", elem_name),
+            "decoration_groups": sorted(decoration.keys()) if isinstance(decoration, dict) else [],
+            "advanced_groups": sorted(advanced.keys()) if isinstance(advanced, dict) else [],
+            "style_props": sorted(style_props.keys()) if isinstance(style_props, dict) else [],
+            "hover_disabled_fields": sorted(set(hover_disabled)),
+        }
+
+    return result
+
+
+# ── Default attribute files ───────────────────────────────────────────────────
+
+def flatten_paths(obj, prefix="") -> dict:
+    """Flatten nested dict to dot-separated paths with leaf values."""
     result = {}
     if isinstance(obj, dict):
         for key, value in obj.items():
-            new_prefix = f"{prefix}{separator}{key}" if prefix else key
+            new_prefix = f"{prefix}.{key}" if prefix else key
             if isinstance(value, dict):
-                result.update(flatten_paths(value, new_prefix, separator))
+                result.update(flatten_paths(value, new_prefix))
             else:
                 result[new_prefix] = value
     return result
 
 
-# ── Module schema extraction ─────────────────────────────────────────────────
-
-def extract_settable_paths_from_schema(module_json: dict) -> dict:
+def parse_defaults(path: Path) -> dict:
     """
-    Extract settable attribute paths from a module.json schema.
-
-    Returns a dict keyed by element name (e.g., "module", "content", "button"),
-    each containing:
-      - decoration_groups: list of decoration group names (e.g., "font", "border")
-      - style_props: list of style prop names
-      - settings: nested structure of configurable settings
+    Parse a module-default-*-attributes.json file.
+    Returns {"tree": {...}, "flat_paths": {...}}
     """
-    attributes = module_json.get("attributes", {})
-    elements = {}
+    if not path.exists():
+        return {"tree": {}, "flat_paths": {}}
 
-    for element_name, element_def in attributes.items():
-        if not isinstance(element_def, dict):
-            continue
+    data = json.loads(path.read_text())
+    data.pop("_comment", None)
 
-        element_info = {
-            "type": element_def.get("type", ""),
-            "selector": element_def.get("selector", ""),
-            "elementType": element_def.get("elementType", element_name),
-        }
-
-        # Extract decoration groups (these define what style categories are available).
-        settings = element_def.get("settings", {})
-        decoration = settings.get("decoration", {})
-        element_info["decoration_groups"] = sorted(decoration.keys()) if isinstance(decoration, dict) else []
-
-        # Extract style props (CSS property mappings).
-        style_props = element_def.get("styleProps", {})
-        element_info["style_props"] = sorted(style_props.keys()) if isinstance(style_props, dict) else []
-
-        # Extract advanced settings.
-        advanced = settings.get("advanced", {})
-        element_info["advanced_groups"] = sorted(advanced.keys()) if isinstance(advanced, dict) else []
-
-        elements[element_name] = element_info
-
-    return elements
-
-
-def build_module_reference(module_json: dict, module_defaults: dict) -> dict:
-    """
-    Build a complete reference entry for a single module, combining schema
-    information with default values.
-    """
-    module_name = module_json.get("name", "unknown")
-
-    ref = {
-        "name": module_name,
-        "title": module_json.get("title", ""),
-        "category": module_json.get("category", ""),
-        "elements": extract_settable_paths_from_schema(module_json),
-        "defaults": {},
-        "default_paths": {},
+    return {
+        "tree": data,
+        "flat_paths": flatten_paths(data),
     }
 
-    # Flatten defaults into dot paths.
-    if module_defaults:
-        for element_name, element_defaults in module_defaults.items():
-            if isinstance(element_defaults, dict):
-                flat = flatten_paths(element_defaults, element_name)
-                ref["default_paths"].update(flat)
-                ref["defaults"][element_name] = element_defaults
 
-    return ref
+# ── Value shape extraction ────────────────────────────────────────────────────
+
+def extract_value_shapes(defaults_tree: dict) -> dict:
+    """
+    From a defaults tree, extract the shape of each decoration group's value.
+
+    E.g. from:
+      { "title": { "decoration": { "font": { "font": { "desktop": { "value": {
+          "size": "22px", "lineHeight": "1em" } } } } } } }
+
+    Returns:
+      { "title.decoration.font": { "size": "22px", "lineHeight": "1em" } }
+    """
+    shapes = {}
+
+    def walk(node, path):
+        if not isinstance(node, dict):
+            return
+        # If we find a "value" key inside a device key, that's a value shape.
+        if "value" in node and isinstance(node["value"], dict):
+            shapes[path] = node["value"]
+            return
+        for key, val in node.items():
+            walk(val, f"{path}.{key}" if path else key)
+
+    walk(defaults_tree, "")
+    return shapes
 
 
-# ── Main ─────────────────────────────────────────────────────────────────────
+# ── Per-module reference builder ──────────────────────────────────────────────
+
+def build_module_reference(module_dir: Path) -> dict:
+    """
+    Build a complete reference entry for a single module from its four source files.
+    """
+    module_json_data = parse_module_json(module_dir / "module.json")
+    conversion_data = parse_conversion_outline(module_dir / "conversion-outline.json")
+    style_defaults = parse_defaults(module_dir / "module-default-printed-style-attributes.json")
+    render_defaults = parse_defaults(module_dir / "module-default-render-attributes.json")
+
+    style_value_shapes = extract_value_shapes(style_defaults["tree"])
+    render_value_shapes = extract_value_shapes(render_defaults["tree"])
+
+    return {
+        "name": module_json_data.get("name", f"divi/{module_dir.name}"),
+        "title": module_json_data.get("title", ""),
+        "category": module_json_data.get("category", ""),
+        "elements": module_json_data.get("elements", {}),
+        "conversion": {
+            "styleAttrs_paths": conversion_data["styleAttrs_paths"],
+            "renderAttrs_paths": conversion_data["renderAttrs_paths"],
+            "unknown_paths": conversion_data.get("unknown_paths", []),
+        },
+        "style_defaults": {
+            "tree": style_defaults["tree"],
+            "value_shapes": style_value_shapes,
+        },
+        "render_defaults": {
+            "tree": render_defaults["tree"],
+            "value_shapes": render_value_shapes,
+        },
+    }
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Extract Divi 5 module attribute reference from source files.",
+        description="Extract complete Divi 5 module preset reference (v2).",
     )
     parser.add_argument(
         "--divi-path",
         type=Path,
-        default=Path(__file__).parent.parent / "Divi",
-        help="Path to the Divi theme directory (default: ../Divi)",
+        default=DIVI_DEFAULT,
+        help="Path to the Divi theme directory.",
+    )
+    parser.add_argument(
+        "--module",
+        type=str,
+        default=None,
+        help="Extract a single module by directory name (e.g. 'button'). Omit for all.",
     )
     parser.add_argument(
         "-o", "--output",
         type=Path,
-        default=Path(__file__).parent / "divi-module-reference.json",
-        help="Output path (default: ./divi-module-reference.json)",
+        default=Path(__file__).parent / "module-reference-v2.json",
+        help="Output path (default: tmp/module-reference-v2.json).",
     )
     args = parser.parse_args()
 
-    divi_path = args.divi_path
+    divi_path = args.divi_path.resolve()
     modules_dir = divi_path / "includes" / "builder-5" / "visual-builder" / "packages" / "module-library" / "src" / "components"
-    defaults_file = divi_path / "includes" / "builder-5" / "server" / "_all_modules_default_printed_style_attributes.php"
 
     if not modules_dir.exists():
         print(f"Error: modules directory not found: {modules_dir}")
         return
 
-    # Parse defaults.
-    all_defaults = {}
-    if defaults_file.exists():
-        print(f"Parsing defaults from {defaults_file.name}...")
-        all_defaults = parse_php_defaults(defaults_file)
-        print(f"  Found defaults for {len(all_defaults)} modules")
+    if args.module:
+        module_dirs = [modules_dir / args.module]
+        if not module_dirs[0].exists():
+            print(f"Error: module directory not found: {module_dirs[0]}")
+            return
     else:
-        print(f"Warning: defaults file not found: {defaults_file}")
+        module_dirs = sorted([d for d in modules_dir.iterdir() if d.is_dir()])
 
-    # Process each module.
+    print(f"Processing {len(module_dirs)} module(s)...")
+
     reference = {}
-    module_dirs = sorted([d for d in modules_dir.iterdir() if d.is_dir()])
-
-    print(f"Processing {len(module_dirs)} module directories...")
-
     for module_dir in module_dirs:
-        module_json_path = module_dir / "module.json"
-        if not module_json_path.exists():
+        if not (module_dir / "module.json").exists():
             continue
+        ref = build_module_reference(module_dir)
+        reference[ref["name"]] = ref
+        print(f"  {ref['name']} — {len(ref['elements'])} elements, "
+              f"{len(ref['conversion']['styleAttrs_paths'])} style paths, "
+              f"{len(ref['conversion']['renderAttrs_paths'])} render paths")
 
-        try:
-            module_json = json.loads(module_json_path.read_text())
-        except json.JSONDecodeError as e:
-            print(f"  Warning: Could not parse {module_json_path}: {e}")
-            continue
-
-        module_name = module_json.get("name", f"divi/{module_dir.name}")
-        # The defaults file uses the directory name (without divi/ prefix) as key.
-        dir_name = module_dir.name
-        module_defaults = all_defaults.get(dir_name, {})
-
-        ref = build_module_reference(module_json, module_defaults)
-        reference[module_name] = ref
-
-    # Write output.
     args.output.write_text(json.dumps(reference, indent=2))
 
-    # Summary.
-    total_modules = len(reference)
     total_elements = sum(len(m["elements"]) for m in reference.values())
-    total_default_paths = sum(len(m["default_paths"]) for m in reference.values())
-    modules_with_defaults = sum(1 for m in reference.values() if m["defaults"])
+    total_style = sum(len(m["conversion"]["styleAttrs_paths"]) for m in reference.values())
+    total_render = sum(len(m["conversion"]["renderAttrs_paths"]) for m in reference.values())
 
     print(f"\nWrote {args.output}")
-    print(f"  {total_modules} modules")
-    print(f"  {total_elements} elements (settable attribute groups)")
-    print(f"  {total_default_paths} default value paths")
-    print(f"  {modules_with_defaults} modules with defaults")
-
-    # Print a sample for verification.
-    print(f"\n── Sample: divi/text ──")
-    if "divi/text" in reference:
-        text_ref = reference["divi/text"]
-        for elem_name, elem_info in text_ref["elements"].items():
-            print(f"  {elem_name}:")
-            print(f"    decoration: {', '.join(elem_info['decoration_groups'])}")
-            print(f"    style_props: {', '.join(elem_info['style_props'])}")
-        if text_ref["default_paths"]:
-            print(f"  defaults ({len(text_ref['default_paths'])} paths):")
-            for path, value in list(text_ref["default_paths"].items())[:10]:
-                print(f"    {path} = {value}")
+    print(f"  {len(reference)} modules")
+    print(f"  {total_elements} total elements")
+    print(f"  {total_style} total styleAttrs paths")
+    print(f"  {total_render} total renderAttrs paths")
 
 
 if __name__ == "__main__":

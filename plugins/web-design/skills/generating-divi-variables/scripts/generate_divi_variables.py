@@ -273,6 +273,10 @@ def resolve_number_value(raw_value: str, namespace: str, numbers: dict) -> str:
       type-h4: "calc($ref(base-size) * 1.777)"
       section-md: "calc($ref(section-unit) * 3)"
 
+    The Divi UI shows a spurious "Invalid unit" error for calc(var(--gvid-...))
+    expressions, but they resolve correctly in the browser and editor preview.
+    The UI validator is wrong — ignore it.
+
     The referenced name must be defined elsewhere in the numbers section.
     Unrecognised names are left as-is so the caller can catch them in validation.
     """
@@ -310,13 +314,21 @@ def resolve_preset_value(raw_value: str, namespace: str, spec: dict) -> str:
     Otherwise return the value as-is.
 
     Shorthand forms:
-      $var(variable-name)       -> $variable({"type":"content","value":{"name":"gvid-xxx",...}})$
+      $var(variable-name)       -> var(--gvid-xxx)  (direct CSS custom property)
       $color(color-name)        -> $variable({"type":"color","value":{"name":"gcid-xxx",...}})$
+
+    Note: $var() uses direct CSS var() rather than Divi's $variable() content ref.
+    Divi's content ref system is buggy for number variables in preset attrs.
+    Colors still use $variable() because they go through Divi's color resolution system.
     """
     if isinstance(raw_value, str) and raw_value.startswith("$var(") and raw_value.endswith(")"):
         var_name = raw_value[5:-1]
-        gvid = make_gvid(namespace, var_name)
-        return variable_ref(gvid, "content")
+        # When a boilerplate is in use, variable IDs are semantic (gvid-{name}).
+        # Otherwise fall back to hash-based IDs for backwards compatibility.
+        if spec.get("boilerplate"):
+            return f"var(--gvid-{var_name})"
+        gvid_id = make_gvid(namespace, var_name)
+        return f"var(--{gvid_id})"
 
     if isinstance(raw_value, str) and raw_value.startswith("$color(") and raw_value.endswith(")"):
         color_name = raw_value[7:-1]
@@ -467,6 +479,223 @@ def parse_palette_css(css_path: Path) -> list[tuple[str, str]]:
     return tokens
 
 
+# ── Boilerplate loading and patching ─────────────────────────────────────────
+
+def load_boilerplate(boilerplate_path: Path) -> dict:
+    """
+    Load a boilerplate.json file and return its structure.
+    Strips _comment and _note keys (documentation-only, not valid JSON for Divi).
+    """
+    def strip_comments(obj):
+        if isinstance(obj, dict):
+            return {k: strip_comments(v) for k, v in obj.items()
+                    if not k.startswith('_')}
+        elif isinstance(obj, list):
+            return [strip_comments(i) for i in obj]
+        return obj
+
+    with open(boilerplate_path) as f:
+        raw = json.load(f)
+    return strip_comments(raw)
+
+
+def patch_boilerplate_colors(boilerplate: dict, system_colors: dict,
+                              custom_colors: dict, palette_tokens: list,
+                              namespace: str, all_color_names: set) -> list:
+    """
+    Patch the boilerplate's global_colors with brand values.
+
+    Priority (highest to lowest):
+    1. system_colors — patch the 5 fixed Divi slots by ID
+    2. custom_colors — patch boilerplate semantic slots by label, or add new ones
+    3. palette_tokens — add palette CSS stops (skipped if label already exists)
+    """
+    # Build a mutable index of boilerplate colors by ID and by label.
+    colors = [list(entry) for entry in boilerplate.get("global_colors", [])]
+    by_id    = {entry[0]: entry for entry in colors}
+    by_label = {entry[1]["label"]: entry for entry in colors}
+
+    def resolve_value(value):
+        if isinstance(value, dict) and "ref" in value:
+            ref_name = value["ref"]
+            target_gcid = resolve_color_id(namespace, ref_name, all_color_names)
+            return color_ref_value(target_gcid)
+        return value
+
+    # 1. System color slots — patch by fixed ID.
+    for slot_name, slot_id in SYSTEM_COLOR_SLOTS.items():
+        if slot_name in system_colors:
+            color_value = resolve_value(system_colors[slot_name])
+            if slot_id in by_id:
+                by_id[slot_id][1]["color"] = color_value
+            else:
+                entry = [slot_id, {"color": color_value, "status": "active",
+                                   "label": SYSTEM_COLOR_LABELS[slot_name]}]
+                colors.append(entry)
+                by_id[slot_id] = entry
+
+    # 2. Custom colors — patch boilerplate semantic slots by label, or append.
+    for name, value in custom_colors.items():
+        color_value = resolve_value(value)
+        gcid = resolve_color_id(namespace, name, all_color_names)
+        if name in by_label:
+            # Patch existing boilerplate slot.
+            by_label[name][1]["color"] = color_value
+            by_label[name][0] = gcid  # update ID if namespace differs
+        elif gcid in by_id:
+            by_id[gcid][1]["color"] = color_value
+        else:
+            # New color not in boilerplate — append.
+            entry = [gcid, {"color": color_value, "status": "active", "label": name}]
+            colors.append(entry)
+            by_id[gcid] = entry
+            by_label[name] = entry
+
+    # 3. Palette CSS tokens — append only if not already present.
+    for name, hex_value in palette_tokens:
+        if name in custom_colors or name in by_label:
+            continue
+        gcid = make_gcid(namespace, name)
+        entry = [gcid, {"color": hex_value, "status": "active", "label": name}]
+        colors.append(entry)
+        by_id[gcid] = entry
+        by_label[name] = entry
+
+    return colors
+
+
+def patch_boilerplate_variables(boilerplate: dict, spec: dict,
+                                 namespace: str) -> list:
+    """
+    Patch the boilerplate's global_variables with brand values.
+
+    Handles:
+    - fonts: patches --et_global_heading_font and --et_global_body_font by ID
+    - overrides: patches variables by label (e.g. type-scale, space-scale)
+    - type_scale: re-computes heading clamp values and patches by label
+    - numbers: appends brand-specific number variables (or patches if label matches)
+    - strings, links: appended as new variables
+    """
+    # Build mutable list and index by ID and label.
+    variables = [dict(e) for e in boilerplate.get("global_variables", [])]
+    by_id    = {e["id"]: e for e in variables if "id" in e}
+    by_label = {e["label"]: e for e in variables if "label" in e}
+
+    def patch_or_append(vid, label, value, vtype, order=None):
+        """Patch an existing entry by ID or label, or append if new."""
+        if vid in by_id:
+            by_id[vid]["value"] = value
+        elif label in by_label:
+            by_label[label]["value"] = value
+        else:
+            entry = {
+                "id": vid, "label": label, "value": value,
+                "status": "active", "type": vtype,
+            }
+            if order is not None:
+                entry["order"] = order
+            variables.append(entry)
+            by_id[vid] = entry
+            by_label[label] = entry
+
+    # Fonts.
+    fonts_spec = spec.get("fonts", {})
+    for slot_name, font_id in SYSTEM_FONT_SLOTS.items():
+        if slot_name in fonts_spec:
+            patch_or_append(font_id, slot_name.title(), fonts_spec[slot_name], "fonts")
+
+    for name, value in fonts_spec.get("custom", {}).items():
+        vid = make_gvid(namespace, f"font-{name}")
+        patch_or_append(vid, name, value, "fonts")
+
+    # Overrides — patch boilerplate variables by label.
+    for label, value in spec.get("overrides", {}).items():
+        if label in by_label:
+            by_label[label]["value"] = str(value)
+        else:
+            print(f"  Warning: override '{label}' not found in boilerplate variables",
+                  file=sys.stderr)
+
+    # type_scale — re-compute heading clamp values and patch by label.
+    type_scale_numbers = build_type_scale_numbers(spec)
+    for name, value in type_scale_numbers.items():
+        # type_scale generates labels like "type-d-h1", "type-scale-base", etc.
+        if name in by_label:
+            by_label[name]["value"] = value
+        else:
+            vid = make_gvid(namespace, name)
+            patch_or_append(vid, name, value, "numbers")
+
+    # numbers — brand-specific additions or overrides.
+    numbers_spec = spec.get("numbers", {})
+    ref_errors = validate_number_refs(namespace, {**type_scale_numbers, **numbers_spec})
+    if ref_errors:
+        print("Error: unresolved $ref() in numbers:", file=sys.stderr)
+        for err in ref_errors:
+            print(err, file=sys.stderr)
+        import sys as _sys; _sys.exit(1)
+
+    num_order = max((e.get("order", 0) for e in variables if e.get("type") == "numbers"),
+                    default=80)
+    for name, value in numbers_spec.items():
+        resolved = resolve_number_value(str(value), namespace,
+                                        {**type_scale_numbers, **numbers_spec})
+        vid = make_gvid(namespace, name)
+        num_order += 1
+        patch_or_append(vid, name, resolved, "numbers", num_order)
+
+    # Strings.
+    str_order = max((e.get("order", 0) for e in variables if e.get("type") == "strings"),
+                    default=0)
+    for name, value in spec.get("strings", {}).items():
+        str_order += 1
+        vid = make_gvid(namespace, name)
+        patch_or_append(vid, name, str(value), "strings", str_order)
+
+    # Links.
+    link_order = max((e.get("order", 0) for e in variables if e.get("type") == "links"),
+                     default=0)
+    for name, value in spec.get("links", {}).items():
+        link_order += 1
+        vid = make_gvid(namespace, name)
+        patch_or_append(vid, name, str(value), "links", link_order)
+
+    return variables
+
+
+def patch_boilerplate_presets(boilerplate: dict, spec: dict) -> dict:
+    """
+    Merge brand presets on top of boilerplate presets.
+
+    Boilerplate primitive presets are preserved. Brand presets for the same
+    module are added alongside them (not replacing). Brand presets can set
+    default: true to override the boilerplate default for that module.
+    """
+    from copy import deepcopy
+    result = deepcopy(boilerplate.get("presets", {"module": {}, "group": {}}))
+    if not isinstance(result, dict):
+        result = {"module": {}, "group": {}}
+    result.setdefault("module", {})
+    result.setdefault("group", {})
+
+    brand_presets = build_presets(spec)
+    if not isinstance(brand_presets, dict):
+        return result
+
+    for module_name, brand_config in brand_presets.get("module", {}).items():
+        if module_name not in result["module"]:
+            result["module"][module_name] = {"default": brand_config["default"],
+                                              "items": {}}
+        base_config = result["module"][module_name]
+        for pid, preset in brand_config.get("items", {}).items():
+            base_config["items"][pid] = preset
+        # If brand has a default: true preset, it overrides the boilerplate default.
+        if brand_config.get("default") and brand_config["default"] in brand_config.get("items", {}):
+            base_config["default"] = brand_config["default"]
+
+    return result
+
+
 # ── Spec parsing ─────────────────────────────────────────────────────────────
 
 def load_spec(spec_path: Path) -> dict:
@@ -505,11 +734,84 @@ def build_divi_json(spec: dict) -> dict:
     """
     Assemble a complete Divi global variables export from a parsed spec.
 
+    If the spec includes a 'boilerplate' key, loads that JSON as the base
+    and patches brand values on top. Otherwise builds from scratch.
+
     Colors go into global_colors (the only path Divi imports them through).
     Fonts, numbers, strings, and links go into global_variables.
     """
     namespace = spec["id_namespace"]
 
+    # ── Boilerplate mode ──────────────────────────────────────────────────────
+    boilerplate_path = spec.get("boilerplate")
+    if boilerplate_path:
+        spec_dir = spec.get("_spec_dir", Path("."))
+        bp_path = (spec_dir / boilerplate_path).resolve()
+        if not bp_path.exists():
+            print(f"Error: boilerplate not found: {bp_path}", file=sys.stderr)
+            import sys as _sys; _sys.exit(1)
+        boilerplate = load_boilerplate(bp_path)
+
+        # Collect all color names for ref validation.
+        all_color_names = set()
+        for entry in boilerplate.get("global_colors", []):
+            all_color_names.add(entry[1].get("label", ""))
+        for name in spec.get("system_colors", {}):
+            all_color_names.add(name)
+        for name in spec.get("colors", {}):
+            all_color_names.add(name)
+        palette_tokens = []
+        palette_css_path = spec.get("palette_css")
+        if palette_css_path:
+            css_path = (spec.get("_spec_dir", Path(".")) / palette_css_path).resolve()
+            if css_path.exists():
+                palette_tokens = parse_palette_css(css_path)
+                for name, _ in palette_tokens:
+                    all_color_names.add(name)
+            else:
+                print(f"  Warning: palette_css not found: {css_path}", file=sys.stderr)
+
+        # Inject boilerplate variable labels into spec so validate_preset_refs
+        # treats them as valid $var() targets.
+        bp_var_labels = {e["label"] for e in boilerplate.get("global_variables", [])
+                         if "label" in e and e.get("type") != "colors"}
+        bp_type_scale = build_type_scale_numbers(spec)
+        bp_numbers = spec.get("numbers", {})
+        # Merge boilerplate labels + generated type scale + spec numbers into a
+        # temporary numbers dict so validation sees all valid targets.
+        spec.setdefault("_boilerplate_var_labels", bp_var_labels)
+        _orig_numbers = spec.get("numbers", {})
+        spec["numbers"] = {**{k: "" for k in bp_var_labels}, **bp_type_scale, **_orig_numbers}
+
+        # Validate preset refs against boilerplate + brand color names.
+        ref_errors = validate_preset_refs(spec, all_color_names)
+        spec["numbers"] = _orig_numbers  # restore
+        if ref_errors:
+            print("Error: unresolved preset references:", file=sys.stderr)
+            for err in ref_errors:
+                print(err, file=sys.stderr)
+            import sys as _sys; _sys.exit(1)
+
+        global_colors   = patch_boilerplate_colors(boilerplate,
+                              spec.get("system_colors", {}),
+                              spec.get("colors", {}),
+                              palette_tokens, namespace, all_color_names)
+        global_variables = patch_boilerplate_variables(boilerplate, spec, namespace)
+        presets          = patch_boilerplate_presets(boilerplate, spec)
+
+        return {
+            "context": "et_builder",
+            "data": [],
+            "presets": presets,
+            "global_colors": global_colors,
+            "global_variables": global_variables,
+            "page_settings_meta": None,
+            "canvases": [],
+            "images": [],
+            "thumbnails": [],
+        }
+
+    # ── From-scratch mode (no boilerplate) ───────────────────────────────────
     # Collect all color names so refs can be validated.
     all_color_names = set()
 
