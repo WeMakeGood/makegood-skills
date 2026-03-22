@@ -1,36 +1,37 @@
 ---
 name: generating-divi-variables
-description: Generates Divi 5-compatible JSON import files from natural language design specifications. Translates brand colors, typography, spacing, and module presets into a YAML spec, then runs a Python generator to produce import-ready JSON with global colors, variables, and presets wired with $variable() references. Use when creating Divi design tokens, building Divi variable systems, generating Divi presets, or setting up a Divi 5 design system. Activates when user mentions Divi variables, Divi presets, Divi design tokens, or Divi import files.
+description: Builds a complete Divi 5 design system from brand inputs — palette CSS, reference images, page content spec, and design intent. Generates a brand YAML layered on top of the boilerplate, then produces an import-ready JSON with semantic variables, a live math engine (type and spacing scales via CSS pow()), and role presets wired to those variables. Use when setting up a Divi 5 design system, generating Divi variables and presets, translating visual design direction into a Divi import file, or when a user provides palette files, reference site images, or page content specs for Divi.
 compatibility: Requires Python 3.9+ and PyYAML (pip install pyyaml)
 ---
 
 # Generating Divi Variables
 
 <purpose>
-Divi 5's variable and preset system uses a specific JSON import format with undocumented
-constraints (colors must go through global_colors, not global_variables; system IDs are fixed;
-presets need both attrs and styleAttrs). This skill exists because getting the format wrong
-produces silent failures — variables appear to import but don't work. The skill wraps a
-validated Python generator and provides the module reference needed to build correct preset
-attribute paths.
+The default tendency when building a design system is to treat it as a data entry problem — collect values, write them into fields. This skill exists because a design system is a set of decisions about visual relationships, and those decisions must be made before any values are written. The skill enforces a design-first sequence: analyze visual intent from inputs, make and confirm design decisions, then generate the YAML that encodes those decisions. The boilerplate handles the math; the skill handles the thinking.
 </purpose>
 
 ## Critical Rules
 
-**GENERATOR AUTHORITY:** All JSON output MUST be produced by running `scripts/generate_divi_variables.py`. Do not generate Divi JSON directly — the generator handles ID generation, `$variable()` syntax, the `global_colors` tuple format, and the `attrs`/`styleAttrs` duplication that Divi requires.
+**DESIGN FIRST:** Do not write YAML until design decisions are confirmed. Visual intent → decisions → YAML is the only valid sequence. Skipping the decisions phase produces a technically correct but visually incoherent output.
 
-**VALIDATION BEFORE OUTPUT:** Before presenting generated JSON to the user, verify:
-1. The generator exited without errors
-2. All `$var()` and `$color()` references in the YAML resolve to defined variables
-3. The summary counts match expectations
+**BOILERPLATE REQUIRED:** Every brand YAML must include `boilerplate: "path/to/boilerplate.json"`. Without it the semantic variable system is not in place and the output is incomplete.
 
-**PROFESSIONAL CHALLENGE:** If the user requests a preset attribute path that doesn't exist in the module reference, flag it rather than guessing. Offer the closest valid path. If they request a color in `global_variables` instead of `global_colors`, explain why it won't work (see [DIVI-SPEC.md](references/DIVI-SPEC.md)).
+**VARIABLE SYNTAX — no exceptions:**
+- Colors in preset attrs: `$color(semantic-slot-name)` only
+- Numbers in preset attrs: `var(--gvid-variable-name)` directly — never `$var()`
+- `$var()` is broken in the current Divi version and produces incorrect output
 
-**IMPORT SAFETY:** Always warn users to close the Visual Builder before importing. Divi's Visual Builder save overwrites imports if both happen simultaneously.
+**COOKBOOK BEFORE PRESETS:** Before suggesting any preset structure, consult [PRESET-COOKBOOK.md](references/PRESET-COOKBOOK.md). Design decisions come from the cookbook — module selection, composition patterns, dark vs. light treatment.
+
+**GENERATOR AUTHORITY:** All JSON output MUST be produced by running `scripts/generate_divi_variables.py`. Never generate Divi JSON directly.
+
+**PROFESSIONAL CHALLENGE:** When a design decision contradicts established visual principles, when a path doesn't exist in the module reference, or when the cookbook identifies a better approach — cite the concern and offer an alternative. Accuracy over agreement.
+
+---
 
 ## Quick Start
 
-If the user already has a YAML spec file:
+If the user has an existing brand YAML:
 
 ```bash
 python3 scripts/generate_divi_variables.py <spec.yaml> -o <output.json>
@@ -38,218 +39,126 @@ python3 scripts/generate_divi_variables.py <spec.yaml> -o <output.json>
 
 Otherwise, follow the full workflow below.
 
+---
+
 ## Workflow
 
-```
-Progress:
-- [ ] Phase 1: Gather design intent
-- [ ] Phase 2: Generate YAML spec
-- [ ] Phase 3: Define presets (optional)
-- [ ] Phase 4: Generate and validate
-- [ ] Phase 5: Import instructions
-```
-
 <phase_gather>
-### Phase 1: Gather Design Intent
+### Phase 1: Gather Inputs and Analyze
 
-Ask the user about their design system. Gather what's available — not every category is required.
+Read [references/PHASE-1-GATHER.md](references/PHASE-1-GATHER.md) for full instructions.
 
-1. **Brand name** — Used for the spec name and ID namespace
-2. **Colors** — Primary, secondary, heading, body, link (system slots). Additional custom colors. Full palette CSS file if available.
-3. **Typography** — Heading and body fonts. Type scale approach:
-   - **Modular scale (preferred):** Ask for a scale name or ratio. The `type_scale` section generates all heading sizes as fluid `clamp()` values automatically — desktop from the named ratio, mobile from two steps down the scale list. Scales: minor-second (1.067), major-second (1.125), minor-third (1.200), major-third (1.250), perfect-fourth (1.333), augmented-fourth (1.414), perfect-fifth (1.500), golden-ratio (1.618).
-   - **Explicit sizes:** specific values for each heading level — use only when values are non-negotiable and cannot be derived
-   - **Fluid typography:** `clamp()` values — can combine with derived base tokens via `$ref()`
-4. **Spacing** — Base spacing unit and scale multipliers (preferred over hardcoded stops), border radii
-5. **Links/Social** — Social media URLs, frequently-used links
-6. **Strings** — Taglines, repeated text snippets
-7. **CSS source** — Existing `palette.css` or design tokens file to bulk-import colors
-8. **Presets** — Which modules need presets? (text, button, section, etc.)
+Accept any combination of: palette CSS, reference images, page content spec, direct design intent.
 
-For type scales, prefer the base token + derived calc approach over hardcoding:
-- **Modular scale (preferred):** Store `base-size` and derive each step with `calc($ref(base-size) * {multiplier})`. Multipliers for 1.333 (Perfect Fourth): h5=1.333, h4=1.777, h3=2.369, h2=3.157, h1=4.209. Changing `base-size` updates the whole scale.
-- **Fluid clamp:** Can reference derived stops: `clamp($ref(type-h5), 3vw, $ref(type-h3))`. If the clamp max doesn't map to an existing step, use a literal: `calc($ref(base-size) * 5.61)`.
-- **Spacing:** Store a `section-unit` base and derive stops with integer multipliers. Same principle — one value to tune, everything follows.
-
-**GATE (self-check — document and proceed, no user approval needed):**
-- "Brand: [name]"
-- "Design tokens gathered: [list categories with counts]"
-- "Presets requested: [list modules or 'none yet']"
+**GATE:** Before proceeding, write:
+- "Inputs received: [list — palette/images/page spec/direct intent]"
+- "Environment read: [dark / light / unclear — one sentence rationale]"
+- "Visual character: [2–3 sentences from reference images]"
+- "Modules needed: [list from page spec, or 'not provided']"
 </phase_gather>
 
+<phase_decisions>
+### Phase 2: Design Decisions
+
+Read [references/PHASE-2-DECISIONS.md](references/PHASE-2-DECISIONS.md) for full instructions.
+
+Present your read of the design direction and get explicit confirmation before writing any YAML. Every decision has downstream consequences.
+
+**GATE:** Before proceeding, write:
+- "Type scale: [ratio name and value] — [one sentence rationale]"
+- "Spacing feel: [space-base value] — [one sentence rationale]"
+- "Radius: [which stop for buttons/cards] — [one sentence rationale]"
+- "Color assignments: confirmed by user [yes/no]"
+- "Preset roles needed: [list]"
+
+**STOP.** Do not proceed to Phase 3 until the user has explicitly confirmed the design decisions.
+</phase_decisions>
+
 <phase_yaml>
-### Phase 2: Generate YAML Spec
+### Phase 3: Generate Brand YAML
 
-Translate gathered information into a YAML spec file. See [YAML-SPEC-FORMAT.md](references/YAML-SPEC-FORMAT.md) for the complete format reference.
+Read [references/PHASE-3-YAML.md](references/PHASE-3-YAML.md) for full instructions.
 
-### Color architecture
+Translate confirmed decisions into brand YAML. Start with the boilerplate key, then overrides, fonts, palette, colors, system_colors, presets — in that order.
 
-When `palette_css` provides the raw color stops, build a three-layer reference chain instead of hardcoding hex values:
+**GATE:** Before proceeding, write:
+- "YAML sections included: [list]"
+- "All 20 semantic color slots assigned: [yes/no]"
+- "Preset paths verified against module reference: [yes/no]"
 
-1. **palette_css** — bulk-imports raw stops (shoreline-800, neon-carrot-500, etc.)
-2. **colors** — semantic role aliases using `ref:` to palette names (mg-ground → shoreline-800, mg-interactive → neon-carrot-500)
-3. **system_colors** — Divi's 5 slots using `ref:` to palette or semantic names
-
-This means changing one palette stop updates every semantic alias and system slot that references it. Never duplicate hex values that exist in the palette — always use `ref:`.
-
-Without `palette_css`, use direct hex values in `system_colors` and `colors`.
-
-### Key structure
-
-```yaml
-name: "Brand Name"
-id_namespace: "brand-slug"
-
-palette_css: "palette.css"  # optional — bulk import CSS custom properties
-
-system_colors:
-  primary:
-    ref: "neon-carrot-500"   # ref to palette_css name
-  heading:
-    ref: "shoreline-100"
-  # ... or direct hex when no palette_css:
-  # primary: "#ff9e3d"
-
-colors:
-  brand-interactive:
-    ref: "neon-carrot-500"   # semantic alias → palette stop
-  brand-ground:
-    ref: "shoreline-800"
-
-fonts:
-  heading: "Font Name"
-  body: "Font Name"
-  custom:
-    display: "Font Name"
-
-type_scale:
-  scale: "perfect-fourth"   # generates type-d-h1 through type-d-h6 as fluid clamp() values
-  base: "1rem"              # mobile ratio auto-derived 2 steps down (minor-third)
-
-numbers:
-  # Base tokens — tune these, derived values follow automatically
-  section-unit: "32px"
-
-  # Derived spacing
-  section-sm: "calc($ref(section-unit) * 1.75)"
-  section-md: "calc($ref(section-unit) * 3)"
-
-  border-radius: "1rem"
-
-strings:
-  tagline: "Brand Tagline"
-
-links:
-  facebook: "https://..."
-```
-
-Present the YAML to the user for review.
-
-**STOP.** Get user approval on the YAML spec before proceeding. This is the source of truth — changes here propagate to everything downstream.
-
-If the user provided complete design inputs and presets are clearly needed, present the YAML with presets included for combined Phase 2+3 review rather than forcing two separate approval rounds.
+**STOP.** Present the complete YAML. Do not generate JSON until the user approves.
 </phase_yaml>
-
-<phase_presets>
-### Phase 3: Define Presets (Optional)
-
-Read [PRESET-COOKBOOK.md](references/PRESET-COOKBOOK.md) for complete preset templates organized by design role, with verified attribute paths and token dependency mappings.
-
-**REQUIRED:** Before adding any preset attribute path, verify it exists in [divi-module-reference.json](references/divi-module-reference.json). The cookbook paths are verified, but custom paths need checking.
-
-**Suggest presets proactively** based on tokens gathered in Phase 1. The cookbook includes a suggestion matrix:
-- Type scale + line heights → text, post-content, heading, post-title
-- Colors → heading, post-title, blurb, blog, button, cta
-- Spacing + radii → button, cta, blurb (card variant), section, contact-form
-- Full token set → suggest the complete suite
-
-**Priority order:** text → post-content → heading → button → blurb → cta → section → others.
-
-Reference shortcuts in preset `attrs` values:
-- `$var(name)` — References a number, string, font, or link variable by its YAML key
-- `$color(name)` — References a color by its YAML key (system or custom)
-
-Reference shortcuts in `numbers` values:
-- `$ref(name)` — References another number variable by key. Expands to `var(--gvid-xxx)`. Use inside `calc()` or `clamp()` to build derived tokens from base values.
-
-The generator resolves these to full `$variable()` syntax with correct `gvid-`/`gcid-` prefixes.
-
-Add presets to the YAML spec and present updated spec for review.
-
-**STOP.** Get user approval on presets before generating.
-</phase_presets>
 
 <phase_generate>
 ### Phase 4: Generate and Validate
 
-1. Write the approved YAML spec to a `generator/` folder in the user's project (or the location they specify)
-2. Run the generator:
+Run the generator:
 
 ```bash
 python3 scripts/generate_divi_variables.py <spec.yaml> -o <output.json>
 ```
 
-3. Review the generator's summary output (color count, variable count, preset count)
-4. Verify all `$var()` and `$color()` references resolved
-5. Present the summary to the user
-
-**GATE:** Before delivering the JSON, confirm:
+**GATE:** Before delivering the output, confirm:
 - "Generator completed without errors: [yes/no]"
-- "Output: [N] colors, [N] fonts, [N] numbers, [N] strings, [N] links, [N] presets"
-- "All variable references resolved: [yes/no]"
+- "Output counts: [N colors, N variables, N presets]"
+- "Boilerplate primitives present: [yes/no]"
+- "Brand role presets present: [list]"
 </phase_generate>
 
 <phase_import>
-### Phase 5: Import Instructions
+### Phase 5: Import
 
-Provide these instructions to the user:
+Remind the user: **close the Visual Builder completely before importing.** The VB save overwrites imports.
 
-1. **Close the Visual Builder completely** — if open, its save will overwrite the import
-2. Navigate to any page with the Divi builder
-3. Open the Portability modal (import/export icon)
-4. Upload the generated JSON file
-5. Open the Visual Builder — variables and presets should appear
+Import path: any page → Divi builder → Portability modal → upload JSON.
 
-**Warning about inactive color zombies:** If they've previously deleted colors with the same IDs in the Divi UI, the colors persist in the database with `"status":"inactive"`. Re-importing should overwrite them to `"active"`, but if the Visual Builder is open during import this can fail. If colors appear missing after import, check for inactive duplicates.
-
-**Re-import safety:** The generator uses stable IDs (same input produces same gcid/gvid). Re-importing an updated spec overwrites existing variables rather than creating duplicates.
+After importing, verify variables appear in the correct order (adjustable at top, derived at bottom) and all presets are present.
 </phase_import>
+
+---
 
 ## Iterative Refinement
 
-The skill supports iterating on an existing spec. When the user requests changes:
+When changes are needed after import, identify the minimal change:
+- **Scale/spacing feel** → `overrides:` values
+- **Color adjustments** → `colors:` assignments
+- **New preset role** → `presets:` section
+- **Specific variable** → `overrides:` or `numbers:`
 
-1. Load the existing YAML spec
-2. Apply the requested modification
-3. Present the updated YAML for approval
-4. Regenerate the JSON
+Present the minimal YAML delta for approval. Re-run the generator. Semantic IDs are stable — re-import overwrites cleanly without duplicates.
 
-Stable ID generation ensures re-importing doesn't create duplicates.
+---
 
 <failed_attempts>
 ## What DOESN'T Work
 
-- **Putting colors in global_variables:** Divi's `import_global_variables()` silently drops type `"colors"`. Colors MUST go through `global_colors`. The generator handles this correctly.
-- **Generating JSON without the script:** The format has too many undocumented requirements (tuple format for colors, both attrs and styleAttrs, stable ID hashing). Always use the generator.
-- **Guessing preset attribute paths:** Divi 5 module schemas are not intuitive. A path like `content.decoration.font` looks plausible but doesn't exist. Always verify against the module reference.
-- **Importing with Visual Builder open:** The VB's save operation overwrites the import. Every time.
-- **Hardcoding a full type scale:** If all size values are literal `rem` values, changing the base size requires recalculating every step manually. Use `type_scale` instead — one scale name, all steps generated automatically.
-- **Hardcoding clamp() min values without a scale:** A common mistake is setting the mobile min too large (e.g. clamp min = one step below desktop max on the same scale). The correct mobile minimum comes from a different, smaller ratio applied to the same step. Two scale positions down is the standard — `perfect-fourth` desktop → `minor-third` mobile. The `type_scale` section handles this automatically.
-- **Setting button padding on `button.decoration.spacing`:** This path is hidden from the builder UI. Any value set there is locked — the user has no way to see or override it. Button padding must go on `module.decoration.spacing`, which is what the builder exposes.
-- **Omitting `button.decoration.button.desktop.value.enable: "on"` from any button preset:** Without this flag, none of the button decoration attrs apply. This must be in **every** `divi/button` preset — base presets, color variants, environment overrides. A stacked color variant without it will not render even if the base preset has it.
-- **`calc(var(--gvid-xxx))` showing "Invalid unit" in the Divi UI:** This is a false positive in the UI validator. The expression works correctly in the browser and in the editor preview. Divi's variable system outputs `--gvid-xxx` as the CSS custom property name, and `calc(var(--gvid-xxx) * N)` resolves correctly at runtime. Do not remove the `gvid-` prefix — `calc(var(--xxx))` without it does not resolve.
+- **Using `$var()` in preset attrs:** Broken in current Divi. Use `var(--gvid-xxx)` directly.
+- **Stacked module presets for buttons:** CSS cascade conflicts. Each button preset must be self-contained. Variables provide shared values.
+- **Group presets for buttons:** Same cascade issue. Avoid entirely for `divi/button`.
+- **Omitting `button.decoration.button.desktop.value.enable: "on"`:** Required in every `divi/button` preset individually. Not inherited. No exceptions.
+- **Setting button padding on `button.decoration.spacing`:** Hidden from UI, locks value permanently. Always use `module.decoration.spacing`.
+- **Skipping Phase 2:** YAML written without confirmed design decisions produces technically valid but visually incoherent output. The phase boundary exists for this reason.
+- **Writing YAML without `boilerplate:` key:** The semantic variable system is not in place. The output will be incomplete.
+- **Generating JSON without the script:** Too many format requirements. Always use the generator.
+- **Importing with Visual Builder open:** The VB save overwrites the import. Every time.
+- **Putting colors in `global_variables`:** Silently dropped on import. Colors go through `global_colors` only.
+- **`calc(var(--gvid-xxx))` "Invalid unit" warning:** False positive. Works correctly in browser and editor preview.
 </failed_attempts>
+
+---
 
 ## File Reference
 
 | File | Purpose |
 |------|---------|
-| [references/boilerplate.json](references/boilerplate.json) | Static base — variable system + primitive presets. Load with `boilerplate:` key in brand YAML. |
-| [references/YAML-SPEC-FORMAT.md](references/YAML-SPEC-FORMAT.md) | Brand YAML format — how to write a brand spec |
-| [references/PRESET-COOKBOOK.md](references/PRESET-COOKBOOK.md) | Design recipes — colors, variables, composition patterns |
-| [references/DIVI-SPEC.md](references/DIVI-SPEC.md) | Technical rules — bugs, constraints, exact paths, import requirements |
-| [references/divi-module-reference.json](references/divi-module-reference.json) | Complete module element and path reference |
-| [references/spec-test.yaml](references/spec-test.yaml) | Working example brand YAML spec |
-| [references/spec-test.json](references/spec-test.json) | Generated JSON from the example spec |
-| [scripts/generate_divi_variables.py](scripts/generate_divi_variables.py) | Generator — boilerplate + brand YAML → Divi import JSON |
+| [references/boilerplate.json](references/boilerplate.json) | Static base — variable system + primitive presets |
+| [references/PHASE-1-GATHER.md](references/PHASE-1-GATHER.md) | Phase 1 detailed instructions |
+| [references/PHASE-2-DECISIONS.md](references/PHASE-2-DECISIONS.md) | Phase 2 detailed instructions |
+| [references/PHASE-3-YAML.md](references/PHASE-3-YAML.md) | Phase 3 detailed instructions |
+| [references/PRESET-COOKBOOK.md](references/PRESET-COOKBOOK.md) | Design recipes — colors, variables, composition |
+| [references/DIVI-SPEC.md](references/DIVI-SPEC.md) | Technical rules, bugs, paths, import constraints |
+| [references/YAML-SPEC-FORMAT.md](references/YAML-SPEC-FORMAT.md) | Complete brand YAML format reference |
+| [references/divi-module-reference.json](references/divi-module-reference.json) | Module element and path reference |
+| [references/spec-test.yaml](references/spec-test.yaml) | Working example brand YAML |
+| [scripts/generate_divi_variables.py](scripts/generate_divi_variables.py) | Generator — boilerplate + brand YAML → Divi JSON |
 | [scripts/extract_module_reference.py](scripts/extract_module_reference.py) | Extracts module reference from Divi source |
