@@ -667,9 +667,15 @@ def patch_boilerplate_presets(boilerplate: dict, spec: dict) -> dict:
     """
     Merge brand presets on top of boilerplate presets.
 
-    Boilerplate primitive presets are preserved. Brand presets for the same
-    module are added alongside them (not replacing). Brand presets can set
-    default: true to override the boilerplate default for that module.
+    Name-collision semantics: if a brand preset has the same name as a
+    boilerplate preset for the same module, the brand attrs are sparse-merged
+    into the boilerplate preset (brand wins on overlap, boilerplate attrs not
+    mentioned by brand are preserved). The boilerplate preset's ID is kept so
+    the default pointer remains valid.
+
+    Empty boilerplate placeholder presets (no attrs) that are not touched by a
+    brand preset are removed from the output — they carry no wiring and would
+    only create confusion in the Divi builder.
     """
     from copy import deepcopy
     result = deepcopy(boilerplate.get("presets", {"module": {}, "group": {}}))
@@ -680,6 +686,9 @@ def patch_boilerplate_presets(boilerplate: dict, spec: dict) -> dict:
 
     brand_presets = build_presets(spec)
     if not isinstance(brand_presets, dict):
+        # No brand presets — still remove untouched empty placeholders.
+        for module_name, module_config in list(result["module"].items()):
+            _remove_empty_placeholders(module_config, touched_ids=set())
         return result
 
     for module_name, brand_config in brand_presets.get("module", {}).items():
@@ -687,13 +696,66 @@ def patch_boilerplate_presets(boilerplate: dict, spec: dict) -> dict:
             result["module"][module_name] = {"default": brand_config["default"],
                                               "items": {}}
         base_config = result["module"][module_name]
-        for pid, preset in brand_config.get("items", {}).items():
-            base_config["items"][pid] = preset
-        # If brand has a default: true preset, it overrides the boilerplate default.
-        if brand_config.get("default") and brand_config["default"] in brand_config.get("items", {}):
-            base_config["default"] = brand_config["default"]
+
+        # Build a name→id index for existing boilerplate presets.
+        bp_by_name = {p["name"]: pid
+                      for pid, p in base_config["items"].items()}
+
+        touched_ids = set()
+        new_default_id = None
+
+        for pid, brand_preset in brand_config.get("items", {}).items():
+            bp_id = bp_by_name.get(brand_preset["name"])
+            if bp_id is not None:
+                # Name collision — sparse-merge brand attrs into boilerplate preset.
+                bp_preset = base_config["items"][bp_id]
+                brand_attrs = brand_preset.get("attrs", {})
+                if brand_attrs:
+                    merged = deep_merge(bp_preset.get("attrs", {}), brand_attrs)
+                    bp_preset["attrs"] = merged
+                    bp_preset["styleAttrs"] = merged
+                touched_ids.add(bp_id)
+                if pid == brand_config.get("default"):
+                    new_default_id = bp_id
+            else:
+                # New preset — add as-is.
+                base_config["items"][pid] = brand_preset
+                touched_ids.add(pid)
+                if pid == brand_config.get("default"):
+                    new_default_id = pid
+
+        # If brand marked a default: true preset, update the module default.
+        if new_default_id:
+            base_config["default"] = new_default_id
+
+        _remove_empty_placeholders(base_config, touched_ids)
+
+    # Also remove untouched empty placeholders from modules the brand didn't touch.
+    for module_name, module_config in result["module"].items():
+        if module_name not in brand_presets.get("module", {}):
+            _remove_empty_placeholders(module_config, touched_ids=set())
+
+    # Drop module entries that ended up with no presets at all.
+    result["module"] = {k: v for k, v in result["module"].items() if v.get("items")}
 
     return result
+
+
+def _remove_empty_placeholders(module_config: dict, touched_ids: set) -> None:
+    """
+    Remove presets that have no attrs and were not touched by brand YAML.
+    Mutates module_config in place.
+    """
+    to_remove = [
+        pid for pid, preset in module_config["items"].items()
+        if pid not in touched_ids and not preset.get("attrs")
+    ]
+    for pid in to_remove:
+        del module_config["items"][pid]
+    # If the default was removed, reassign to the first remaining preset if any.
+    if module_config.get("default") in [pid for pid in to_remove]:
+        remaining = list(module_config["items"])
+        module_config["default"] = remaining[0] if remaining else None
 
 
 # ── Spec parsing ─────────────────────────────────────────────────────────────

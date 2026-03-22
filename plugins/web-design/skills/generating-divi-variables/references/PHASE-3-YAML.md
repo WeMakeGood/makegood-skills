@@ -40,19 +40,32 @@ presets:
 
 Only include values that differ from boilerplate defaults. Do not repeat defaults.
 
-Boilerplate defaults:
-- `type-base`: 1rem
-- `type-scale`: 1.333
-- `type-scale-mobile`: 1.200
-- `space-base`: 1rem
-- `space-scale`: 1.333
-- `container-max`: 1200px
+All overrideable variables with their defaults:
+
+| Key | Default | What it controls |
+|-----|---------|-----------------|
+| `type-base` | `1rem` | Root type size |
+| `type-scale` | `1.333` | Desktop heading ratio |
+| `type-scale-mobile` | `1.200` | Mobile heading ratio |
+| `leading-display` | `0.91em` | Line height for display headings |
+| `leading-body` | `1.65em` | Line height for body copy |
+| `leading-tight` | `1.1em` | Line height for UI labels |
+| `tracking-tight` | `-0.04em` | Letter spacing for large display text |
+| `tracking-normal` | `0em` | Default letter spacing |
+| `tracking-wide` | `0.13em` | Letter spacing for eyebrows, labels |
+| `weight-heading` | `800` | Font weight for headings |
+| `weight-body` | `400` | Font weight for body copy |
+| `weight-emphasis` | `600` | Font weight for buttons, eyebrows |
+| `space-base` | `1rem` | Root spacing unit |
+| `space-scale` | `1.333` | Spacing ratio |
+| `container-max` | `1200px` | Content max-width |
 
 If the designer confirmed different values in Phase 2, put them here. If they confirmed the defaults, omit this section entirely.
 
 ```yaml
 overrides:
-  type-scale:    1.250    # only if different from 1.333
+  type-scale:    1.250       # only if different from 1.333
+  weight-heading: 700        # only if different from 800
   space-base:    "1.125rem"  # only if different from 1rem
   container-max: "1440px"    # only if different from 1200px
 ```
@@ -124,40 +137,35 @@ button.decoration.border.desktop.value.styles.all.width: "2px"
 
 ### Typography presets (divi/text)
 
-Every text role preset must include the full h1–h6 heading scale. A text module might contain headings — omitting them causes Divi to fall back to its defaults for those levels.
+**Preset merge behavior:** the generator merges brand presets with the boilerplate by name. If you define a `divi/text "Body"` preset, your attrs are sparse-merged into the boilerplate's Body preset — your values win on any attr you specify, boilerplate attrs you don't mention are preserved. You only need to write the attrs that differ from the boilerplate.
+
+The boilerplate Body preset sets the full h1–h6 scale wired to `gvid-` variables, with `tracking-tight` on h1. To extend it — for example, adding `tracking-tight` on h2 — just specify that one attr:
 
 ```yaml
 divi/text:
   - name: "Body"
-    default: true
     attrs:
-      # Body font
-      content.decoration.bodyFont.body.font.desktop.value.size: "var(--gvid-type-body)"
-      content.decoration.bodyFont.body.font.desktop.value.lineHeight: "var(--gvid-leading-body)"
-      content.decoration.bodyFont.body.font.desktop.value.weight: "var(--gvid-weight-body)"
-      # Heading scale — h1 through h6
+      # Only the attrs that differ from or add to the boilerplate Body preset.
+      # The full h1–h6 scale is already wired by the boilerplate.
+      content.decoration.headingFont.h2.font.desktop.value.letterSpacing: "var(--gvid-tracking-tight)"
+```
+
+For additional role presets (Eyebrow, Key Statement, Lede, etc.) — these are new names, so the full heading scale is required since there's no boilerplate base to merge into:
+
+```yaml
+  - name: "Eyebrow"
+    attrs:
+      content.decoration.bodyFont.body.font.desktop.value.size: "var(--gvid-type-sm)"
+      content.decoration.bodyFont.body.font.desktop.value.weight: "var(--gvid-weight-emphasis)"
+      content.decoration.bodyFont.body.font.desktop.value.letterSpacing: "var(--gvid-tracking-wide)"
       content.decoration.headingFont.h1.font.desktop.value.size: "var(--gvid-type-d-h1)"
       content.decoration.headingFont.h1.font.desktop.value.lineHeight: "var(--gvid-leading-display)"
       content.decoration.headingFont.h1.font.desktop.value.weight: "var(--gvid-weight-heading)"
       content.decoration.headingFont.h1.font.desktop.value.letterSpacing: "var(--gvid-tracking-tight)"
-      content.decoration.headingFont.h2.font.desktop.value.size: "var(--gvid-type-d-h2)"
-      content.decoration.headingFont.h2.font.desktop.value.lineHeight: "var(--gvid-leading-display)"
-      content.decoration.headingFont.h2.font.desktop.value.weight: "var(--gvid-weight-heading)"
-      content.decoration.headingFont.h3.font.desktop.value.size: "var(--gvid-type-d-h3)"
-      content.decoration.headingFont.h3.font.desktop.value.lineHeight: "var(--gvid-leading-display)"
-      content.decoration.headingFont.h3.font.desktop.value.weight: "var(--gvid-weight-heading)"
-      content.decoration.headingFont.h4.font.desktop.value.size: "var(--gvid-type-d-h4)"
-      content.decoration.headingFont.h4.font.desktop.value.lineHeight: "var(--gvid-leading-display)"
-      content.decoration.headingFont.h4.font.desktop.value.weight: "var(--gvid-weight-heading)"
-      content.decoration.headingFont.h5.font.desktop.value.size: "var(--gvid-type-d-h5)"
-      content.decoration.headingFont.h5.font.desktop.value.lineHeight: "var(--gvid-leading-display)"
-      content.decoration.headingFont.h5.font.desktop.value.weight: "var(--gvid-weight-heading)"
-      content.decoration.headingFont.h6.font.desktop.value.size: "var(--gvid-type-d-h6)"
-      content.decoration.headingFont.h6.font.desktop.value.lineHeight: "var(--gvid-leading-display)"
-      content.decoration.headingFont.h6.font.desktop.value.weight: "var(--gvid-weight-heading)"
+      # ... h2–h6 ...
 ```
 
-For role variants (Eyebrow, Key Statement, etc.) — repeat the full heading scale and add the body font overrides specific to that role.
+The same merge logic applies to `divi/button`, `divi/image`, and `divi/menu`. Empty boilerplate placeholder presets (Button, Image, Menu, etc.) are removed from output automatically — they carry no wiring. If you define a brand preset with the same name, the merge replaces the empty placeholder cleanly.
 
 ---
 

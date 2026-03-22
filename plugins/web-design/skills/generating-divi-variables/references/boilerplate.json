@@ -826,7 +826,7 @@
       "label": "Heading Font",
       "value": "",
       "status": "active",
-      "order": 100,
+      "order": 1,
       "type": "fonts"
     },
     {
@@ -834,7 +834,7 @@
       "label": "Body Font",
       "value": "",
       "status": "active",
-      "order": 101,
+      "order": 2,
       "type": "fonts"
     },
     {
@@ -842,7 +842,7 @@
       "label": "type-base",
       "value": "1rem",
       "status": "active",
-      "order": 200,
+      "order": 3,
       "type": "numbers"
     },
     {
@@ -850,7 +850,7 @@
       "label": "type-scale",
       "value": "1.333",
       "status": "active",
-      "order": 201,
+      "order": 4,
       "type": "numbers"
     },
     {
@@ -858,87 +858,7 @@
       "label": "type-scale-mobile",
       "value": "1.200",
       "status": "active",
-      "order": 202,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-d-h1",
-      "label": "type-d-h1",
-      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 6)), 7.48vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 6)))",
-      "status": "active",
-      "order": 700,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-d-h2",
-      "label": "type-d-h2",
-      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 5)), 5.61vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 5)))",
-      "status": "active",
-      "order": 701,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-d-h3",
-      "label": "type-d-h3",
-      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 4)), 4.21vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 4)))",
-      "status": "active",
-      "order": 702,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-d-h4",
-      "label": "type-d-h4",
-      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 3)), 3.16vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 3)))",
-      "status": "active",
-      "order": 703,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-d-h5",
-      "label": "type-d-h5",
-      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 2)), 2.37vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 2)))",
-      "status": "active",
-      "order": 704,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-d-h6",
-      "label": "type-d-h6",
-      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 1)), 1.78vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 1)))",
-      "status": "active",
-      "order": 705,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-body-lg",
-      "label": "type-body-lg",
-      "value": "calc(var(--gvid-type-base) * var(--gvid-type-scale))",
-      "status": "active",
-      "order": 800,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-body",
-      "label": "type-body",
-      "value": "var(--gvid-type-base)",
-      "status": "active",
-      "order": 801,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-sm",
-      "label": "type-sm",
-      "value": "calc(var(--gvid-type-base) * 0.875)",
-      "status": "active",
-      "order": 802,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-caption",
-      "label": "type-caption",
-      "value": "calc(var(--gvid-type-base) * 0.75)",
-      "status": "active",
-      "order": 803,
+      "order": 5,
       "type": "numbers"
     },
     {
@@ -946,7 +866,7 @@
       "label": "leading-display",
       "value": "0.91em",
       "status": "active",
-      "order": 300,
+      "order": 6,
       "type": "numbers"
     },
     {
@@ -954,7 +874,7 @@
       "label": "leading-body",
       "value": "1.65em",
       "status": "active",
-      "order": 301,
+      "order": 7,
       "type": "numbers"
     },
     {
@@ -962,7 +882,7 @@
       "label": "leading-tight",
       "value": "1.1em",
       "status": "active",
-      "order": 302,
+      "order": 8,
       "type": "numbers"
     },
     {
@@ -970,7 +890,7 @@
       "label": "tracking-tight",
       "value": "-0.04em",
       "status": "active",
-      "order": 310,
+      "order": 9,
       "type": "numbers"
     },
     {
@@ -978,7 +898,7 @@
       "label": "tracking-normal",
       "value": "0em",
       "status": "active",
-      "order": 311,
+      "order": 10,
       "type": "numbers"
     },
     {
@@ -986,7 +906,7 @@
       "label": "tracking-wide",
       "value": "0.13em",
       "status": "active",
-      "order": 312,
+      "order": 11,
       "type": "numbers"
     },
     {
@@ -994,7 +914,7 @@
       "label": "weight-heading",
       "value": "800",
       "status": "active",
-      "order": 400,
+      "order": 12,
       "type": "numbers"
     },
     {
@@ -1002,7 +922,7 @@
       "label": "weight-body",
       "value": "400",
       "status": "active",
-      "order": 401,
+      "order": 13,
       "type": "numbers"
     },
     {
@@ -1010,7 +930,39 @@
       "label": "weight-emphasis",
       "value": "600",
       "status": "active",
-      "order": 402,
+      "order": 14,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-radius-pill",
+      "label": "radius-pill",
+      "value": "999px",
+      "status": "active",
+      "order": 15,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-radius-lg",
+      "label": "radius-lg",
+      "value": "1rem",
+      "status": "active",
+      "order": 16,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-radius-md",
+      "label": "radius-md",
+      "value": "0.5rem",
+      "status": "active",
+      "order": 17,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-radius-sm",
+      "label": "radius-sm",
+      "value": "4px",
+      "status": "active",
+      "order": 18,
       "type": "numbers"
     },
     {
@@ -1018,7 +970,7 @@
       "label": "space-base",
       "value": "1rem",
       "status": "active",
-      "order": 600,
+      "order": 19,
       "type": "numbers"
     },
     {
@@ -1026,7 +978,95 @@
       "label": "space-scale",
       "value": "1.333",
       "status": "active",
-      "order": 601,
+      "order": 20,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-container-max",
+      "label": "container-max",
+      "value": "1200px",
+      "status": "active",
+      "order": 21,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-d-h1",
+      "label": "type-d-h1",
+      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 6)), 7.48vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 6)))",
+      "status": "active",
+      "order": 22,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-d-h2",
+      "label": "type-d-h2",
+      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 5)), 5.61vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 5)))",
+      "status": "active",
+      "order": 23,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-d-h3",
+      "label": "type-d-h3",
+      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 4)), 4.21vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 4)))",
+      "status": "active",
+      "order": 24,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-d-h4",
+      "label": "type-d-h4",
+      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 3)), 3.16vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 3)))",
+      "status": "active",
+      "order": 25,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-d-h5",
+      "label": "type-d-h5",
+      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 2)), 2.37vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 2)))",
+      "status": "active",
+      "order": 26,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-d-h6",
+      "label": "type-d-h6",
+      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 1)), 1.78vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 1)))",
+      "status": "active",
+      "order": 27,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-body-lg",
+      "label": "type-body-lg",
+      "value": "calc(var(--gvid-type-base) * var(--gvid-type-scale))",
+      "status": "active",
+      "order": 28,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-body",
+      "label": "type-body",
+      "value": "var(--gvid-type-base)",
+      "status": "active",
+      "order": 29,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-sm",
+      "label": "type-sm",
+      "value": "calc(var(--gvid-type-base) * 0.875)",
+      "status": "active",
+      "order": 30,
+      "type": "numbers"
+    },
+    {
+      "id": "gvid-type-caption",
+      "label": "type-caption",
+      "value": "calc(var(--gvid-type-base) * 0.75)",
+      "status": "active",
+      "order": 31,
       "type": "numbers"
     },
     {
@@ -1035,7 +1075,7 @@
       "id": "gvid-space-xs",
       "label": "space-xs",
       "value": "calc(var(--gvid-space-base) / var(--gvid-space-scale))",
-      "order": 900
+      "order": 32
     },
     {
       "status": "active",
@@ -1043,7 +1083,7 @@
       "id": "gvid-space-sm",
       "label": "space-sm",
       "value": "var(--gvid-space-base)",
-      "order": 901
+      "order": 33
     },
     {
       "status": "active",
@@ -1051,7 +1091,7 @@
       "id": "gvid-space-md",
       "label": "space-md",
       "value": "calc(var(--gvid-space-base) * var(--gvid-space-scale))",
-      "order": 902
+      "order": 34
     },
     {
       "status": "active",
@@ -1059,7 +1099,7 @@
       "id": "gvid-space-lg",
       "label": "space-lg",
       "value": "calc(var(--gvid-space-base) * pow(var(--gvid-space-scale), 2))",
-      "order": 903
+      "order": 35
     },
     {
       "status": "active",
@@ -1067,7 +1107,7 @@
       "id": "gvid-space-xl",
       "label": "space-xl",
       "value": "calc(var(--gvid-space-base) * pow(var(--gvid-space-scale), 3))",
-      "order": 904
+      "order": 36
     },
     {
       "status": "active",
@@ -1075,54 +1115,14 @@
       "id": "gvid-space-2xl",
       "label": "space-2xl",
       "value": "calc(var(--gvid-space-base) * pow(var(--gvid-space-scale), 4))",
-      "order": 905
-    },
-    {
-      "id": "gvid-container-max",
-      "label": "container-max",
-      "value": "1200px",
-      "status": "active",
-      "order": 602,
-      "type": "numbers"
+      "order": 37
     },
     {
       "id": "gvid-container-padding",
       "label": "container-padding",
       "value": "clamp(var(--gvid-space-md), 2vw, var(--gvid-space-xl))",
       "status": "active",
-      "order": 1000,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-radius-pill",
-      "label": "radius-pill",
-      "value": "999px",
-      "status": "active",
-      "order": 500,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-radius-lg",
-      "label": "radius-lg",
-      "value": "1rem",
-      "status": "active",
-      "order": 501,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-radius-md",
-      "label": "radius-md",
-      "value": "0.5rem",
-      "status": "active",
-      "order": 502,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-radius-sm",
-      "label": "radius-sm",
-      "value": "4px",
-      "status": "active",
-      "order": 503,
+      "order": 38,
       "type": "numbers"
     }
   ]
