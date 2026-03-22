@@ -193,7 +193,33 @@ divi/button:
       module.decoration.spacing.desktop.value.padding.left: "var(--gvid-space-lg)"
 ```
 
-For Ghost and Text variants — copy this structure, change the colors and border treatment. Include `enable: "on"` in each.
+For Ghost and Text variants — same structure, different color and border treatment. Include `enable: "on"` in each. Example Ghost variant (transparent fill, same structure):
+
+```yaml
+  - name: "Ghost"
+    attrs:
+      button.decoration.button.desktop.value.enable: "on"
+      button.decoration.button.desktop.value.icon.enable: "off"
+      button.decoration.font.font.desktop.value.size: "var(--gvid-type-sm)"
+      button.decoration.font.font.desktop.value.weight: "var(--gvid-weight-emphasis)"
+      button.decoration.font.font.desktop.value.letterSpacing: "var(--gvid-tracking-wide)"
+      button.decoration.background.desktop.value.color: "rgba(0,0,0,0)"
+      button.decoration.font.font.desktop.value.color: "$color(color-interactive)"
+      button.decoration.border.desktop.value.styles.all.color: "$color(color-interactive)"
+      button.decoration.border.desktop.value.styles.all.width: "2px"
+      button.decoration.border.desktop.value.styles.all.style: "solid"
+      button.decoration.border.desktop.value.radius.topLeft: "var(--gvid-radius-pill)"
+      button.decoration.border.desktop.value.radius.topRight: "var(--gvid-radius-pill)"
+      button.decoration.border.desktop.value.radius.bottomLeft: "var(--gvid-radius-pill)"
+      button.decoration.border.desktop.value.radius.bottomRight: "var(--gvid-radius-pill)"
+      button.decoration.border.desktop.value.radius.sync: "true"
+      module.decoration.spacing.desktop.value.padding.top: "var(--gvid-space-sm)"
+      module.decoration.spacing.desktop.value.padding.right: "var(--gvid-space-lg)"
+      module.decoration.spacing.desktop.value.padding.bottom: "var(--gvid-space-sm)"
+      module.decoration.spacing.desktop.value.padding.left: "var(--gvid-space-lg)"
+```
+
+The pattern: same structure variables (`radius-pill`, `space-sm`, `space-lg`, `weight-emphasis`), different color references. The Text variant uses no fill, bottom border only, `color-interactive-text` instead of `color-interactive`, and minimal padding.
 
 ---
 

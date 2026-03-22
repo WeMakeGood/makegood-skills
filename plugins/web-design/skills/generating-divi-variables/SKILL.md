@@ -1,6 +1,6 @@
 ---
 name: generating-divi-variables
-description: Builds a complete Divi 5 design system from brand inputs — palette CSS, reference images, page content spec, and design intent. Generates a brand YAML layered on top of the boilerplate, then produces an import-ready JSON with semantic variables, a live math engine (type and spacing scales via CSS pow()), and role presets wired to those variables. Use when setting up a Divi 5 design system, generating Divi variables and presets, translating visual design direction into a Divi import file, or when a user provides palette files, reference site images, or page content specs for Divi.
+description: Builds a complete Divi 5 design system from brand inputs — palette CSS, reference images, page content spec, and design intent. Generates a brand YAML layered on top of the boilerplate, then produces an import-ready JSON with semantic variables, a live math engine (type and spacing scales via CSS pow()), and role presets wired to those variables. Use when setting up a Divi 5 design system, generating Divi variables and presets, translating visual design direction into a Divi import file, regenerating an existing Divi import from a brand YAML spec, or when a user provides palette files, reference site images, or page content specs for Divi.
 compatibility: Requires Python 3.9+ and PyYAML (pip install pyyaml)
 ---
 
@@ -11,6 +11,10 @@ The default tendency when building a design system is to treat it as a data entr
 </purpose>
 
 ## Critical Rules
+
+**SOURCE BEFORE DECIDING:** Before stating any design decision, locate its basis in the provided inputs — palette, reference images, page spec, or explicit designer intent. State which input led to the decision. If no input supports a decision, flag it as a default recommendation, not a derived conclusion.
+
+**CALIBRATE INFERENCE:** When a design decision comes from reading reference images, signal it: "The references suggest..." When it comes from explicit designer input, state it directly. When it's a boilerplate default being accepted, name it as such. The designer should always know whether they're confirming a derived read or accepting a default.
 
 **DESIGN FIRST:** Do not write YAML until design decisions are confirmed. Visual intent → decisions → YAML is the only valid sequence. Skipping the decisions phase produces a technically correct but visually incoherent output.
 
@@ -98,11 +102,11 @@ Run the generator:
 python3 scripts/generate_divi_variables.py <spec.yaml> -o <output.json>
 ```
 
-**GATE:** Before delivering the output, confirm:
-- "Generator completed without errors: [yes/no]"
+**GATE:** Before delivering output, write:
+- "Generator completed without errors: [yes / error: describe]"
 - "Output counts: [N colors, N variables, N presets]"
-- "Boilerplate primitives present: [yes/no]"
-- "Brand role presets present: [list]"
+- "Color count includes all 20 semantic slots plus palette stops: [confirmed / missing: list]"
+- "All brand role presets present: [list them by name]"
 </phase_generate>
 
 <phase_import>
