@@ -1,6 +1,6 @@
 {
   "name": "creating-organization-dossiers",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Creates structured organizational dossiers following a 6-phase research workflow. Produces comprehensive profiles with executive summary, leadership, financials, and strategic analysis.",
   "author": {
     "name": "Make Good",

@@ -1,6 +1,6 @@
 {
   "name": "processing-docx-edits",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Processes DOCX files containing tracked changes and comments, synthesizes all edits, and produces clean final documents.",
   "author": {
     "name": "Make Good",

@@ -1,6 +1,6 @@
 {
   "name": "creating-skills",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Guides creation of new Agent Skills from prompts, context files, and requirements. Provides skill architecture knowledge, best practices, and testing procedures.",
   "author": {
     "name": "Make Good",

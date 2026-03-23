@@ -1,6 +1,6 @@
 {
   "name": "writing-project-dossiers",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Creates comprehensive project dossiers through interactive guided conversation. Produces scope documents covering objectives, deliverables, timeline, budget, and team roles.",
   "author": {
     "name": "Make Good",

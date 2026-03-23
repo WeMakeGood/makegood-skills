@@ -1,6 +1,6 @@
 {
   "name": "researching-youtube-channels",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Researches YouTube channels and retrieves video metadata, descriptions, and transcripts. Search a channel's library or find videos on specific topics.",
   "author": {
     "name": "Make Good",

@@ -1,6 +1,6 @@
 {
   "name": "planning-social-campaigns",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Plans social media campaigns from source content, producing a campaign strategy, asset calendar, per-asset content files, and optional engagement plan.",
   "author": {
     "name": "Make Good",

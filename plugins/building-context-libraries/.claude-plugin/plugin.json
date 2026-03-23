@@ -1,6 +1,6 @@
 {
   "name": "building-context-libraries",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Builds modular context libraries that change how AI agents behave with organizational knowledge. Transforms source documents into metaprompt modules.",
   "author": {
     "name": "Make Good",

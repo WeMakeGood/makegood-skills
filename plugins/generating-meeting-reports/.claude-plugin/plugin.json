@@ -1,6 +1,6 @@
 {
   "name": "generating-meeting-reports",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Generates structured meeting reports from transcripts. Extracts attendees, topics, decisions, action items, and resources into a standardized executive summary format.",
   "author": {
     "name": "Make Good",

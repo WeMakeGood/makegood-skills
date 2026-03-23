@@ -1,6 +1,6 @@
 {
   "name": "web-design",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Interactive website content strategy and Divi 5 design token pipeline. Includes skills for designing website content architecture and generating Divi 5-compatible variable import files.",
   "author": {
     "name": "Make Good",
@@ -8,5 +8,11 @@
   },
   "homepage": "https://github.com/WeMakeGood/makegood-skills",
   "license": "MIT",
-  "keywords": ["web", "design", "divi", "content-strategy", "design-tokens"]
+  "keywords": [
+    "web",
+    "design",
+    "divi",
+    "content-strategy",
+    "design-tokens"
+  ]
 }

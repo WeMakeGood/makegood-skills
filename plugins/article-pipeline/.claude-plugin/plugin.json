@@ -1,6 +1,6 @@
 {
   "name": "article-pipeline",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Complete pipeline for researching, designing, drafting, and repurposing long-form articles. Includes skills for series design, article drafting, video scripting, writing standards, and voice profile extraction.",
   "author": {
     "name": "Make Good",
@@ -8,5 +8,11 @@
   },
   "homepage": "https://github.com/WeMakeGood/makegood-skills",
   "license": "MIT",
-  "keywords": ["writing", "articles", "content", "voice", "pipeline"]
+  "keywords": [
+    "writing",
+    "articles",
+    "content",
+    "voice",
+    "pipeline"
+  ]
 }
