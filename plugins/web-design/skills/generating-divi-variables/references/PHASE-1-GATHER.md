@@ -84,3 +84,7 @@ in images, very tight or very generous spacing, specific typography style, etc.]
 ```
 
 Present this summary and ask the user to confirm or correct before proceeding to Phase 2.
+
+**GATE:** Before presenting the analysis summary, confirm:
+- "I have analyzed all provided inputs: [list]"
+- "My environment read is based on: [specific input reference — which image or statement]"

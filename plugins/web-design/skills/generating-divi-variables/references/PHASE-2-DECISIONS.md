@@ -77,7 +77,9 @@ Consistency matters. Using the same radius family across buttons, cards, and inp
 
 ## Decision 5: Color Assignments
 
-Propose the mapping from palette stops to semantic slots. Present as a table:
+Propose the mapping from palette stops to semantic slots. Present as a table.
+
+The palette names below are examples from a dark environment implementation — replace with your palette's actual stop names.
 
 | Semantic slot | Palette stop | Hex | Rationale |
 |--------------|-------------|-----|-----------|

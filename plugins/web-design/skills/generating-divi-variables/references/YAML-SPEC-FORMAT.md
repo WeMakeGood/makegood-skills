@@ -247,6 +247,8 @@ presets:
 
 ## Complete Example
 
+The palette names below (`brand-blue-500`, `neutral-900`, etc.) are illustrative. Replace with names from your actual `palette.css` file — using names that don't exist in your palette will cause generator errors.
+
 ```yaml
 name: "Acme Corp"
 id_namespace: "acme"

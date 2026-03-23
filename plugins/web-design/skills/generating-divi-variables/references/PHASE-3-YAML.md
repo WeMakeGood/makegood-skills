@@ -276,7 +276,7 @@ Verify:
 2. All 20 semantic color slots are assigned in `colors:`
 3. Every `divi/button` preset has `enable: "on"`
 4. No `$var()` references — only `var(--gvid-xxx)` and `$color()`
-5. Every `divi/text` preset includes the full h1–h6 heading scale
+5. New-named `divi/text` role presets (Eyebrow, Key Statement, Lede, etc.) include the full h1–h6 heading scale — presets extending a boilerplate name (Body) only need the attrs that differ
 6. Paths checked against `divi-module-reference.json` for any custom presets
 
 Present the complete YAML to the user. **STOP.** Do not generate JSON until explicitly approved.
