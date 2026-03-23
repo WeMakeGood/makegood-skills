@@ -6,17 +6,41 @@ Read [PRESET-COOKBOOK.md](PRESET-COOKBOOK.md) before working through this phase.
 
 ---
 
+## Name What You Expected First
+
+Before reading anything, you already have a prediction. A travel site, a fintech startup, a nonprofit consultancy — each category carries assumptions about what the design will do. Name those assumptions explicitly before engaging with the inputs.
+
+Write one sentence: "A design like this typically..." Then read the inputs. Then write one sentence about where what you found departs from what you expected.
+
+That gap is where the organizing principle lives. Organizing principles are almost always the thing a design is doing that its category doesn't require it to do. Photography-as-ground in a travel site is invisible if you expect it — it's just what travel sites do. It becomes visible when you articulate "I expected photography to sit inside content sections, but here it's the actual environment everything else lives on." That surprise is the principle. Every other decision follows from it.
+
+This is not a rhetorical step. If nothing surprised you, either the design is entirely conventional (possible) or you pattern-completed rather than actually looked (more likely). Push until you find at least one place where the design made a choice it didn't have to make.
+
+---
+
+## Find the Organizing Principle
+
+Before analyzing any specific element, name what this design is organized around. Not a list of what you see — one sentence about what holds it all together.
+
+Some designs are organized around photography as environment. Some around typography carrying all the visual weight. Some around color doing the structural work — bold surface blocking that creates rhythm without imagery. Some around content density as the aesthetic itself. The organizing principle is the logic that makes all the individual decisions coherent.
+
+You cannot find the organizing principle by cataloging elements. You find it by asking: if you removed one thing and the whole design collapsed, what would that thing be? Whatever it is — that's what the design is organized around.
+
+Only after naming the principle should you read the individual elements. Because now you're reading them as expressions of that principle, which means you'll notice when an element is doing structural work (and must be preserved in the design system) versus decorative work (and can be varied).
+
+---
+
 ## Work Through the Inputs
 
-Before proposing any decision, read the inputs as evidence of design intent. Each input is a signal; your job is to understand what they're saying together, not just separately.
+With the organizing principle in view, read the inputs as evidence — not to confirm the principle, but to test and refine it.
 
-**From the palette:** What is the emotional temperature? Warm or cool? Wide chroma range or muted? How many stops — does this palette have the vocabulary to express elevation (surface above ground) and contrast (text against ground) simultaneously? Where is the strongest chroma, and what does that color want to do?
+**From the palette:** What is the emotional temperature? Warm or cool? Wide chroma range or muted? Does this palette have the vocabulary to express elevation (surface above ground) and contrast (text against ground) simultaneously? Where is the strongest chroma, and what does that color want to do? Does the palette support the organizing principle, or create tension with it?
 
-**From reference images:** Don't start with individual elements. Start with the visual field as a whole. What ratio of ground to surface to accent? Then ask: what does the heading scale say about the relationship between headings and body — dramatic hierarchy or quiet coherence? What do the buttons say about the brand's character? What does the spacing say about how dense or airy this design wants to be? What surprises you? What would you have expected that isn't there?
+**From reference images:** What ratio of ground to surface to accent across the visual field? What does the heading scale say about the relationship between headings and body? What do buttons say about the brand's character? What does spacing say about density? And critically: are any elements doing double duty — serving both structural and decorative roles simultaneously? Photography that functions as ground, type that functions as a layout grid, color that functions as both accent and surface — these are places where the organizing principle is doing its most interesting work.
 
-**From the page content spec:** What content patterns repeat — cards, editorial columns, feature grids, hero sections? What spatial relationships does the content want to create? A grid of cards wants different rhythm than a page of long-form text.
+**From the page content spec:** What content patterns repeat? What spatial relationships does the content want to create? Does the content structure reinforce or complicate the organizing principle?
 
-**From direct design intent:** Listen for underlying values, not just preferences. "I want it to feel premium" is different from "I want pill buttons." The former is a character argument; the latter is a specification. When you hear a specification, ask what character it's trying to express.
+**From direct design intent:** Listen for underlying values, not just preferences. "I want it to feel premium" is a character argument. "I want pill buttons" is a specification. When you hear a specification, ask what character it's trying to express, and whether that character is consistent with the organizing principle you've identified.
 
 ---
 
@@ -52,7 +76,7 @@ That argument generates the specific values. The values don't generate the argum
 
 ## Present for Confirmation
 
-Present your design argument to the designer — the underlying read, the convergences you found, any tensions that need resolution, and the specific values your argument implies.
+Present your design argument to the designer — the organizing principle you found, the surprise that revealed it, the convergences you found, any tensions that need resolution, and the specific values your argument implies.
 
 Don't present it as a table of decisions awaiting approval. Present it as a design read you've built from the evidence, and ask whether it matches their understanding of what they're building. If it doesn't, what's different? If it does, confirm the specific values together.
 
@@ -61,6 +85,11 @@ The artifact to produce before the GATE:
 ```
 PHASE 2 DESIGN READ
 ───────────────────
+What I expected: [one sentence — what a design like this typically does]
+What surprised me: [one sentence — where this design departed from expectation]
+
+Organizing principle: [one sentence — what this design is organized around]
+
 Character: [2–3 sentences — what this design is trying to be and why]
 
 Convergences: [where inputs point the same direction]

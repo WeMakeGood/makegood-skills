@@ -2,6 +2,8 @@
 
 Accept all available brand inputs. The quality of Phase 2 decisions depends entirely on how well you read the inputs here. Take time to analyze before proceeding.
 
+Before loading anything, write one sentence about what you expect based on the brand name, category, or any context already provided. This expectation becomes the baseline you'll compare against. The gap between what you expected and what you find is where the most important design decisions live.
+
 ---
 
 ## Accept Any Combination

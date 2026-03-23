@@ -8,6 +8,22 @@ This cookbook teaches the skill how to think about design problems. Technical ru
 
 Before assigning any values, you need to understand what the design is trying to do. This is not a checklist — it's an act of comprehension. The inputs (reference images, palette, page spec) are evidence. Your job is to read what they're telling you before you decide anything.
 
+### Name what you expected first
+
+Before reading the inputs, you already have a prediction. Name it. "A design like this typically..." Then read. Then name where what you found departs from what you expected.
+
+That gap is where the organizing principle lives. Organizing principles are the things a design is doing that its category doesn't require it to do. They're invisible if you expect them and visible the moment you articulate the surprise.
+
+If nothing surprised you, you probably pattern-completed rather than actually read. Push until you find at least one choice the design made that it didn't have to make.
+
+### Find the organizing principle before analyzing elements
+
+One sentence: what is this design organized around? Not a list of what you see — one sentence about what holds it all together.
+
+Some possibilities: photography as environment (layout sits on top of imagery rather than containing it). Typography as the structural element (type weight and scale carry the visual hierarchy, color is secondary). Color as architecture (surface blocking creates rhythm, imagery is decorative). Density as the aesthetic (information richness is itself the design statement).
+
+Find the principle before reading individual elements. Once you have it, element analysis becomes confirmation and refinement rather than cataloging. And you'll notice when an element is doing structural work — which is where the most important design system decisions live.
+
 ### Work through the inputs as evidence
 
 When you look at reference images, you're not measuring values. You're reading visual arguments. A tight type scale isn't a number — it's a statement about the relationship between headings and body copy. A pill-radius button isn't a specification — it's a character claim about the brand.
