@@ -1,162 +1,86 @@
 # Phase 2: Design Decisions
 
-Present each decision with your recommendation and rationale. The designer confirms or overrides. Do not proceed to YAML until all decisions are confirmed.
+The decisions made here determine everything downstream. This phase is not about filling in a form — it's about reading what the inputs are telling you and building a coherent design argument before committing to any values.
 
-The decisions made here determine everything downstream. A wrong scale choice is 5 seconds to fix here and 30 minutes to fix after import.
-
----
-
-## Decision 1: Environment
-
-Dark ground or light ground?
-
-State your read from the Phase 1 analysis and ask for confirmation. If unclear from inputs, ask directly.
-
-The environment determines which end of the palette serves as ground, which semantic color slots get which palette stops, and how the interactive colors behave against the ground.
+Read [PRESET-COOKBOOK.md](PRESET-COOKBOOK.md) before working through this phase. The cookbook teaches the reasoning; this phase applies it.
 
 ---
 
-## Decision 2: Type Scale
+## Work Through the Inputs
 
-Which modular scale ratio fits the brand character?
+Before proposing any decision, read the inputs as evidence of design intent. Each input is a signal; your job is to understand what they're saying together, not just separately.
 
-| Scale | Ratio | Character |
-|-------|-------|-----------|
-| Minor third | 1.200 | Subtle, compact — headings only slightly larger than body |
-| Major third | 1.250 | Balanced, editorial — clear hierarchy without drama |
-| Perfect fourth | 1.333 | Classic, confident — standard for most sites |
-| Augmented fourth | 1.414 | Dramatic, display-forward — strong visual hierarchy |
-| Perfect fifth | 1.500 | Very dramatic — large gap between heading levels |
+**From the palette:** What is the emotional temperature? Warm or cool? Wide chroma range or muted? How many stops — does this palette have the vocabulary to express elevation (surface above ground) and contrast (text against ground) simultaneously? Where is the strongest chroma, and what does that color want to do?
 
-Present your recommendation with rationale drawn from the reference images:
-> "The references show a dramatic heading scale with large h1s relative to body text — augmented fourth (1.414) fits this character."
+**From reference images:** Don't start with individual elements. Start with the visual field as a whole. What ratio of ground to surface to accent? Then ask: what does the heading scale say about the relationship between headings and body — dramatic hierarchy or quiet coherence? What do the buttons say about the brand's character? What does the spacing say about how dense or airy this design wants to be? What surprises you? What would you have expected that isn't there?
 
-Also consider:
-- **`type-base`** — should it stay at 1rem or shift? If the reference images show noticeably larger body text than typical, suggest 1.125rem or 1.25rem.
-- **`type-scale-mobile`** — defaults to 2 steps down (minor-third at 1.200 for perfect-fourth desktop). Confirm this is appropriate or adjust.
+**From the page content spec:** What content patterns repeat — cards, editorial columns, feature grids, hero sections? What spatial relationships does the content want to create? A grid of cards wants different rhythm than a page of long-form text.
+
+**From direct design intent:** Listen for underlying values, not just preferences. "I want it to feel premium" is different from "I want pill buttons." The former is a character argument; the latter is a specification. When you hear a specification, ask what character it's trying to express.
 
 ---
 
-## Decision 3: Spacing Feel
+## Find Convergence
 
-How dense or airy is the layout?
+When multiple inputs point toward the same character, that convergence is your strongest signal. Name it explicitly.
 
-This drives `space-base`. The scale ratio follows from type scale unless there's a reason to decouple them.
+If the palette is cool and muted, the references show generous spacing, and the page spec is editorial-forward — those three signals converge on a precise, restrained character. Decisions that respect that character will feel right. Decisions that fight it will create friction somewhere.
 
-| Feel | space-base | Character |
-|------|-----------|-----------|
-| Tight/compact | 0.875rem | Dense UI, information-forward |
-| Standard | 1rem | Balanced — default |
-| Airy | 1.125rem | Generous breathing room |
-| Very airy | 1.25rem | Gallery-like, minimal |
-
-Present your read from reference images:
-> "The references show generous section spacing with comfortable card padding — space-base 1rem with the default 1.333 scale feels right."
+When inputs conflict — warm palette but minimal references, dramatic references but a page spec full of dense UI — name the tension and surface it to the designer. Some tensions are real conflicts requiring a choice. Others are complementary: the palette provides warmth while the layout provides precision, and both can coexist. Know which kind you're looking at before deciding.
 
 ---
 
-## Decision 4: Radius
+## Reframe Before Committing
 
-What shape language does the design use?
+For any major design direction, name the alternative framing before committing.
 
-| Treatment | Radius | Character |
-|-----------|--------|-----------|
-| Sharp | 0px everywhere | Formal, architectural, editorial |
-| Subtle | radius-sm (4px) for inputs, radius-md (0.5rem) for cards | Professional, clean |
-| Friendly | radius-lg (1rem) for cards, radius-pill for buttons | Modern, approachable |
-| Pill + rounded | radius-pill for buttons, radius-lg for cards | Contemporary, action-forward |
+If your read is "this is a dark, editorial design with tight type," ask: what if the tight type is a font-family artifact rather than a character choice? What if the designer actually wants generous heading sizes and the references are just showing one narrow treatment? Testing the alternative doesn't mean abandoning the first read — it means the first read has been challenged and survived.
 
-State which radius variables apply to which contexts:
-- Buttons → `radius-pill` or `radius-md` or `0px`
-- Cards/panels → `radius-lg` or `radius-md` or `0px`
-- Inputs → `radius-sm` or `0px`
-
-Consistency matters. Using the same radius family across buttons, cards, and inputs creates visual coherence.
+For color environment specifically: before committing to dark vs. light, ask whether the palette supports both and whether the page content has sections that might need the opposite treatment (a dark-ground site with a light-ground CTA band, for example).
 
 ---
 
-## Decision 5: Color Assignments
+## Build the Design Argument
 
-Propose the mapping from palette stops to semantic slots. Present as a table.
+Once you've worked through the inputs and tested alternatives, build a coherent design argument — not a list of decisions, but a single statement of what this design is trying to be and how the specific variable choices express that.
 
-The palette names below are examples from a dark environment implementation — replace with your palette's actual stop names.
+Something like: "This is a confident, architecture-forward design — the palette's cool neutrals and the references' precise spacing call for a perfect-fourth scale with generous `type-base`, a matching spacing scale, and squared-off radius. The button treatment inverts against the dark ground, so `color-interactive` uses the light end of the neutral spine rather than the accent color, which is reserved for links and eyebrows."
 
-| Semantic slot | Palette stop | Hex | Rationale |
-|--------------|-------------|-----|-----------|
-| color-ground | shoreline-800 | #081e22 | Darkest cool neutral — primary ground |
-| color-surface | shoreline-700 | #223f43 | One step lighter — cards float above ground |
-| color-interactive | shoreline-100 | #f6f6f1 | Near-white — maximum contrast against dark |
-| ... | ... | ... | ... |
-
-All 20 boilerplate semantic slots must be assigned. See [DIVI-SPEC.md](DIVI-SPEC.md) for the full slot list.
-
-Also propose the 5 Divi system slot assignments (`primary`, `secondary`, `heading`, `body`, `link`).
-
-**Color assignment principles from [PRESET-COOKBOOK.md](PRESET-COOKBOOK.md):**
-- `color-ground` carries 70–80% of the visual field — get it right first
-- `color-interactive` must contrast strongly against `color-ground`
-- `color-text-on-interactive` must be readable on `color-interactive` fill
-- `color-surface` is one elevation step from ground (lighter in dark env, darker in light env)
-- Functional colors (error/success/info) follow established conventions unless brand overrides
+That argument generates the specific values. The values don't generate the argument.
 
 ---
 
-## Decision 6: Preset Roles Needed
+## Present for Confirmation
 
-Based on the page content spec and cookbook guidance, which role presets are required?
+Present your design argument to the designer — the underlying read, the convergences you found, any tensions that need resolution, and the specific values your argument implies.
 
-**Typography roles** (always needed):
-- Body — the default text preset with full heading scale
-- What additional roles? (Eyebrow, Key Statement, Lede, Meta, Footer, Pullquote)
+Don't present it as a table of decisions awaiting approval. Present it as a design read you've built from the evidence, and ask whether it matches their understanding of what they're building. If it doesn't, what's different? If it does, confirm the specific values together.
 
-**Button roles** (always needed):
-- Which tiers? (Primary/filled, Ghost/outline, Text/underline)
-- Any environment variants? (On light surface, on accent band)
-
-**Card/surface roles** (if page has cards):
-- Column as card? Group as card?
-- What content pattern — image+text+button, icon+text, stat+label?
-
-**Section roles** (if page has distinct section treatments):
-- CTA band with background color?
-- Hero section with scrim?
-- Accent band?
-
-**Other module roles** (as needed from page spec):
-- Navigation treatment
-- Image treatments (rounded corners, etc.)
-- Divider style
-
----
-
-## Artifact: Decision Summary
-
-Present all decisions in one block for user confirmation:
+The artifact to produce before the GATE:
 
 ```
-PHASE 2 DECISIONS — awaiting confirmation
-──────────────────────────────────────────
-Environment: [dark / light]
+PHASE 2 DESIGN READ
+───────────────────
+Character: [2–3 sentences — what this design is trying to be and why]
 
-Type scale: [scale name] ([ratio])
-  type-base: [value]
-  type-scale-mobile: [value]
+Convergences: [where inputs point the same direction]
+Tensions: [where inputs conflict and how you've resolved or flagged them]
 
-Spacing: space-base [value], space-scale [value]
+Values this argument implies:
+  type-scale: [value] — [why this ratio fits the character]
+  space-base: [value] — [why this base fits the density]
+  radius: [buttons / cards / inputs] — [what character this expresses]
+  color environment: [dark / light] — [what in the inputs led to this]
 
-Radius:
-  Buttons: [variable name]
-  Cards: [variable name]
-  Inputs: [variable name]
+Color argument:
+  primary (links): [palette stop] — [why]
+  color-interactive (buttons): [palette stop] — [why, and whether it differs from primary]
+  color-ground: [palette stop] — [why this stop]
+  [other notable assignments with brief rationale]
 
-Color assignments: [table or "see above"]
-
-Preset roles:
-  Typography: [list]
-  Buttons: [list]
-  Cards: [list]
-  Sections: [list]
-  Other: [list or none]
+Preset roles needed:
+  [List drawn from page spec and design character — not exhaustive, just the ones
+  the character clearly calls for]
 ```
 
-**STOP.** Do not write any YAML until the user explicitly confirms these decisions.
+**STOP.** Do not write any YAML until the designer explicitly confirms this design read. A confirmed design read produces correct YAML quickly. Unconfirmed assumptions produce YAML that needs to be rebuilt.
