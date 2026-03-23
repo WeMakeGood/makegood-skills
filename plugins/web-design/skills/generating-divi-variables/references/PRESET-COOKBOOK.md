@@ -16,12 +16,35 @@ The boilerplate defines semantic slots — `color-ground`, `color-surface`, `col
 
 **The assignment questions to ask:**
 1. What is the ground color? (The color 70–80% of the visual field sits on)
-2. What is the primary interactive color? (Buttons, links, accents)
-3. What contrasts with the interactive color for text on top of it?
-4. What is the surface color? (Cards, panels — one step away from ground)
-5. What is the text hierarchy? (Primary, secondary, dim)
+2. What color works as a site-wide accent for links and UI elements? (This becomes `primary`)
+3. What fills buttons? (May or may not be the same as `primary` — see below)
+4. What contrasts with the button fill for text on top of it?
+5. What is the surface color? (Cards, panels — one step away from ground)
+6. What is the text hierarchy? (Primary, secondary, dim)
 
 Don't start with "what colors do I like." Start with "what does each position in the system need to accomplish."
+
+### Divi system slots vs. button colors — these are separate decisions
+
+**`primary` and `secondary`** (Divi system slots) are accent colors for links and site-wide UI elements. Divi applies them automatically across the theme — to link underlines, module accents, and legacy UI elements. They go into the WordPress theme customizer and must be hex values.
+
+**`color-interactive`** (boilerplate semantic slot) fills buttons and primary interactive elements. It may use the same color as `primary`, or a completely different one.
+
+**Why they're separate:** On a dark environment with an inverted button treatment (light fill on dark ground), `primary` might be a warm accent for links while `color-interactive` is a near-white for button fills. Forcing buttons to use `primary` would make buttons the wrong color.
+
+**The design question:** Does your button treatment match your link accent color? If yes, assign the same palette stop to both. If no — which is common in dark environments — assign them independently.
+
+Example: dark site with warm accent links and inverted buttons:
+```yaml
+system_colors:
+  primary: { ref: "neon-carrot-400" }    # warm accent for links
+  secondary: { ref: "neon-carrot-600" }  # hover state for links
+
+colors:
+  color-interactive: { ref: "shoreline-100" }      # near-white button fill
+  color-interactive-hover: { ref: "shoreline-300" } # slightly dimmer on hover
+  color-text-on-interactive: { ref: "shoreline-800" } # dark text on light button
+```
 
 ---
 

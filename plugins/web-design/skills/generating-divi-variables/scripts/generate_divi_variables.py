@@ -516,16 +516,41 @@ def patch_boilerplate_colors(boilerplate: dict, system_colors: dict,
     by_label = {entry[1]["label"]: entry for entry in colors}
 
     def resolve_value(value):
+        """Resolve a color value — for semantic slots, returns $variable() ref."""
         if isinstance(value, dict) and "ref" in value:
             ref_name = value["ref"]
             target_gcid = resolve_color_id(namespace, ref_name, all_color_names)
             return color_ref_value(target_gcid)
         return value
 
+    # Build a palette hex lookup for system slot resolution.
+    # System color slots go into the WP theme customizer which does not
+    # understand CSS variable references — they must be literal hex values.
+    palette_hex = {name: hex_val for name, hex_val in palette_tokens}
+
+    def resolve_system_value(value):
+        """Resolve a system slot color — must be literal hex, never a var ref.
+
+        If a ref: is given, look up the hex in the palette. If the palette
+        doesn't have it, fall through to the plain value. This prevents
+        $variable() refs from being written to theme customizer slots.
+        """
+        if isinstance(value, dict) and "ref" in value:
+            ref_name = value["ref"]
+            if ref_name in palette_hex:
+                return palette_hex[ref_name]
+            # ref not in palette — caller may have provided a hex directly
+            # under a different key; fall back to resolve_value which at
+            # least produces a valid-looking value.
+            return resolve_value(value)
+        return value
+
     # 1. System color slots — patch by fixed ID.
+    # MUST be hex — these go into the WP theme customizer, not Divi's
+    # variable system. $variable() refs are silently ignored there.
     for slot_name, slot_id in SYSTEM_COLOR_SLOTS.items():
         if slot_name in system_colors:
-            color_value = resolve_value(system_colors[slot_name])
+            color_value = resolve_system_value(system_colors[slot_name])
             if slot_id in by_id:
                 by_id[slot_id][1]["color"] = color_value
             else:

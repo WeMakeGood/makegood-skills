@@ -25,12 +25,19 @@ The boilerplate defines 25 semantic color slots with empty values. All must be p
 
 **Divi system slots** (5) — fixed IDs, wired to Divi's global palette:
 ```
-gcid-primary-color       → system primary (links, accents)
-gcid-secondary-color     → system secondary (hover, active states)
-gcid-heading-color       → system heading text
-gcid-body-color          → system body text
-gcid-link-color          → system link color
+gcid-primary-color       → accent color for links and site-wide UI accents
+gcid-secondary-color     → secondary accent (hover states, active elements)
+gcid-heading-color       → default heading text color
+gcid-body-color          → default body text color
+gcid-link-color          → inline link color (often matches primary)
 ```
+
+**Critical constraint:** System slots are stored in WordPress theme customizer options, not Divi's variable system. They must be **literal hex values** — `$variable()` refs and CSS var() expressions are silently ignored. The generator resolves `ref:` values to hex automatically.
+
+**What primary/secondary mean — and don't mean:**
+`primary` and `secondary` are site-wide accent colors for links and UI elements. They are NOT button fill colors. Buttons have their own semantic slots (`color-interactive`, `color-interactive-hover`, `color-text-on-interactive`) which may or may not use the same color as primary.
+
+Example: a dark-environment site might set `primary` to a warm accent for links, while `color-interactive` uses a light neutral for button fills (inverted treatment). These are independent decisions. Do not assume buttons should use the primary color.
 
 **Environment slots** (4) — surface hierarchy:
 ```
