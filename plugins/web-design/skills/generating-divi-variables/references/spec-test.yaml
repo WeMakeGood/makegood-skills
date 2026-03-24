@@ -3,11 +3,14 @@ id_namespace: "test"
 boilerplate: "boilerplate.json"
 
 # ── Scale overrides ───────────────────────────────────────────────────────────
-# Omit to use boilerplate defaults (1.333 / 1.200 / 1rem / 1200px)
+# type-base, space-base, container-max are unitless integers (no px suffix).
+# Omit any value to use the boilerplate default.
 overrides:
+  type-base:     16      # px value, unitless
   type-scale:    1.333
+  space-base:    16      # px value, unitless
   space-scale:   1.333
-  container-max: "1200px"
+  container-max: 1200    # px value, unitless
 
 # ── Fonts ─────────────────────────────────────────────────────────────────────
 fonts:

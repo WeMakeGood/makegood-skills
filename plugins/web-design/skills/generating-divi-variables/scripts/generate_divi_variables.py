@@ -20,9 +20,15 @@ import argparse
 import json
 import re
 import hashlib
+import shutil
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+# Path to the design-system.css file shipped with the skill.
+# Resolved relative to this script file so it works regardless of cwd.
+_SCRIPT_DIR = Path(__file__).parent
+_CSS_SOURCE  = _SCRIPT_DIR.parent / "references" / "design-system.css"
 
 try:
     import yaml
@@ -886,6 +892,22 @@ def build_divi_json(spec: dict) -> dict:
         global_variables = patch_boilerplate_variables(boilerplate, spec, namespace)
         presets          = patch_boilerplate_presets(boilerplate, spec)
 
+        # Strip variables that have moved to design-system.css.
+        # These are derived calc chains — they live in :root CSS now and
+        # do not belong in the Divi variable UI.
+        _css_owned = {
+            "type-d-h1", "type-d-h2", "type-d-h3",
+            "type-d-h4", "type-d-h5", "type-d-h6",
+            "type-body-lg", "type-body", "type-sm", "type-caption",
+            "space-xs", "space-sm", "space-md",
+            "space-lg", "space-xl", "space-2xl",
+            "container-padding",
+        }
+        global_variables = [
+            e for e in global_variables
+            if e.get("label") not in _css_owned
+        ]
+
         return {
             "context": "et_builder",
             "data": [],
@@ -1187,6 +1209,15 @@ def main():
 
         out_path.write_text(json.dumps(data, indent=4))
 
+        # Copy design-system.css alongside the JSON output.
+        css_out = out_path.with_name("design-system.css")
+        if _CSS_SOURCE.exists():
+            if _CSS_SOURCE.resolve() != css_out.resolve():
+                shutil.copy2(_CSS_SOURCE, css_out)
+            # else: output is in the same dir as source — no copy needed
+        else:
+            print(f"  Warning: design-system.css not found at {_CSS_SOURCE}", file=sys.stderr)
+
         # Summary.
         n_gc = len(data["global_colors"])
         gv = data["global_variables"]
@@ -1202,6 +1233,7 @@ def main():
 
         print(f"{spec['name']}")
         print(f"  → {out_path}")
+        print(f"  → {css_out}")
         parts = [f"{n_gc} colors", f"{n_fonts} fonts", f"{n_nums} numbers"]
         if n_strs:
             parts.append(f"{n_strs} strings")

@@ -1,0 +1,156 @@
+/*
+ * Divi Design System — Generated CSS
+ *
+ * Install in: Divi > Theme Options > Custom CSS  (or enqueue via child theme)
+ *
+ * Adjustable variables live in the Divi global variables panel:
+ *   gvid-type-base        — base font size in px (unitless integer, e.g. 16)
+ *   gvid-type-scale       — desktop type ratio (e.g. 1.333)
+ *   gvid-type-scale-mobile — mobile type ratio (e.g. 1.200)
+ *   gvid-space-base       — base spacing in px (unitless integer, e.g. 16)
+ *   gvid-space-scale      — spacing ratio (e.g. 1.333)
+ *   gvid-container-max    — max content width in px (unitless integer, e.g. 1440)
+ *   gvid-viewport-min     — min viewport for fluid scaling (unitless integer, e.g. 375)
+ *
+ * All base variables are unitless integers. This file adds units (* 1px, * 1vw)
+ * where needed so no mixed-unit errors occur in CSS calculations.
+ *
+ * Heading sizes use the standard slope+intercept clamp formula:
+ *   slope     = (desktop_size - mobile_size) / (viewport_max - viewport_min)
+ *   slopeVW   = slope * 100 (as vw)
+ *   intercept = mobile_size - slope * viewport_min
+ *   result    = clamp(mobile_size, calc(intercept + slopeVW * 1vw), desktop_size)
+ */
+
+:root {
+    /* ── Scale powers (unitless) ──────────────────────────────────────────────
+     * Desktop: gvid-type-scale ^ 1..6
+     * Mobile:  gvid-type-scale-mobile ^ 1..6
+     * Chained calc() avoids pow() which has inconsistent support in clamp().
+     */
+    --gvid-sp1: var(--gvid-type-scale);
+    --gvid-sp2: calc(var(--gvid-sp1) * var(--gvid-type-scale));
+    --gvid-sp3: calc(var(--gvid-sp2) * var(--gvid-type-scale));
+    --gvid-sp4: calc(var(--gvid-sp3) * var(--gvid-type-scale));
+    --gvid-sp5: calc(var(--gvid-sp4) * var(--gvid-type-scale));
+    --gvid-sp6: calc(var(--gvid-sp5) * var(--gvid-type-scale));
+
+    --gvid-spm1: var(--gvid-type-scale-mobile);
+    --gvid-spm2: calc(var(--gvid-spm1) * var(--gvid-type-scale-mobile));
+    --gvid-spm3: calc(var(--gvid-spm2) * var(--gvid-type-scale-mobile));
+    --gvid-spm4: calc(var(--gvid-spm3) * var(--gvid-type-scale-mobile));
+    --gvid-spm5: calc(var(--gvid-spm4) * var(--gvid-type-scale-mobile));
+    --gvid-spm6: calc(var(--gvid-spm5) * var(--gvid-type-scale-mobile));
+
+    /* ── Heading sizes — slope+intercept clamp ────────────────────────────────
+     *
+     * For each heading level n:
+     *   desktop_size = type-base * scale^n          (px)
+     *   mobile_size  = type-base * mobile-scale^n   (px)
+     *   vp_range     = container-max - viewport-min (px, unitless)
+     *
+     *   slope     = (desktop_size - mobile_size) / vp_range
+     *             = type-base * (sp_n - spm_n) / vp_range
+     *
+     *   slopeVW   = slope * 100  →  used as coefficient of 1vw
+     *             = type-base * (sp_n - spm_n) * 100 / vp_range
+     *
+     *   intercept = mobile_size - slope * viewport-min
+     *             = type-base * spm_n - type-base * (sp_n - spm_n) / vp_range * viewport-min
+     *             = type-base * (spm_n - (sp_n - spm_n) * viewport-min / vp_range)
+     *
+     *   preferred = calc(intercept*1px + slopeVW*1vw)
+     *
+     * All intermediate values stay unitless until the final * 1px or * 1vw.
+     */
+
+    /* Viewport range (unitless) — min viewport fixed at 375px */
+    --gvid-vp-range: calc(var(--gvid-container-max) - 375);
+
+    /* H1 */
+    --gvid-h1-slope:     calc(var(--gvid-type-base) * (var(--gvid-sp6) - var(--gvid-spm6)) / var(--gvid-vp-range));
+    --gvid-h1-intercept: calc(var(--gvid-type-base) * var(--gvid-spm6) - var(--gvid-h1-slope) * 375);
+    --gvid-type-d-h1: clamp(
+        calc(var(--gvid-type-base) * var(--gvid-spm6) * 1px),
+        calc(var(--gvid-h1-intercept) * 1px + var(--gvid-h1-slope) * 100 * 1vw),
+        calc(var(--gvid-type-base) * var(--gvid-sp6) * 1px)
+    );
+
+    /* H2 */
+    --gvid-h2-slope:     calc(var(--gvid-type-base) * (var(--gvid-sp5) - var(--gvid-spm5)) / var(--gvid-vp-range));
+    --gvid-h2-intercept: calc(var(--gvid-type-base) * var(--gvid-spm5) - var(--gvid-h2-slope) * 375);
+    --gvid-type-d-h2: clamp(
+        calc(var(--gvid-type-base) * var(--gvid-spm5) * 1px),
+        calc(var(--gvid-h2-intercept) * 1px + var(--gvid-h2-slope) * 100 * 1vw),
+        calc(var(--gvid-type-base) * var(--gvid-sp5) * 1px)
+    );
+
+    /* H3 */
+    --gvid-h3-slope:     calc(var(--gvid-type-base) * (var(--gvid-sp4) - var(--gvid-spm4)) / var(--gvid-vp-range));
+    --gvid-h3-intercept: calc(var(--gvid-type-base) * var(--gvid-spm4) - var(--gvid-h3-slope) * 375);
+    --gvid-type-d-h3: clamp(
+        calc(var(--gvid-type-base) * var(--gvid-spm4) * 1px),
+        calc(var(--gvid-h3-intercept) * 1px + var(--gvid-h3-slope) * 100 * 1vw),
+        calc(var(--gvid-type-base) * var(--gvid-sp4) * 1px)
+    );
+
+    /* H4 */
+    --gvid-h4-slope:     calc(var(--gvid-type-base) * (var(--gvid-sp3) - var(--gvid-spm3)) / var(--gvid-vp-range));
+    --gvid-h4-intercept: calc(var(--gvid-type-base) * var(--gvid-spm3) - var(--gvid-h4-slope) * 375);
+    --gvid-type-d-h4: clamp(
+        calc(var(--gvid-type-base) * var(--gvid-spm3) * 1px),
+        calc(var(--gvid-h4-intercept) * 1px + var(--gvid-h4-slope) * 100 * 1vw),
+        calc(var(--gvid-type-base) * var(--gvid-sp3) * 1px)
+    );
+
+    /* H5 */
+    --gvid-h5-slope:     calc(var(--gvid-type-base) * (var(--gvid-sp2) - var(--gvid-spm2)) / var(--gvid-vp-range));
+    --gvid-h5-intercept: calc(var(--gvid-type-base) * var(--gvid-spm2) - var(--gvid-h5-slope) * 375);
+    --gvid-type-d-h5: clamp(
+        calc(var(--gvid-type-base) * var(--gvid-spm2) * 1px),
+        calc(var(--gvid-h5-intercept) * 1px + var(--gvid-h5-slope) * 100 * 1vw),
+        calc(var(--gvid-type-base) * var(--gvid-sp2) * 1px)
+    );
+
+    /* H6 */
+    --gvid-h6-slope:     calc(var(--gvid-type-base) * (var(--gvid-sp1) - var(--gvid-spm1)) / var(--gvid-vp-range));
+    --gvid-h6-intercept: calc(var(--gvid-type-base) * var(--gvid-spm1) - var(--gvid-h6-slope) * 375);
+    --gvid-type-d-h6: clamp(
+        calc(var(--gvid-type-base) * var(--gvid-spm1) * 1px),
+        calc(var(--gvid-h6-intercept) * 1px + var(--gvid-h6-slope) * 100 * 1vw),
+        calc(var(--gvid-type-base) * var(--gvid-sp1) * 1px)
+    );
+
+    /* ── Spacing scale ────────────────────────────────────────────────────────
+     * gvid-space-base is unitless. Multiply by 1px at the end.
+     */
+    --gvid-space-xs:  calc(var(--gvid-space-base) / var(--gvid-space-scale) * 1px);
+    --gvid-space-sm:  calc(var(--gvid-space-base) * 1px);
+    --gvid-space-md:  calc(var(--gvid-space-base) * var(--gvid-space-scale) * 1px);
+    --gvid-space-lg:  calc(var(--gvid-space-base) * var(--gvid-space-scale) * var(--gvid-space-scale) * 1px);
+    --gvid-space-xl:  calc(var(--gvid-space-base) * var(--gvid-space-scale) * var(--gvid-space-scale) * var(--gvid-space-scale) * 1px);
+    --gvid-space-2xl: calc(var(--gvid-space-base) * var(--gvid-space-scale) * var(--gvid-space-scale) * var(--gvid-space-scale) * var(--gvid-space-scale) * 1px);
+
+    /* ── Container padding ────────────────────────────────────────────────── */
+    --gvid-container-padding: clamp(var(--gvid-space-md), 2vw, var(--gvid-space-xl));
+
+    /* ── Type utility sizes ───────────────────────────────────────────────── */
+    --gvid-type-body-lg: calc(var(--gvid-type-base) * var(--gvid-type-scale) * 1px);
+    --gvid-type-body:    calc(var(--gvid-type-base) * 1px);
+    --gvid-type-sm:      calc(var(--gvid-type-base) * 0.875 * 1px);
+    --gvid-type-caption: calc(var(--gvid-type-base) * 0.75 * 1px);
+
+    /* ── Divi layout token overrides ─────────────────────────────────────────
+     * Redirect Divi's built-in layout variables to our spacing scale.
+     */
+    --content-width:     90%;
+    --content-max-width: calc(var(--gvid-container-max) * 1px);
+
+    --section-padding: var(--gvid-space-2xl);
+    --section-gutter:  var(--gvid-space-2xl);
+
+    --row-gutter-horizontal: var(--gvid-space-xl);
+    --row-gutter-vertical:   var(--gvid-space-lg);
+
+    --module-gutter: var(--gvid-space-md);
+}

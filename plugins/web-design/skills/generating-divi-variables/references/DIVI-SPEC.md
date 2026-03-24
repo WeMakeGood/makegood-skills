@@ -77,47 +77,65 @@ gcid-color-warning       → warning (typically same as interactive)
 
 ### Global variables
 
-**Adjustable variables** — brand YAML should set these (or use boilerplate defaults):
+**Adjustable variables** — live in the Divi variables UI. These are the knobs a designer actually tunes.
+
+**Important:** `gvid-type-base`, `gvid-space-base`, and `gvid-container-max` are **unitless integers** (e.g. `16`, not `16px`). The `design-system.css` file adds units via `* 1px` where needed. This avoids CSS unit arithmetic failures in complex calc chains.
 
 | ID | Default | What it controls |
 |----|---------|-----------------|
-| `gvid-type-base` | 1rem | Root type size — all heading sizes multiply from this |
-| `gvid-type-scale` | 1.333 | Desktop type ratio — determines heading hierarchy spread |
-| `gvid-type-scale-mobile` | 1.200 | Mobile type ratio — controls heading compression on small screens |
+| `gvid-type-base` | 16 | Root type size in px (unitless) |
+| `gvid-type-scale` | 1.333 | Desktop type ratio |
+| `gvid-type-scale-mobile` | 1.200 | Mobile type ratio |
 | `gvid-leading-display` | 0.91em | Line height for display headings |
 | `gvid-leading-body` | 1.65em | Line height for body copy |
-| `gvid-leading-tight` | 1.1em | Line height for UI labels, subheadings |
+| `gvid-leading-tight` | 1.1em | Line height for UI labels |
 | `gvid-tracking-tight` | -0.04em | Letter spacing for large display text |
 | `gvid-tracking-normal` | 0em | Default letter spacing |
 | `gvid-tracking-wide` | 0.13em | Letter spacing for eyebrows, labels |
 | `gvid-weight-heading` | 800 | Font weight for headings |
 | `gvid-weight-body` | 400 | Font weight for body copy |
-| `gvid-weight-emphasis` | 600 | Font weight for buttons, eyebrows, key statements |
+| `gvid-weight-emphasis` | 600 | Font weight for buttons, eyebrows |
 | `gvid-radius-pill` | 999px | Full round — buttons |
 | `gvid-radius-lg` | 1rem | Cards, panels, sections |
 | `gvid-radius-md` | 0.5rem | Chips, tags, smaller elements |
 | `gvid-radius-sm` | 4px | Inputs, tight UI |
-| `gvid-space-base` | 1rem | Root spacing unit |
-| `gvid-space-scale` | 1.333 | Spacing ratio — matches type scale by default |
-| `gvid-container-max` | 1200px | Content max-width |
+| `gvid-space-base` | 16 | Root spacing unit in px (unitless) |
+| `gvid-space-scale` | 1.333 | Spacing ratio |
+| `gvid-container-max` | 1200 | Content max-width in px (unitless) |
 
-**Derived variables** — computed automatically, do not set in brand YAML:
+**Derived variables** — computed in `design-system.css`, NOT in the Divi variable system. These are defined in `:root` by the CSS file and reference the adjustable variables above. They are not imported into Divi.
 
-| ID | Expression | What it computes |
-|----|-----------|-----------------|
-| `gvid-type-d-h1` | `clamp(base*scale-mobile^6, vw, base*scale^6)` | H1 fluid size |
-| `gvid-type-d-h2` through `h6` | Same pattern, exponents 5 through 1 | H2–H6 fluid sizes |
-| `gvid-type-body-lg` | `base * scale` | Large body / lede |
-| `gvid-type-body` | `base` | Standard body |
-| `gvid-type-sm` | `base * 0.875` | Small UI text |
-| `gvid-type-caption` | `base * 0.75` | Caption / fine print |
-| `gvid-space-xs` | `base / scale` | Tight spacing |
-| `gvid-space-sm` | `base` | Base spacing |
-| `gvid-space-md` | `base * scale` | Standard spacing |
-| `gvid-space-lg` | `base * scale²` | Generous spacing |
-| `gvid-space-xl` | `base * scale³` | Large spacing |
-| `gvid-space-2xl` | `base * scale⁴` | Section-scale spacing |
-| `gvid-container-padding` | `clamp(space-md, 2vw, space-xl)` | Fluid horizontal padding |
+| Variable | What it computes |
+|----------|-----------------|
+| `--gvid-type-d-h1` through `h6` | Fluid heading sizes via slope+intercept clamp |
+| `--gvid-type-body-lg` | Large body / lede (`base * scale * 1px`) |
+| `--gvid-type-body` | Standard body (`base * 1px`) |
+| `--gvid-type-sm` | Small UI text (`base * 0.875 * 1px`) |
+| `--gvid-type-caption` | Caption (`base * 0.75 * 1px`) |
+| `--gvid-space-xs` through `2xl` | Spacing steps via chained calc |
+| `--gvid-container-padding` | Fluid container padding |
+
+### design-system.css
+
+The generator always produces two output files:
+- `<spec-name>.json` — Divi import (variables + presets)
+- `design-system.css` — CSS file that defines derived variables and overrides Divi's layout tokens
+
+**Installation:** Paste the CSS file contents into Divi > Theme Options > Custom CSS, or enqueue as a stylesheet in a child theme. It must load on every page.
+
+**What it does:**
+1. Defines all derived calc chains (`--gvid-space-*`, `--gvid-type-d-h*`, etc.) in `:root`
+2. Overrides Divi's built-in layout tokens (`--section-gutter`, `--row-gutter-horizontal`, etc.) to use the spacing scale
+3. Sets `--content-width: 90%` and `--content-max-width` from `container-max`
+
+**Heading clamp formula:** Uses the standard slope+intercept approach:
+```
+slope     = (desktop_size - mobile_size) / (container-max - 375)
+intercept = mobile_size - slope * 375
+preferred = calc(intercept*1px + slope*100*1vw)
+result    = clamp(mobile_size*1px, preferred, desktop_size*1px)
+```
+Mobile viewport fixed at 375px. Desktop viewport = `container-max`.
 
 ### Primitive presets
 
@@ -145,9 +163,11 @@ The boilerplate ships 11 primitive presets — infrastructure wiring only, no de
 **`overrides:`** — patches specific variable values by label:
 ```yaml
 overrides:
-  type-scale: 1.250       # changes gvid-type-scale value
-  space-scale: 1.250      # changes gvid-space-scale value
-  container-max: "1440px" # changes gvid-container-max value
+  type-base:   17       # unitless integer — px value of root type size
+  type-scale:  1.250    # desktop type ratio
+  space-base:  18       # unitless integer — px value of root spacing unit
+  space-scale: 1.250    # spacing ratio
+  container-max: 1440   # unitless integer — max content width in px
 ```
 
 **`system_colors:`** — patches the 5 fixed Divi color slots:

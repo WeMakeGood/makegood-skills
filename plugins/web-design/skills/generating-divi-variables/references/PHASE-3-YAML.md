@@ -42,9 +42,11 @@ Only include values that differ from boilerplate defaults. Do not repeat default
 
 All overrideable variables with their defaults:
 
+**Note:** `type-base`, `space-base`, and `container-max` are **unitless integers** (pixel values without the `px` suffix). The `design-system.css` file adds units where needed. Do not add `px` to these values.
+
 | Key | Default | What it controls |
 |-----|---------|-----------------|
-| `type-base` | `1rem` | Root type size |
+| `type-base` | `16` | Root type size in px (unitless) |
 | `type-scale` | `1.333` | Desktop heading ratio |
 | `type-scale-mobile` | `1.200` | Mobile heading ratio |
 | `leading-display` | `0.91em` | Line height for display headings |
@@ -56,18 +58,19 @@ All overrideable variables with their defaults:
 | `weight-heading` | `800` | Font weight for headings |
 | `weight-body` | `400` | Font weight for body copy |
 | `weight-emphasis` | `600` | Font weight for buttons, eyebrows |
-| `space-base` | `1rem` | Root spacing unit |
+| `space-base` | `16` | Root spacing unit in px (unitless) |
 | `space-scale` | `1.333` | Spacing ratio |
-| `container-max` | `1200px` | Content max-width |
+| `container-max` | `1200` | Content max-width in px (unitless) |
 
 If the designer confirmed different values in Phase 2, put them here. If they confirmed the defaults, omit this section entirely.
 
 ```yaml
 overrides:
-  type-scale:    1.250       # only if different from 1.333
-  weight-heading: 700        # only if different from 800
-  space-base:    "1.125rem"  # only if different from 1rem
-  container-max: "1440px"    # only if different from 1200px
+  type-base:     17      # unitless integer, no px suffix
+  type-scale:    1.250   # only if different from 1.333
+  weight-heading: 700    # only if different from 800
+  space-base:    18      # unitless integer, no px suffix
+  container-max: 1440    # unitless integer, no px suffix
 ```
 
 ---
@@ -280,3 +283,15 @@ Verify:
 6. Paths checked against `divi-module-reference.json` for any custom presets
 
 Present the complete YAML to the user. **STOP.** Do not generate JSON until explicitly approved.
+
+---
+
+## Output Files
+
+The generator produces two files alongside each other:
+
+**`<spec-name>.json`** — Import into Divi via the Portability modal. Contains: semantic color variables, adjustable number variables (type-base, type-scale, weights, radii, etc.), and all presets.
+
+**`design-system.css`** — Must be installed separately. Paste into Divi > Theme Options > Custom CSS, or enqueue in a child theme. Contains: all derived calc chains (heading sizes, spacing steps), and Divi layout token overrides.
+
+Both files are required for the system to work. The JSON alone will have incorrect heading sizes and spacing.

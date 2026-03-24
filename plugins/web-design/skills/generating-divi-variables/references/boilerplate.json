@@ -840,7 +840,7 @@
     {
       "id": "gvid-type-base",
       "label": "type-base",
-      "value": "1rem",
+      "value": "16",
       "status": "active",
       "order": 3,
       "type": "numbers"
@@ -968,7 +968,7 @@
     {
       "id": "gvid-space-base",
       "label": "space-base",
-      "value": "1rem",
+      "value": "16",
       "status": "active",
       "order": 19,
       "type": "numbers"
@@ -984,145 +984,9 @@
     {
       "id": "gvid-container-max",
       "label": "container-max",
-      "value": "1200px",
+      "value": "1200",
       "status": "active",
       "order": 21,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-d-h1",
-      "label": "type-d-h1",
-      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 6)), 7.48vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 6)))",
-      "status": "active",
-      "order": 22,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-d-h2",
-      "label": "type-d-h2",
-      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 5)), 5.61vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 5)))",
-      "status": "active",
-      "order": 23,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-d-h3",
-      "label": "type-d-h3",
-      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 4)), 4.21vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 4)))",
-      "status": "active",
-      "order": 24,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-d-h4",
-      "label": "type-d-h4",
-      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 3)), 3.16vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 3)))",
-      "status": "active",
-      "order": 25,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-d-h5",
-      "label": "type-d-h5",
-      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 2)), 2.37vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 2)))",
-      "status": "active",
-      "order": 26,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-d-h6",
-      "label": "type-d-h6",
-      "value": "clamp(calc(var(--gvid-type-base) * pow(var(--gvid-type-scale-mobile), 1)), 1.78vw, calc(var(--gvid-type-base) * pow(var(--gvid-type-scale), 1)))",
-      "status": "active",
-      "order": 27,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-body-lg",
-      "label": "type-body-lg",
-      "value": "calc(var(--gvid-type-base) * var(--gvid-type-scale))",
-      "status": "active",
-      "order": 28,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-body",
-      "label": "type-body",
-      "value": "var(--gvid-type-base)",
-      "status": "active",
-      "order": 29,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-sm",
-      "label": "type-sm",
-      "value": "calc(var(--gvid-type-base) * 0.875)",
-      "status": "active",
-      "order": 30,
-      "type": "numbers"
-    },
-    {
-      "id": "gvid-type-caption",
-      "label": "type-caption",
-      "value": "calc(var(--gvid-type-base) * 0.75)",
-      "status": "active",
-      "order": 31,
-      "type": "numbers"
-    },
-    {
-      "status": "active",
-      "type": "numbers",
-      "id": "gvid-space-xs",
-      "label": "space-xs",
-      "value": "calc(var(--gvid-space-base) / var(--gvid-space-scale))",
-      "order": 32
-    },
-    {
-      "status": "active",
-      "type": "numbers",
-      "id": "gvid-space-sm",
-      "label": "space-sm",
-      "value": "var(--gvid-space-base)",
-      "order": 33
-    },
-    {
-      "status": "active",
-      "type": "numbers",
-      "id": "gvid-space-md",
-      "label": "space-md",
-      "value": "calc(var(--gvid-space-base) * var(--gvid-space-scale))",
-      "order": 34
-    },
-    {
-      "status": "active",
-      "type": "numbers",
-      "id": "gvid-space-lg",
-      "label": "space-lg",
-      "value": "calc(var(--gvid-space-base) * pow(var(--gvid-space-scale), 2))",
-      "order": 35
-    },
-    {
-      "status": "active",
-      "type": "numbers",
-      "id": "gvid-space-xl",
-      "label": "space-xl",
-      "value": "calc(var(--gvid-space-base) * pow(var(--gvid-space-scale), 3))",
-      "order": 36
-    },
-    {
-      "status": "active",
-      "type": "numbers",
-      "id": "gvid-space-2xl",
-      "label": "space-2xl",
-      "value": "calc(var(--gvid-space-base) * pow(var(--gvid-space-scale), 4))",
-      "order": 37
-    },
-    {
-      "id": "gvid-container-padding",
-      "label": "container-padding",
-      "value": "clamp(var(--gvid-space-md), 2vw, var(--gvid-space-xl))",
-      "status": "active",
-      "order": 38,
       "type": "numbers"
     }
   ]
