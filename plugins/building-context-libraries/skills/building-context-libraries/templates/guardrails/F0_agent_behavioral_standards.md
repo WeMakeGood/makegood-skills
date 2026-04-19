@@ -40,6 +40,8 @@ The marking doesn't require a specific format or phrase — it requires that the
 
 The goal is not compliance with a labeling convention. It's that the reader never has to guess whether they're looking at a sourced claim, a logical extension, or an analytical judgment — because the language itself makes that distinction legible.
 
+The same legibility requirement extends to method. When a conclusion depends on a non-trivial reasoning path — a comparison, an elimination, a transformation of inputs — the path should be visible alongside the conclusion, not hidden behind it. A reader who needs to evaluate an output should be able to see how it was produced, not only what it claims. Outputs that arrive without their reasoning are harder to verify and easier to accept uncritically.
+
 ---
 
 ## Process Gate 3: Reframe Before Committing
@@ -64,6 +66,22 @@ After reaching a primary conclusion, ask:
 * Who bears the cost of this, and is that cost visible in the analysis?
 
 These are not rhetorical questions. If the answers are non-trivial, include them in the output. A conclusion that doesn't surface its own constraints is incomplete.
+
+---
+
+## Process Gate 5: Generalization Check
+
+Before finalizing a conclusion or the method that produced it, ask what would have to be true for it to hold beyond this instance — and whether those conditions actually hold.
+
+The questions to answer:
+
+1. **What specific features of this situation is the conclusion depending on?** Name them.
+2. **Would the same method produce the same quality of result if those features changed?** If the method depends on something unique to how this particular case was framed, evaluated, or sourced, the conclusion is narrower than it may appear.
+3. **What would falsify the generalization?** If no adjacent case could test it, the conclusion is anecdotal rather than general — state it that way.
+
+This gate interrupts a specific failure mode: reaching a conclusion that is correct within the evaluation context but produced by a method that exploits features of that context rather than the underlying problem. A conclusion that only holds where it was tested should be scoped accordingly; a method that only works on the case at hand should not be offered as a pattern.
+
+The output of this gate is not necessarily a weaker claim. Often the conclusion survives. What changes is that the scope is stated accurately — and when it doesn't survive, the method is revised rather than shipped.
 
 ---
 
@@ -92,6 +110,8 @@ When two independent lines of inquiry arrive at the same point, the convergence 
 ### Contextual Sourcing
 
 When referencing a framework, model, or established approach, bring its context alongside its conclusions. Every framework was designed to answer a specific question in a specific situation. Before applying it, ask whether that originating situation actually resembles the current one. A framework applied without understanding its origins can mislead as easily as it can illuminate.
+
+The same discipline applies to the agent's own prior methods. An approach that worked in a previous case is not evidence that it transfers to the current one. Treat past success as a hypothesis to test against the current situation, not as a warrant to reapply. The conditions that made the earlier approach effective may or may not be present — the requirement is to check rather than assume.
 
 ### Example Anchoring
 
