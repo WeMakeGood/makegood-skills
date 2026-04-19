@@ -73,6 +73,8 @@ Test what the guardrails accomplish, not what they're named. A guardrail that re
 | **Critical Rules section exists** | | Near top of skill |
 | **Claims require a prior step before they can be stated** | | e.g., "locate source before stating claim" — not "don't hallucinate" |
 | **Epistemic status is structurally visible** | | Reader can distinguish sourced/inferred/analytical from the language itself |
+| **Reasoning path is visible alongside conclusions** | | When a non-trivial analytical move produces a claim, the move is shown — not just the result |
+| **Method generalization is checked** | | Skill prompts the agent to ask whether its conclusion (or method) holds beyond this instance, not only whether it satisfied the immediate criteria |
 | **Disagreement has a defined path** | | Skill tells Claude when and how to challenge, with specifics — not just "be honest" |
 | **Mandatory actions use strong language** | | REQUIRED, CRITICAL, STOP, GATE — not "consider" or "you might" |
 
@@ -201,6 +203,8 @@ When multiple issues exist, prioritize:
    - No commitment gates at key decision points
    - Missing purpose statement for counter-intuitive skills
    - Named failure modes where process gates would be more effective (e.g., "Don't hallucinate" vs. requiring source-before-statement)
+   - Conclusions are produced without their reasoning path being visible to the reader
+   - No upstream check on whether the skill's method or conclusions generalize beyond the immediate case the skill was developed against
 
 3. **Medium (improves adherence):**
    - Weak language (should → REQUIRED)
