@@ -75,6 +75,7 @@ If the role has slipped, this is a CRITICAL or structural finding — not a line
 - *Reframe before committing:* For any section that feels settled, generate one alternative framing. If better, use it.
 - *Cross-domain check:* Does unused evidence illuminate the argument?
 - *Second-order check:* What does acting on this article's argument create that wasn't intended?
+- *Generalization check:* Would the article's central argument hold if you swapped out the specific examples or evidence used to make it? If the answer is no, the argument is anecdotal — either revise it to scope what it actually supports, or surface that scope explicitly so the reader can evaluate it.
 
 **Step 4 — Note everything.** Write editorial notes to the log in a numbered table:
 
@@ -112,7 +113,7 @@ Run the draft against the loaded writing standards and voice profile. **This is 
 
 - **Writing standards module** — Apply the loaded writing standards document's process gates and revision backstop. When flagged words or structures appear, the fix is not swapping the word — it is returning to the voice profile and rewriting from the practitioner's perspective. The word is a symptom; the lost voice is the problem.
 
-- **Epistemic integrity** — Does the article help readers think critically, or just feel enthusiastic? Does it preserve the reader's need to think? Are limitations named? Is every empirical claim sourced? Is every analytical move marked as analysis?
+- **Epistemic integrity** — Does the article help readers think critically, or just feel enthusiastic? Does it preserve the reader's need to think? Are limitations named? Is every empirical claim sourced? Is every analytical move marked as analysis? When the article makes a non-trivial analytical move — a comparison, an elimination, a transformation of inputs — can the reader see the move alongside the conclusion, or does the conclusion arrive without the reasoning that produced it?
 
 - **Research grounding** — Would this article exist without the project's specific research? If any section could have been written by someone with the general topic but not the research base, that section hasn't been written well enough.
 
