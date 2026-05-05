@@ -15,6 +15,22 @@ Inventory all source documents, classify them, identify what domain agents will 
 
 ---
 
+## Step 0: Redo Detection
+
+**Before any other work:**
+
+1. **Scan `<OUTPUT_PATH>/` for redo signals.** If `<OUTPUT_PATH>/` exists, list its contents and look for: `_retrospective_archive/`, audit/retrospective/post-mortem documents, partial module/addendum/agent files, or a build-state with "Redo Session: yes."
+
+2. **Ask the user:** "Is this a redo session after a previous build was rolled back?" If your scan found redo signals, mention them in the question.
+
+If **no signals found and user says no**, proceed to Step 1.
+
+If **yes** (user confirms or signals are definitive), follow the redo-session protocol in PHASE_4_BUILD.md *before* starting the source index. The redo protocol moves retrospective documents and prior-attempt artifacts out of the working directory and gathers a list of named failure patterns from the user. Setup proceeds normally after that.
+
+If signals were found but the user says no, pause and resolve the discrepancy before continuing — do not proceed past Step 0 until the working set is clear.
+
+---
+
 <phase_setup_index>
 ## Step 1: Create the Source Index
 
@@ -47,15 +63,29 @@ Read each file in the source index. For EVERY file, update the index entry with:
 
 ---
 
-## Step 3: Identify Agent Needs
+## Step 3: Identify Agent Needs and Initial Expectations
 
-Based on what you've read, draft an initial assessment:
+Based on what you've read, draft two preliminary assessments. Both will be deepened in Comprehend.
+
+### Initial Agent Needs Assessment
 
 - **What work do agents need to do** with this organizational knowledge? (Not "what information exists" but "what decisions would agents make?")
 - **What agent roles emerge** from the work patterns? (Role-based, not taxonomy-based — defined by what the agent *does and decides*, not by what information category it covers)
 - **What's missing?** Are there obvious gaps where agents would need information the sources don't provide?
 
-This assessment is preliminary — Comprehend will deepen it. But it grounds the source reading in purpose rather than cataloging.
+### Initial Expectations
+
+Before deep comprehension, name what you expect to find. This becomes the comparator for Comprehend Pass 1's expectations-vs-findings reflection — without an explicit expectations document, "what I expected to find but didn't find" is impossible to detect. Negative space is one of the strongest comprehension signals; this is what makes it visible.
+
+For each initial agent role, write a short list of:
+
+- **Reasoning patterns I expect to find evidenced in the sources** (3–5 patterns, each as a short phrase — "how the org calibrates client engagement intensity," "what the org considers disqualifying for a partnership," etc.)
+- **Source types I expect will be richest for this agent** (which sources from the index look most likely to inform this agent's reasoning)
+- **Things I'd be surprised NOT to find** (claims, processes, or considerations that any organization doing this work would have evidence of)
+
+These expectations are not predictions to be defended; they are anchors that make absence visible. When Pass 1 finds something different from expected, that's signal. When Pass 1 finds nothing where you expected something, that's signal too — often stronger.
+
+This grounds the source reading in purpose rather than cataloging, and gives Comprehend Pass 1 something concrete to test against.
 
 ---
 
@@ -67,6 +97,7 @@ Create `<OUTPUT_PATH>/build-state.md` using the template from [references/TEMPLA
 - Current phase: Setup (completing)
 - Source index location
 - Initial agent needs assessment
+- Initial expectations (per-agent — these become Pass 1's comparator)
 - Any BLOCKING gaps identified
 
 Create `<OUTPUT_PATH>/process-log.md` using the template from [references/TEMPLATES.md](../TEMPLATES.md). Log your first entries:
@@ -87,6 +118,7 @@ Write to the build state:
 - "Complex sources (will need direct comprehension): [list]"
 - "Clean sources (ready to use): [list]"
 - "Initial agent roles identified: [list]"
+- "Initial expectations recorded: [yes/no]"
 - "BLOCKING gaps: [list or 'none']"
 - "Conflicts between sources: [list or 'none']"
 
@@ -98,6 +130,7 @@ Write to the build state:
 - Complete source inventory with classifications
 - Which sources are complex (transcripts, raw notes) vs. clean
 - Initial agent roles — what work the library needs to support
+- Initial expectations per agent — what reasoning patterns and source-type richness you expect, and what you'd be surprised not to find
 - Any conflicts between source documents
 - BLOCKING gaps — information needed that isn't in the sources
 - Any files that seem irrelevant or redundant
@@ -105,10 +138,11 @@ Write to the build state:
 **Ask:**
 - Are these source classifications correct?
 - Do the initial agent roles match what you need?
+- Do the initial expectations match what you'd expect this organization's sources to contain? (Catching expectation gaps now makes Pass 1's negative-space detection meaningful.)
 - Are there additional sources I should include?
 - For BLOCKING gaps — can you provide the missing information?
 
-**Do not proceed until the user confirms the source inventory and addresses any BLOCKING gaps.**
+**Do not proceed until the user confirms the source inventory, expectations, and addresses any BLOCKING gaps.**
 
 ---
 

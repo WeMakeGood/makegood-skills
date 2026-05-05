@@ -61,13 +61,37 @@ Identify volatile data that should be addenda rather than module content:
 
 For each addendum: name, what data it contains, which modules reference it.
 
-### Shared Source Ownership Table
+### Ownership and Use-Shape Table
 
-**CRITICAL:** Create a table assigning each content area from shared sources to exactly ONE module. This prevents duplication during the Build phase.
+**CRITICAL:** Naming an owner is necessary but not sufficient. The build agent will reach for content as it writes a section and restate by default. The proposal must commit to *both* the owner *and* the shape every using module takes when it incorporates the content. See ARCHITECTURE.md, "Single Source of Truth" for the four use-shapes.
 
-| Content Area | Source File(s) | Assigned Module | Rationale |
-|-------------|---------------|-----------------|-----------|
-| [Topic] | [File] | [Module] | [Why here and not elsewhere] |
+Build the table in two passes:
+
+**Pass 1 — identify shared content areas.** A content area is *shared* if more than one module's source set contains it. Examples: organizational identity claims, methodology descriptions, anchor figures, named credentials, cross-cultural constants. Walk through the proposed module set and identify every content area that more than one module would otherwise want to describe.
+
+**Pass 2 — assign owner and use-shape.** For each shared content area:
+
+1. Pick the single owner — the module whose primary purpose is that content area
+2. List every other module that needs the content
+3. Commit each using module to one of four shapes (see ARCHITECTURE.md):
+   - **cross-reference** — pointer only, no restatement
+   - **subset (X)** — restate the named subset (one phrase or short sentence) and cross-reference; X names the subset
+   - **invocation by name** — name the thing without describing it
+   - **reach-beyond** — module instructs agent to load addendum/invoke skill when needed
+
+| Content Area | Owner | Used By | Use-Shape | Rationale |
+|--------------|-------|---------|-----------|-----------|
+| [Topic] | [Module] | [Modules] | [shape per using module] | [Why this owner, why this shape] |
+
+**Restatement is not a use-shape.** If the table contains an entry where a using module describes the content in its own prose, the table is incomplete. Use one of the four shapes — or move the content to its proper owner.
+
+**Owner-user pairs to think about explicitly:**
+- A module that owns rules and another module that needs to apply them (rule owner / rule user)
+- A module that owns a constant and adaptations of it (constant owner / regional or contextual users)
+- An addendum that owns data and modules that need to invoke or reach for it (data owner / data users)
+- A module that owns identity claims and modules that need to operate from those claims (identity owner / operating users)
+
+For each of these pairs in the proposed structure, specify the use-shape explicitly. Do not leave it for Build to decide.
 
 ### Audience Reasoning Check
 
@@ -143,8 +167,8 @@ For each addendum:
 - Source files
 - Which modules reference it
 
-### Shared Source Ownership Table
-(From Step 1 — the complete assignment of content areas to modules)
+### Ownership and Use-Shape Table
+(From Step 1 — every shared content area with owner, users, and committed use-shape per using module)
 
 ### Agent Definitions
 For each agent:
@@ -168,13 +192,28 @@ For each agent:
 
 **EMBEDDED RULES FOR PHASE 4 (survives context compaction):**
 ```
-PHASE 4 RULES — Read ARCHITECTURE.md before writing any module.
-- Modules provide reasoning context — how the organization thinks. Not procedures. Not "If X, do Y" rules.
-- Re-read sources in the same turn you write each module.
-- Check the Shared Source Ownership table before writing — if content is assigned elsewhere, cross-reference.
-- Every module should tell the agent when to reach beyond itself — load addenda, invoke skills, or ask the user.
+PHASE 4 RULES — Read ARCHITECTURE.md before writing any module, including:
+- "The Runtime Agent's Perspective" — what the runtime agent does and doesn't know
+- "Shape Reference: F0 as a Worked Example" — what mixed-shape content looks like
+- "Single Source of Truth" — the four use-shapes
+
+Per-module protocol (PHASE_4_BUILD.md) has 7 steps:
+  1. Runtime Frame Set
+  2. Commitment Gate
+  3. Re-Read Sources
+  4. Substantive Source Surface
+  5. Section Plan
+  6. Write the Module
+  7. Self-Check
+
+Steps 4 and 5 are planning artifacts the agent commits to BEFORE writing prose. Skipping them produces narrative-prose modules, build-perspective contamination, and restated canonical content.
+
+- Modules are read by a runtime agent that has no awareness of sources, the build, or the library.
+- Use the Ownership and Use-Shape table above. The table commits using modules to specific shapes; do not restate at write-time.
+- Quotes and named individuals from sources do not appear in modules. Extract reasoning before generating, in the Section Plan.
 - [PROPOSED] marks inferences. [HIGH-STAKES] marks exact-copy content. Both removed before delivery.
 - Token budget is room for useful content, not a ceiling. Under-budget modules need more depth.
+- When a module fails self-check or user review, follow the failure-recovery protocol. Diagnose the upstream planning gap; do not regenerate prose from scratch.
 ```
 </phase_design_proposal>
 
@@ -189,7 +228,7 @@ Write to the build state:
 - "All agents within budget: [yes/list exceptions]"
 - "Under-budget agents flagged: [list or 'none']"
 - "Alternative structure considered: [what, why rejected]"
-- "Shared source ownership table complete: [yes/no]"
+- "Ownership and use-shape table complete: [yes/no — every using module has a use-shape, none rely on restatement]"
 - "Guardrail modules copied: [yes/no]"
 - "BLOCKING gaps resolved: [yes/list remaining]"
 
@@ -209,9 +248,23 @@ Write to the build state:
 **Ask:**
 - Does this module structure serve what your agents need to do?
 - Are the agent definitions right — roles, module assignments, budget utilization?
-- Is the shared source ownership correct — any content assigned to the wrong module?
+- Is the Ownership and Use-Shape table correct? Specifically: any content assigned to the wrong owner, any using module that should take a different shape, any shared content area missing from the table?
 - Any modules missing, or modules proposed that aren't needed?
 - Ready to proceed to Build?
+
+**Generalization check (per F0_agent_behavioral_standards):**
+
+Before approval, work through these questions with the user:
+
+1. **What features of this organization is the proposed architecture depending on?** Name them. (e.g., "the organization has two operational arms with shared infrastructure," "the organization's reasoning is heavily transcript-evidenced rather than codified in strategy docs," "audience reasoning matters in 4 of 6 modules.")
+
+2. **Would the same architecture serve an organization with substantially different features?** If yes, the architecture is generic and may be missing organization-specific reasoning. If no, the dependency on those features is correctly load-bearing.
+
+3. **The shapes the Section Plan will use** (reasoning context, decision framework, prescriptive rule, cross-reference, reach-beyond signal) — are these the right shape categories for this organization's modules? Is there a genuine module need that doesn't fit these five shapes? If so, name it now rather than at write-time, and decide with the user whether to add a shape, recategorize the content, or restructure the module.
+
+4. **The use-shapes** (cross-reference, subset, invocation by name, reach-beyond) — do these cover every owner-user relationship in the table? Is any using module's relationship to its owner being forced into the wrong shape because the right shape isn't on the list?
+
+If any of (3) or (4) surfaces a genuine gap, the framework expands or the architecture changes — do not force the content into an ill-fitting shape. The output of this check is either confirmed framework adequacy or a documented framework adjustment.
 
 **Do not proceed until the user approves the proposal.**
 

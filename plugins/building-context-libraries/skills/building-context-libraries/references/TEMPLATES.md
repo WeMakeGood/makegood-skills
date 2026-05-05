@@ -72,6 +72,25 @@ Create at `<OUTPUT_PATH>/build-state.md` during Phase 1 (Setup).
 
 ## Session Bootstrap (mandatory for every session)
 
+**Step 0 — Redo Triage.** Before reading any other file in this directory, do these two things in order:
+
+**A. Scan the output directory.** List the files and subdirectories in `<OUTPUT_PATH>/`. Look for redo signals:
+
+- A `_retrospective_archive/` directory (definitive — a prior redo protocol ran)
+- Files with audit/retrospective/post-mortem/failure-analysis names at the top level (likely — a retrospective was produced but not yet archived)
+- A `modules/`, `addenda/`, or `agents/` directory containing files that aren't accounted for in build-state's checklist (suspicious — partial work from a prior attempt may exist)
+- A `_comprehension/` directory containing artifacts that aren't accounted for in build-state's Phase 2 status (suspicious — partial Pass 1 or Pass 2 work from a prior attempt may exist)
+- A `_scratch/` directory containing per-module plan files that aren't accounted for in build-state's Module Build Checklist (suspicious — partial Phase 4 work from a prior attempt may exist)
+- A build-state's "Redo Session" field marked "yes" (definitive)
+
+**B. Ask the user.** "Is this a redo session after a rolled-back build? [yes/no]" If your scan in (A) found any redo signal, mention what you found in the question — e.g., "I noticed `_retrospective_archive/` exists. Is this a redo session?"
+
+If the user says **yes** OR your scan found a definitive redo signal, follow the redo-session protocol in PHASE_4_BUILD.md before continuing the bootstrap below.
+
+If the user says **no** but your scan found a suspicious-but-not-definitive signal (orphan module files, unfamiliar audit-shaped documents), pause and resolve the discrepancy before continuing. Do not proceed past the triage step until the working set is clear.
+
+If the user says **no** and no signals were found, continue:
+
 1. Read this file (build-state.md)
 2. Read process-log.md — the reasoning history of decisions made so far
 3. Read the phase instruction file above
@@ -79,6 +98,35 @@ Create at `<OUTPUT_PATH>/build-state.md` during Phase 1 (Setup).
 5. Read proposal.md (if Phase 3+)
 
 If you believe you already know the rules, you are likely post-compaction. Re-read anyway.
+
+---
+
+## Mid-Session Rollback
+
+If the user rolls back the build mid-session — for example, says "let's roll this back to Comprehend and start over" or "the proposal isn't right; we need to redo Design" — treat this as the start of a redo session even though no session boundary occurred:
+
+1. Stop current work.
+2. Update `build-state.md` to reflect the rolled-back phase (mark later phases pending again, update the "Current Phase" pointer).
+3. If Phase 4 work has already produced module/addendum/agent files for this attempt, run the redo-session protocol (Phase 4) to archive them.
+4. If the rollback returns to or before Phase 2 and `_comprehension/` artifacts exist from the rolled-back attempt, run the redo-session protocol to archive them — the same anchoring failure mode that affects module files affects comprehension artifacts (Pass 2 of a fresh attempt would otherwise generate from the prior attempt's pattern-pointers and convergences instead of from the sources).
+5. If Phase 4 plans exist in `_scratch/` from the rolled-back attempt, archive those too.
+6. Confirm with the user what is in the working set after the rollback before proceeding.
+
+The redo-session protocol applies to mid-session rollbacks the same way it applies to between-session redos. The principle — physical separation between current attempt and prior attempt — does not depend on whether a session boundary occurred.
+
+---
+
+## Redo Session
+
+**Is this a redo session?** no / yes (date: YYYY-MM-DD)
+
+If yes, the user provides a list of named failure patterns to architecturally avoid this attempt. Names only — no examples, no rewrite suggestions, no document content.
+
+**Known failure patterns to avoid (this attempt):**
+
+- *(populated by user at start of redo session)*
+
+**Retrospective documents** (audit.md, post-mortem.md, etc.) have been moved to `_retrospective_archive/` and are NOT part of the working set. Do not read them. The named pattern list above is the only carryover from the previous attempt.
 
 ---
 
@@ -95,11 +143,14 @@ If you believe you already know the rules, you are likely post-compaction. Re-re
 
 ## Module Build Checklist (Phase 4)
 
-| Module | Status | Tokens | Notes |
-|--------|--------|--------|-------|
-| F0_agent_behavioral_standards | pending | — | Copied from template |
-| S0_natural_prose_standards | pending | — | Copied from template |
-| [Module ID] | pending / complete | [est] | |
+One line per module. Status only. Substantive reasoning belongs in process-log, not here.
+
+| Module | Status | Sources Re-Read | Tokens |
+|--------|--------|-----------------|--------|
+| F0_agent_behavioral_standards | complete | (template — verbatim) | [est] |
+| S0_natural_prose_standards | complete | (template — verbatim) | [est] |
+| F1_organizational_identity | complete | identity.md, history.md | [est] |
+| [Module ID] | pending / complete | [files] | [est] |
 
 ---
 
@@ -135,9 +186,27 @@ Each phase records what sources were loaded at session start:
 
 ---
 
-## Comprehension Findings (Phase 2)
+## Phase 2 Status
 
-[Populated during Phase 2 — reasoning patterns, convergences, tensions, refined agent roles]
+Substantive Phase 2 findings live in `<OUTPUT_PATH>/_comprehension/`, not in build-state. This section tracks terse status only — counts and completion marks.
+
+**Pass 1 (Recognition):** pending / in-progress / complete
+- Sources read: [count] / [total]
+- Per-source notes written: [count]
+- Signal log entries: [count] ([open] / [resolved] / [user-attention])
+- Conflicts surfaced: [count] ([real] / [apparent] / [time-travel] / [other])
+- Source signal-density breakdown: thick [count], medium [count], thin [count]
+
+**Pass 1 STOP reviewed:** pending / complete (date)
+
+**Pass 2 (Synthesis):** pending / in-progress / complete
+- Pattern-pointers: [count] (all surface-specificity checks passed: yes/no)
+- Convergences: [count]
+- Cross-domain parallels: [count or "none surfaced"]
+- Agent roles refined: [count]
+- Sources re-read during synthesis: thick [count], medium [count], thin [count]
+
+**Pass 2 STOP reviewed:** pending / complete (date)
 ```
 
 ---
@@ -234,23 +303,33 @@ last_updated: YYYY-MM-DD
 ---
 
 <!-- BUILD REMINDERS (remove from final module):
-- Re-read working sources BEFORE writing. Do not write from memory.
-- Re-read this module's SCOPE from the proposal. Do not include addenda or other-module content.
-- This module should provide REASONING CONTEXT — the organization's principles, values, and ways of thinking. Not fact sheets. Not procedure manuals.
-- HIGH-STAKES content (legal names, EINs, addresses, titles, dates, financials): copy EXACTLY.
 
-TRANSFORMATION TEST — every section:
-1. Is this written as an INSTRUCTION to the agent, or as an EXPLANATION about the organization? If it explains, rewrite as instruction. No narrative prose. No "about us" writing. No third-person descriptions.
-2. Does this give the agent reasoning it can apply to NOVEL situations? If it only works for pre-specified scenarios, transform it.
-3. Is this reasoning context (primary), a decision framework (secondary), or a prescriptive rule (rare)? Most content should be reasoning context.
-4. Does this module tell the agent when to REACH BEYOND itself — load addenda, invoke skills, or ask the user?
-5. Does any section contain quoted material used as content? Quotes are evidence during comprehension, not module content. Extract the reasoning the quote proves and state it as an instruction.
+This module is being read by a runtime agent that has only its loaded modules and the user's input. It does not know about source files, the build, the library, the proposal, or anything outside its modules. Sentences that only make sense inside the build are contamination. See ARCHITECTURE.md, "The Runtime Agent's Perspective."
 
-DURABILITY CHECKS:
-- No volatile specifics (counts, prices, named lists). Move to addenda. BUT: process parameters are durable.
-- Guide, don't catalog. Capture principles, not inventories.
-- Respect scope boundaries. Test against the proposal, not source proximity.
-- Don't box out possibilities. Capture reasoning and tradeoffs, not exhaustive "If X, do Y" rules.
+Contamination phrases — if any appear, the sentence is wrong-shaped:
+- "the source set" / "the sources" / "source documents" / "in some sources"
+- "the library" / "this library" / "the build"
+- Any source filename or path
+- Dates attached to document provenance ("in 2025-era sources")
+- "as documented in" / "per the [document type]"
+- Any sentence explaining why content is or isn't in the module
+
+Each section was committed to a Section Plan (Phase 4, Step 5) before being written. The plan named:
+- The shape (reasoning context | decision framework | prescriptive rule | cross-reference | reach-beyond signal)
+- The owned content the section needs (with use-shape from the proposal's Ownership and Use-Shape table)
+- The source patterns the section encodes
+- The extracted reasoning from any quote or named-individual content (not the quote, not the name)
+
+Verify after writing: each section reflects what the plan committed to. If a section drifts to a different shape, the upstream plan was wrong — redo the plan, do not edit the prose.
+
+For shape reference: F0 in templates/guardrails/ is a worked example of mixed-shape content. See ARCHITECTURE.md, "Shape Reference: F0 as a Worked Example."
+
+HIGH-STAKES content (legal names, EINs, addresses, titles, dates, financials): copy EXACTLY from sources.
+
+DURABILITY:
+- No volatile specifics (counts, prices, named lists). Move to addenda. Process parameters are durable.
+- Guide, don't catalog. Principles, not inventories.
+- Respect proposal scope. Cross-reference content owned elsewhere; do not restate.
 -->
 
 <!-- VERIFICATION LOG (remove before delivery)
@@ -587,10 +666,26 @@ HIGH-STAKES content copied exactly from source.]
 |----|------|-------------|---------------|---------|-------------|
 | A1 | [Name] | [What data] | [Modules] | [Files] | [Freq] |
 
-## Shared Source Ownership
+## Ownership and Use-Shape
 
-| Source File | Content Area | Owned By | Cross-Referenced By |
-|-------------|-------------|----------|---------------------|
+Each content area has exactly ONE owner. Every other module that needs the content uses one of four shapes — committed here, not decided at write-time.
+
+**Use-shapes:**
+- **cross-reference** — pointer only, no restatement
+- **subset (X)** — restate the named subset (one phrase or short sentence) and cross-reference; X names the subset
+- **invocation by name** — name the thing without describing it
+- **reach-beyond** — module instructs agent to load addendum/invoke skill when needed
+
+| Content Area | Owner | Used By | Use-Shape |
+|--------------|-------|---------|-----------|
+| [Identity / positioning content] | [Foundation owner] | [Other modules] | Cross-reference. |
+| [Constants used by adaptations] | [Owner module] | [Adaptation modules] | Cross-reference at top; using-module content begins with the adaptation, not with restated constants. |
+| [Standard, protocol, or framework set] | [Methodology module or addendum] | [Modules that need to invoke standards by name] | Invocation by name. |
+| [Volatile data — figures, lists, named items] | [Addendum] | [Modules that need the data] | Reach-beyond ("when needing X, load addendum Y"). |
+
+The bracketed placeholders are intentional — examples that name concrete content areas tend to anchor the next build on those exact areas. Replace each placeholder with the content area for the actual library being built.
+
+Every row where Used By is non-empty must have a use-shape. A row without a use-shape is incomplete.
 
 ## Agent Definitions
 
@@ -618,12 +713,15 @@ Recommended module build order:
 ---
 
 PHASE 4 RULES (embedded for compaction defense):
-- Read ARCHITECTURE.md before writing any module.
-- Modules provide reasoning context — how the organization thinks. Not procedures. Not "If X, do Y" rules.
+- Read ARCHITECTURE.md before writing any module — including "The Runtime Agent's Perspective" and "Shape Reference: F0 as a Worked Example."
+- Modules are read by a runtime agent that has no awareness of sources, the build, or the library. Sentences that only make sense inside the build are contamination.
+- Per-module protocol (PHASE_4_BUILD.md) has 7 steps. The Substantive Source Surface (Step 4) and Section Plan (Step 5) are planning artifacts the agent commits to BEFORE writing prose. Do not skip them.
 - Re-read sources in the same turn you write each module.
-- Check Shared Source Ownership before writing — cross-reference, don't restate.
-- Every module should tell the agent when to reach beyond itself — load addenda, invoke skills, or ask the user.
+- Use the Ownership and Use-Shape table above. Every section that needs owned content uses the committed shape — cross-reference, subset, invocation by name, or reach-beyond. Restatement is not one of the shapes.
+- Quotes and named individuals from sources do not appear in modules. Extract the reasoning before generating, in the Section Plan. Quote-extraction is the default path.
+- Modules tell the agent when to reach beyond themselves — load addenda, invoke skills, or ask the user.
 - Token budget is room for useful content, not a ceiling.
+- When a module fails self-check or user review, follow the failure-recovery protocol (PHASE_4_BUILD.md). Diagnose the upstream planning gap; do not regenerate prose from scratch.
 
 ---
 

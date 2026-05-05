@@ -1,5 +1,30 @@
 # Context Library Architecture
 
+## The Runtime Agent's Perspective
+
+Modules are system prompt components for a runtime agent. The runtime agent reads its system prompt (the modules loaded for it) and a user message — nothing else. It has no awareness of:
+
+- Source files, source documents, or anything called "the source set"
+- The build process, the build agent, or that there was a "library being constructed"
+- The proposal, the build-state file, or any document outside its loaded modules
+- Dates of source documents, document authors, or anything about when or how a module came to exist
+- Other modules' contents except by explicit cross-reference
+
+Anything in a module that only makes sense to a reader who knows about the build is contamination, not context. A runtime agent encountering "the library doesn't carry the underlying detail" or "in some 2025-era sources" reads instructions about a library it has no access to and information it cannot consult.
+
+The test for runtime-frame contamination is not whether the sentence contains specific build-perspective phrases. It is whether **the sentence makes sense to a reader who knows nothing about how this module came to exist**. Phrases that almost always indicate contamination:
+
+- "the source set" / "source documents" / "the sources"
+- "the library" / "this library" / "the build" / "the build agent"
+- Any reference to a specific source file by name or path
+- Dates attached to document provenance ("in 2025-era sources," "the late-2024 strategy doc")
+- "as documented in" / "per the [document type]" — when "the document" is a source file
+- Any sentence that explains why something is or isn't in the module
+
+The runtime agent reads modules as instruction. It is not interested in why one piece of information is here and another is elsewhere; it cannot consult what is elsewhere.
+
+---
+
 ## Modules Instantiate Organizational Thinking, Not Procedures
 
 Context libraries exist so agents can do meaningful work on behalf of an organization. Modules are not fact sheets or procedure manuals — they are system prompt components that give the agent the organization's reasoning patterns, principles, and contextual knowledge. An agent with well-built modules can handle situations the module author never anticipated, because it understands *how the organization thinks*, not just what it does in specific scenarios.
@@ -106,6 +131,24 @@ determined that violating this rule causes irreversible damage.]
 ```
 
 The first two patterns equip the agent to handle situations the author didn't anticipate. The third is a hard constraint. Most module content should look like the first two.
+
+---
+
+## Shape Reference: F0 as a Worked Example
+
+`templates/guardrails/F0_agent_behavioral_standards.md` is a working module — every library copies it verbatim into Foundation. It is also a worked example of mixed-shape content for a reasoning-context-primary module. Reference it when uncertain what shape a section should take.
+
+F0 illustrates three shapes coexisting in one module:
+
+**Process gates as upstream-operation prescriptive rules.** F0's five process gates ("Source Before Statement," "Mark the Move," "Reframe Before Committing," "Second-Order Check," "Generalization Check") are prescriptive — they tell the agent what to do in a defined sequence. They earn the prescriptive shape because violation produces specific, recognizable failures (unsourced claims, conflated epistemic statuses, unconsidered framings). When a module has genuine constraints whose violation causes real harm, prescriptive shape is correct. Note that even the gates are not "if X, do Y" rules for runtime decisions — they are upstream operations the agent performs *before* generating substantive output.
+
+**HIGH-STAKES Content section as decision framework.** F0's HIGH-STAKES section names two conditions that must both be true ("an error would cause significant harm that is difficult or impossible to undo, and accuracy depends on organizational specifics that require verified sourcing"), and three things required when both are met (cite source, reproduce exact details, flag for verification). The agent makes the determination of whether content is HIGH-STAKES; the module gives it the factors to weigh. This is decision-framework shape — naming factors rather than enumerating cases.
+
+**Uncertainty section as pure reasoning context.** F0's Uncertainty section reads: "Confidence calibration is not a formatting requirement — it's an epistemic one. The language used to convey a claim should accurately reflect how much the agent actually knows about it..." There are no rules and no factors. It is the reasoning the organization wants the agent to internalize, written as instruction to the agent ("the practical discipline is to notice the actual epistemic status of each claim before stating it"). This is reasoning-context shape — the most common shape for identity, philosophy, and values modules.
+
+**What F0 is not:** F0 is not third-person prose about the organization. It does not say "the organization values accurate sourcing." It says "Before generating any substantive claim, complete this sequence." Reasoning-context shape is *instruction* — second-person or imperative — that gives the agent the organization's way of thinking.
+
+When writing a module whose primary content is values, identity, or philosophy, the default shape is reasoning context. Decision frameworks appear when the agent will face a recurring choice the organization has thought through. Prescriptive rules appear rarely, only for genuine constraints. The mix in F0 is roughly: 40% prescriptive (the process gates, which are upstream operations not runtime rules), 20% decision framework (HIGH-STAKES), 40% reasoning context (Uncertainty, Error Correction, Professional Challenge, Analytical Depth Requirements).
 
 ---
 
@@ -299,13 +342,37 @@ Modules reference addenda; addenda don't reference modules.
 
 ## Single Source of Truth
 
-Each piece of information exists in exactly ONE module. Other modules cross-reference:
+Each piece of information exists in exactly ONE module. Other modules incorporate that content by cross-reference, not by restatement. The proposal's Ownership and Use-Shape table commits to *both* which module owns each content area *and* the specific shape used by every other module that needs it.
+
+Ownership is necessary but not sufficient. Naming an owner without specifying use-shape leaves the build agent to decide at write-time how a using module incorporates the content — and the path of least resistance is to restate. Specifying use-shape in Design removes that decision from Build.
+
+### The Four Use-Shapes
+
+When a module needs content owned by another module, the proposal commits the using module to one of four shapes:
+
+**Cross-reference only.** The using module names the content area and points to the owner. No restatement, no descriptive prose. Example: an addendum that adapts a shared constant to a particular context opens with "[Constants from the owner module] apply throughout this addendum — see [owner]." The addendum content then begins with the adaptation, not with restated constants.
+
+**Brief restatement of subset.** The using module restates a specific, scoped subset (one phrase or one short sentence) and cross-references the full content. Reserve this for cases where the using module's reasoning genuinely needs the subset present in-line for the agent to follow. The restated subset must be smaller than the full owned content — if it isn't, the use-shape is wrong; either the content has a different owner, or the using module should cross-reference only.
+
+**Invocation by name.** The using module names a thing without describing it (a standard, a methodology, a framework — referenced by its name only) and lets the runtime agent encounter the description elsewhere when it needs it. Use when the name itself carries enough signal for the using module's purpose, and the description belongs to another module or addendum.
+
+**Indirection through reach-beyond.** The using module instructs the agent to load the addendum or invoke the skill when it needs the content, rather than carrying any of it. This is the default for volatile data (figures, names, lists) — the module tells the agent *when* to reach for the data, never *what* the data is.
+
+### What This Replaces
+
+The pattern that violates SSoT is restatement: a using module describes the content it needs in the using module's own prose, often expanded for the using context. Each restatement creates a place that goes stale when the canonical source updates, and the restatements drift from each other over time. The four use-shapes all avoid restatement. When the build agent reaches for content during Section Plan (Phase 4, Step 5), the use-shape from the proposal tells it which of these four shapes to produce — not whether to restate.
+
+### Cross-Reference Format
 
 ```markdown
 > See [Module Name] for [specific information].
 ```
 
-The proposal's Shared Source Ownership table assigns each content area to one module. During the build, check this table before writing — if content is owned by another module, cross-reference it.
+For brief restatement of subset:
+
+```markdown
+[The scoped subset, one phrase or short sentence.] See [Module Name] for the full [content area].
+```
 
 ---
 

@@ -2,6 +2,12 @@
 
 Transforms organizational source documents into modular context libraries that change how AI agents behave. Modules are metaprompts — system prompt components that shape agent decision-making — not fact sheets.
 
+The skill is built around three architectural commitments that prevent recurring build failures:
+
+- **The runtime agent's perspective is the writing frame.** Modules are read by an agent that has only its loaded modules and a user message — no source files, no proposal, no awareness of the build. Sentences that only make sense inside the build are contamination.
+- **Planning precedes prose.** Each module gets a Substantive Source Surface and a Section Plan that commit to shape, source patterns, and use-shape *before* writing. When prose drifts from the plan, the failure-recovery protocol fixes the upstream plan rather than regenerating the prose.
+- **Single source of truth is a use-shape commitment.** The proposal's Ownership and Use-Shape table commits every using module to one of four shapes (cross-reference, subset, invocation by name, reach-beyond). Restatement is not a shape.
+
 ## When to Use
 
 Use this skill when you need to:
@@ -41,20 +47,27 @@ context-library/
 
 ## Process
 
-The build runs in 4 phases across 2-3 sessions:
+The build runs in 4 phases across 3 sessions. Phase 2 (Comprehend) is internally split into two passes — recognition and synthesis — with a mandatory session break between them.
 
 | Phase | What Happens | You'll Review |
 |-------|-------------|---------------|
-| **Setup** | Source inventory and classification | File list, agent needs, gaps |
-| **Comprehend** | Deep reading for behavioral patterns | Patterns, convergences, tensions |
-| **Design** | Module architecture and agent definitions | Complete structural proposal |
-| **Build** | Module writing with per-module quality gates | Finished library |
+| **Setup** | Source inventory, classification, initial expectations per agent | File list, agent needs, expectations, gaps |
+| **Comprehend Pass 1 (recognition)** | Deep reading; observational artifacts written at the moment of reading (per-source notes, signal log, expectations-vs-findings, conflicts) | Recognition outputs and conflict types |
+| *(mandatory session break)* | | |
+| **Comprehend Pass 2 (synthesis)** | Sources mostly out of context; synthesis with cognitive room for lateral moves (pattern-pointers, convergences, cross-domain parallels, agent-needs) | Synthesis outputs and refined agent roles |
+| *(mandatory session break)* | | |
+| **Design** | Module architecture, agent definitions, ownership and use-shape table | Complete structural proposal |
+| **Build** | Module writing with per-module quality gates and a planning artifact per module | Finished library |
 
-There's a mandatory session break between Comprehend and Design to keep critical instructions fresh in context.
+The two-pass structure for Comprehend exists because single-pass synthesis on a large source set produces sector-applicable rather than organization-specific patterns. Recognition needs sources loaded; synthesis needs sources mostly out of context. The break makes both possible.
 
 ## Tips
 
 - Provide the messiest, most complete set of source documents you have — the skill handles transcripts and raw notes directly
 - If you know what agents you want, mention them upfront; otherwise the skill derives them from the sources
-- Review the proposal carefully in Design — it's much easier to restructure before modules are written
+- Review the proposal carefully in Design — it's much easier to restructure before modules are written, and the Ownership and Use-Shape table is much harder to revise once Build has started
 - Token budgets are room for useful content, not ceilings — if an agent seems thin, ask for richer modules
+
+## Redoing a Build After a Rollback
+
+If a build attempt produced a library you needed to roll back, tell the skill at the start of the next session that this is a redo. The redo-session protocol moves retrospective documents and prior-attempt module files to an archive (so they cannot anchor the new attempt) and gathers from you a list of *named failure patterns* to avoid. The build agent regenerates from the proposal and sources, not from retrospective examples.
