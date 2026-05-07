@@ -1,0 +1,82 @@
+# Manifest of skills vendored into the makegood-skills aggregator plugin.
+#
+# Each entry pins a per-skill repo to a specific tagged release. Run
+# scripts/sync_skills.py to refresh plugins/makegood-skills/skills/ from these
+# pinned releases.
+#
+# To bump a skill: change its `tag`, run sync, commit, bump aggregator version
+# in plugins/makegood-skills/.claude-plugin/plugin.json, tag a new aggregator
+# release.
+
+skills:
+  - name: auditing-skills
+    repo: WeMakeGood/auditing-skills
+    tag: v1.1.0
+
+  - name: building-context-libraries
+    repo: WeMakeGood/building-context-libraries
+    tag: v1.5.0
+
+  - name: creating-organization-dossiers
+    repo: WeMakeGood/creating-organization-dossiers
+    tag: v1.0.1
+
+  - name: creating-skills
+    repo: WeMakeGood/creating-skills
+    tag: v1.0.1
+
+  - name: designing-article-series
+    repo: WeMakeGood/designing-article-series
+    tag: v1.1.0
+
+  - name: designing-websites
+    repo: WeMakeGood/designing-websites
+    tag: v2.1.2
+
+  - name: drafting-articles
+    repo: WeMakeGood/drafting-articles
+    tag: v1.1.0
+
+  - name: extracting-voice-profiles
+    repo: WeMakeGood/extracting-voice-profiles
+    tag: v1.1.0
+
+  - name: generating-divi-variables
+    repo: WeMakeGood/generating-divi-variables
+    tag: v2.1.2
+
+  - name: generating-meeting-reports
+    repo: WeMakeGood/generating-meeting-reports
+    tag: v1.0.1
+
+  - name: generating-writing-standards
+    repo: WeMakeGood/generating-writing-standards
+    tag: v1.1.0
+
+  - name: planning-social-campaigns
+    repo: WeMakeGood/planning-social-campaigns
+    tag: v1.0.1
+
+  - name: processing-docx-edits
+    repo: WeMakeGood/processing-docx-edits
+    tag: v1.0.1
+
+  - name: researching-youtube-channels
+    repo: WeMakeGood/researching-youtube-channels
+    tag: v1.0.1
+
+  - name: scripting-article-videos
+    repo: WeMakeGood/scripting-article-videos
+    tag: v1.1.0
+
+  - name: synthesizing-interviews
+    repo: WeMakeGood/synthesizing-interviews
+    tag: v1.0.1
+
+  - name: writing-case-studies
+    repo: WeMakeGood/writing-case-studies
+    tag: v1.0.1
+
+  - name: writing-project-dossiers
+    repo: WeMakeGood/writing-project-dossiers
+    tag: v1.0.1

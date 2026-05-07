@@ -1,75 +1,83 @@
-# Make Good Skills — Claude Code Instructions
+# Make Good Skills — Aggregator Plugin
 
-This is a **plugin marketplace repository** for Claude Code. It distributes agent skills as installable plugins via the Claude Code plugin system.
+This repo is the **aggregator plugin** for Make Good's Claude Code skills. It bundles all 18 per-skill repos into a single installable plugin so users can run `/plugin install makegood-skills@makegood-skills` and get everything at once.
 
-## Repository Structure
+## Source of truth
+
+Skills are developed in their own repos under [github.com/WeMakeGood](https://github.com/WeMakeGood). This repo only **vendors** copies of those skills at pinned tagged releases — it is not a development workspace. To change a skill, change it in its own repo.
+
+| Concern | Where it lives |
+|---------|----------------|
+| Skill content (SKILL.md, references/, scripts/) | `WeMakeGood/<skill-name>` |
+| Skill versioning | Tags on `WeMakeGood/<skill-name>` |
+| Aggregator structure (this repo) | `WeMakeGood/makegood-skills` |
+| Pinned versions per skill | `skills.yaml` (this repo) |
+
+## Repository structure
 
 ```
 makegood-skills/
 ├── .claude-plugin/
-│   └── marketplace.json       # Marketplace catalog — lists all plugins
-└── plugins/
-    ├── article-pipeline/      # Bundle plugin (5 skills)
-    │   ├── .claude-plugin/
-    │   │   └── plugin.json    # Plugin manifest
-    │   └── skills/
-    │       └── skill-name/
-    │           └── SKILL.md   # Skill instructions
-    ├── web-design/            # Bundle plugin (2 skills)
-    └── [skill-name]/          # Standalone plugin (1 skill each)
+│   └── marketplace.json              # Marketplace catalog (one plugin entry)
+├── plugins/
+│   └── makegood-skills/
+│       ├── .claude-plugin/
+│       │   └── plugin.json           # Single aggregator plugin manifest
+│       └── skills/                   # Vendored from per-skill repos by sync_skills.py
+│           ├── auditing-skills/
+│           ├── building-context-libraries/
+│           └── ... (18 skill folders total)
+├── scripts/
+│   └── sync_skills.py                # Pulls vendored content from GitHub releases
+├── skills.yaml                       # Manifest: name, repo, tag for each skill
+├── CLAUDE.md
+└── README.md
 ```
 
-**Bundles** contain multiple related skills under one `plugin.json`. **Standalones** are one plugin per skill.
+## Workflow: bumping a skill
 
-## Working in This Repo
+When a per-skill repo ships a new release and you want it in the aggregator:
 
-### What this repo IS
+1. Edit `skills.yaml` — change that skill's `tag:` to the new version
+2. Run `python3 scripts/sync_skills.py` — fetches the new ZIP, replaces the vendored content
+3. Bump `version` in `plugins/makegood-skills/.claude-plugin/plugin.json` (calver: `YYYY.MM.DD`)
+4. Commit with a message naming which skills changed
+5. Tag the aggregator release (e.g., `git tag v2026.06.15 && git push origin v2026.06.15`)
 
-A distribution layer. Skills are developed in `anthropic-skills` (the source repo) and published here in plugin format. Changes here are to the plugin structure, metadata, and marketplace catalog — not to skill content.
+## Workflow: adding a new skill
 
-### What this repo IS NOT
+1. Create the per-skill repo under WeMakeGood using the [ai-skills-template](https://github.com/WeMakeGood/ai-skills-template)
+2. Add an entry to `skills.yaml`
+3. Follow the bump workflow above
 
-A development workspace. Do not develop or test new skills here. Do not run validation scripts against the `plugins/` tree — those live in the source repo.
+## Workflow: removing a skill
 
-### Critical: Do Not Corrupt These Files
+1. Delete the entry from `skills.yaml`
+2. Run sync (it will not delete already-vendored skills — manually remove the folder under `plugins/makegood-skills/skills/`)
+3. Bump aggregator version and tag
 
-Two files control how Claude Code resolves this marketplace. Corrupting them breaks installation for all users:
+## Critical files
 
-- `.claude-plugin/marketplace.json` — the marketplace catalog
-- `plugins/*/\.claude-plugin/plugin.json` — each plugin's manifest
+These files control how Claude Code resolves the aggregator. Do not corrupt them:
 
-Before editing either, read the file first. After editing, verify JSON is valid.
+- `.claude-plugin/marketplace.json` — must list exactly one plugin: `makegood-skills`
+- `plugins/makegood-skills/.claude-plugin/plugin.json` — the single plugin manifest
+- `skills.yaml` — defines what gets vendored
 
-### Plugin Structure Rules
+After editing JSON or YAML, validate before committing.
 
-- `plugin.json` goes in `.claude-plugin/` inside the plugin folder — nowhere else
-- `SKILL.md` goes in `skills/<skill-name>/` inside the plugin folder — not at the plugin root
-- `references/` and `scripts/` live alongside `SKILL.md` inside the skill folder
-- Do not create files outside this structure
+## What this repo is NOT
 
-### Adding a New Plugin
+- A development workspace for skills. Skills live in their own repos.
+- A multi-plugin marketplace. There is only one plugin: the aggregator. (We tried multi-plugin previously; bundling into one matches the user intent of "I want all the Make Good skills.")
+- The source of truth for skill content. The vendored copies under `plugins/makegood-skills/skills/` are downstream artifacts — edits made here will be overwritten on the next sync.
 
-1. Create `plugins/<plugin-name>/.claude-plugin/plugin.json` with `name`, `version`, `description`
-2. Create `plugins/<plugin-name>/skills/<skill-name>/SKILL.md`
-3. Add the plugin entry to `.claude-plugin/marketplace.json`
-4. Verify JSON in both files is valid before committing
+## Quality checklist
 
-### Updating a Skill
+Before committing:
 
-1. Update `SKILL.md` (and any `references/` or `scripts/` files) in the skill folder
-2. Bump `version` in the plugin's `plugin.json` — users will not receive updates without a version bump
-3. Commit with a message that describes what changed and why
-
-### Marketplace Name
-
-The marketplace name is `makegood-skills`. This is the public-facing name users type in `/plugin install <plugin>@makegood-skills`. Do not change it.
-
-## Quality Checklist
-
-Before committing any change:
-
-- [ ] JSON in `plugin.json` and `marketplace.json` is valid
-- [ ] `version` bumped in `plugin.json` if skill content changed
-- [ ] New plugins are listed in `marketplace.json`
-- [ ] `SKILL.md` is in `skills/<skill-name>/` — not at the plugin root
-- [ ] No files added outside the documented structure
+- [ ] `marketplace.json` is valid JSON
+- [ ] `plugins/makegood-skills/.claude-plugin/plugin.json` is valid JSON
+- [ ] `skills.yaml` is valid YAML
+- [ ] Aggregator `version` bumped if any vendored content changed
+- [ ] No skill content edited directly in `plugins/makegood-skills/skills/` (those edits will be lost on next sync)

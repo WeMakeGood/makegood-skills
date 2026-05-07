@@ -1,76 +1,69 @@
 # Make Good Skills
 
-A Claude Code plugin marketplace with agent skills for writing, research, client work, and web design — built by [Make Good](https://wemakegood.org).
+A single Claude Code plugin bundling all 18 Make Good agent skills — writing, research, client work, web design, and AI development. Built by [Make Good](https://wemakegood.org).
+
+Each skill is also available as a standalone repo at [github.com/WeMakeGood](https://github.com/WeMakeGood) for users who want to install individual skills via ZIP.
 
 ## Install
 
 ```
 /plugin marketplace add WeMakeGood/makegood-skills
+/plugin install makegood-skills@makegood-skills
 ```
 
-Then install individual plugins:
+That's it — all 18 skills are now available in Claude Code.
 
-```
-/plugin install article-pipeline@makegood-skills
-/plugin install web-design@makegood-skills
-/plugin install writing-case-studies@makegood-skills
-```
+## What's included
 
-Or browse everything with `/plugin` → **Discover** tab.
+### Writing
 
-## Plugins
+- **`drafting-articles`** — Research-grounded multi-session article drafting
+- **`designing-article-series`** — Plan series structure and project manifests
+- **`scripting-article-videos`** — Short video scripts from article artifacts
+- **`generating-writing-standards`** — Extract publication-level writing standards
+- **`extracting-voice-profiles`** — Build voice profiles from writing samples
+- **`writing-case-studies`** — Case studies from interview transcripts or notes
+- **`processing-docx-edits`** — Process tracked changes and comments in Word docs
 
-### Bundles
+### Research
 
-**`article-pipeline`** — Complete pipeline for long-form article work
-- `designing-article-series` — Plan series structure and project manifest
-- `drafting-articles` — Research-grounded multi-session article drafting
-- `scripting-article-videos` — Short video scripts from article artifacts
-- `generating-writing-standards` — Extract publication-level writing standards
-- `extracting-voice-profiles` — Build voice profiles from writing samples
+- **`synthesizing-interviews`** — Interview transcripts → structured research documents
+- **`researching-youtube-channels`** — Channel research, video metadata, and transcripts
+- **`creating-organization-dossiers`** — Org research profiles via 6-phase workflow
 
-**`web-design`** — Website content strategy and Divi 5 design tokens
-- `designing-websites` — Interactive phased website content strategy
-- `generating-divi-variables` — Generate Divi 5-compatible JSON import files
+### Client Work
 
-### Standalone Skills
+- **`writing-project-dossiers`** — Project scope documents via guided conversation
+- **`generating-meeting-reports`** — Structured meeting reports from transcripts
+- **`planning-social-campaigns`** — Campaign strategy, asset calendars, and content files
 
-| Plugin | What it does |
-|---|---|
-| `writing-case-studies` | Case studies from interview transcripts or notes |
-| `writing-project-dossiers` | Project scope documents via guided conversation |
-| `creating-organization-dossiers` | Org research profiles via 6-phase workflow |
-| `planning-social-campaigns` | Campaign strategy, asset calendars, and content files |
-| `synthesizing-interviews` | Interview transcripts → structured research documents |
-| `researching-youtube-channels` | Channel research, video metadata, and transcripts |
-| `processing-docx-edits` | Process tracked changes and comments in Word docs |
-| `generating-meeting-reports` | Structured meeting reports from transcripts |
-| `building-context-libraries` | Transform org documents into agent metaprompt modules |
-| `creating-skills` | Guided workflow for building new agent skills |
-| `auditing-skills` | Audit existing skills against current best practices |
+### Web Design
 
-## Repository Structure
+- **`designing-websites`** — Interactive phased website content strategy
+- **`generating-divi-variables`** — Divi 5-compatible JSON import files (legacy — Make Good no longer uses Divi)
 
-```
-makegood-skills/
-├── .claude-plugin/
-│   └── marketplace.json       # Marketplace catalog
-└── plugins/
-    ├── article-pipeline/      # Bundle: 5 skills
-    │   ├── .claude-plugin/
-    │   │   └── plugin.json
-    │   └── skills/
-    │       ├── designing-article-series/
-    │       ├── drafting-articles/
-    │       ├── scripting-article-videos/
-    │       ├── generating-writing-standards/
-    │       └── extracting-voice-profiles/
-    ├── web-design/            # Bundle: 2 skills
-    └── [standalone plugins]/  # One plugin per skill
-```
+### AI Development
 
-Each plugin contains a `plugin.json` manifest and one or more skills under `skills/`, each with a `SKILL.md` plus optional `references/` and `scripts/`.
+- **`building-context-libraries`** — Transform org documents into agent metaprompt modules
+- **`creating-skills`** — Guided workflow for building new agent skills
+- **`auditing-skills`** — Audit existing skills against current best practices
+
+## Installing individual skills
+
+If you only want a few skills, install them as standalone packages:
+
+1. Visit the per-skill repo (e.g., [WeMakeGood/drafting-articles](https://github.com/WeMakeGood/drafting-articles))
+2. Download the latest release ZIP
+3. Unzip into `~/.claude/skills/`
+
+Each per-skill repo has its own README, version history, and release ZIPs.
+
+## How this repo works
+
+This is an **aggregator** — it vendors copies of each skill from its source repo at a pinned version. Skill development happens in the per-skill repos, not here.
+
+See [CLAUDE.md](CLAUDE.md) for the development workflow (bumping skills, adding new skills, syncing vendored content).
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE).
