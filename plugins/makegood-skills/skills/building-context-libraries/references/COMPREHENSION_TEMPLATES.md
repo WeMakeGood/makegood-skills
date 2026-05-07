@@ -620,12 +620,16 @@ For each agent role (refined from Phase 1's Initial Agent Needs based on Pass 2 
 
   Reach-beyond needs: [what data/skills/judgment it will need from outside its modules]
 
+  Escalation triggers: [situations where the agent should ask rather than answer — patterns surfaced from sources where the right move is deferral to a principal/sponsor/user, not the agent's best inference. These become the agent file's `## Ask the [Role]` block in Phase 4.]
+
   Gaps: [what's missing from sources that this agent would need]
 
   Refinement note: [one phrase — what changed from Phase 1's initial agent role for this agent, and why]
 ```
 
 The reasoning-patterns column references pattern-pointers.md by pattern name. Do not restate the patterns here.
+
+**Escalation triggers vs. reach-beyond needs:** reach-beyond names what the agent loads or invokes (an addendum, a skill, a user prompt for missing data). Escalation triggers name situations where the agent must defer the *decision* — work that crosses into territory only the engagement principal / sponsor / user can resolve. The distinction matters: reach-beyond is mechanical ("load X when Y"); escalation is judgmental ("don't proceed without input from a human in role Z"). Both surface from Pass 2 synthesis, but they get rendered as distinct sections in the agent definition file.
 
 ---
 
@@ -655,9 +659,14 @@ The reasoning-patterns column references pattern-pointers.md by pattern name. Do
     - skill: drafting-proposals (when advancement is decided)
     - user: when values-mismatch signals appear and the agent can't resolve whether they're surface or substantive
 
+  Escalation triggers:
+    - prospective engagement requires resourcing decisions beyond the agent's current-capacity addendum (e.g., team reassignment, hiring questions)
+    - values-mismatch signal appears and the agent's reasoning produces a confident answer in either direction — confidence in this terrain is a signal to escalate, not to proceed
+    - prospect names a relationship or affiliation the library doesn't surface (sources didn't anticipate the connection)
+
   Gaps: sources don't address how the agent should handle current-client scope expansion that drifts toward values-mismatch territory; this is a known gap to flag
 
   Refinement note: Phase 1 had this agent named as "qualification agent"; Pass 2 surfaced that the org doesn't think of this as qualification (a sales-shaped frame) but as relational calibration with stakes — renaming to "client engagement" preserves the agent's actual scope without importing sales framing
 ```
 
-The example shows: decisions are concrete and scoped; reasoning patterns are referenced by name (not restated); audience reasoning frames as needs-on-spectrums rather than persona types; reach-beyond is split by addendum/skill/user; gaps are named specifically; refinement note explains the change from Phase 1.
+The example shows: decisions are concrete and scoped; reasoning patterns are referenced by name (not restated); audience reasoning frames as needs-on-spectrums rather than persona types; reach-beyond is split by addendum/skill/user; escalation triggers are named situations where the agent defers (each one becomes an `## Ask the [Role]` bullet in the agent file); gaps are named specifically; refinement note explains the change from Phase 1.

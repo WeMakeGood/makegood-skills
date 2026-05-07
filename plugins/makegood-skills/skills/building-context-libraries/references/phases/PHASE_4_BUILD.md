@@ -452,47 +452,70 @@ For each addendum:
 
 After modules and addenda are complete, write the agent definition files.
 
-**Agent definitions are system prompt preambles.** They are loaded into the agent's context at runtime — they tell the agent who it is, what it does, and what items are always in its context vs. conditionally loaded. Write them as instructions TO the agent, not documentation ABOUT the agent.
+**Agent definitions are system prompt preambles.** They are loaded into the agent's context at runtime — they tell the agent who it is, what content is in its system prompt from turn one (always-load), and what to load when specific work-time triggers fire (conditional). Write them as instructions TO the agent, not documentation ABOUT the agent.
+
+**The classification renders as `@`-includes and a triggers table — not as YAML frontmatter and not as a prose mirror.** See ARCHITECTURE.md, "Always-Load Delivery" for why. The shape:
+
+- **`## Required Reading`** contains one `@path` directive per always-load item, no surrounding prose. Claude Code expands these natively at load time; the build script (below) resolves them offline for runtimes that don't process `@`.
+- **`## Conditional Loads`** is a single table with one row per conditional item, each row carrying a plain-language `load_when:` trigger.
+- **Frontmatter is identity-only** (agent_name, agent_domain, purpose, last_updated). No `always_load:` or `conditional:` YAML blocks.
+- **No "Your Context" descriptive section.** Module purpose surfaces from each module's own `## Purpose` section at expansion time.
 
 For each agent (from the proposal):
 
 1. **Re-read the proposal's agent definition** for this agent
-2. **Re-read the proposal's Load-Discipline Classification table** for this agent's rows. The classification commits which items are `always_load` vs. `conditional` and the `load_when:` triggers. Build executes the table; do not redecide at agent-write time.
-3. **Review all `always_load` items** — skim each one to confirm the always-loaded set serves this agent's role
-4. **Write the agent definition** using the template from [references/TEMPLATES.md](../TEMPLATES.md)
+2. **Re-read the proposal's Load-Discipline Classification table** for this agent's rows. The classification commits which items are always-load vs. conditional and the `load_when:` triggers. Build executes the table; do not redecide at agent-write time.
+3. **Re-read this agent's entry in `_comprehension/agent-needs.md`** — specifically the Escalation triggers section. Those become the bullets in the agent file's `## Ask the [Role]` block.
+4. **Read the escalation role name from `build-state.md`** (Phase 3 recorded the library-wide choice — "Engagement Principal," "Engagement Lead," "Project Sponsor," "User," etc.). Use this name in every agent file's escalation block.
+5. **Review all always-load items** — skim each one to confirm the always-loaded set serves this agent's role
+6. **Write the agent definition** using the template from [references/TEMPLATES.md](../TEMPLATES.md)
 
 **The runtime section (what the agent reads) must include:**
 
 - Identity and role — written in second person ("You are...", "You handle...")
-- The `always_load` set — items in the agent's system prompt every time, with brief notes on what each provides
-- The `conditional` set — items with `load_when:` triggers in plain language; the agent reads these as runtime instructions for when to load each
-- Domain-specific guidelines — behavioral extensions beyond standard guardrails
+- `## Required Reading` — one `@`-directive per always-load item, no surrounding prose
+- `## Conditional Loads` — table with one row per conditional item, each with a `load_when:` trigger in plain language
+- `## Ask the [Role]` — escalation triggers from the agent-needs synthesis, rendered as bullet points
+- `## Domain Guidelines` — domain-specific Do/Don't behavioral extensions beyond standard guardrails
 
-**The manifest frontmatter must use the `always_load` / `conditional` shape from the template, not earlier tier-grouped shapes.** The body of the agent definition mirrors the manifest's classification (group items by load discipline, not by tier). Tier folders (`modules/foundation/`, `modules/shared/`, `modules/specialized/`) are structural file locations for humans and tooling — they do not describe load discipline. The runtime agent reads the manifest, not the folder structure.
+**Wildcard expansion in the conditional table:** if the proposal's classification uses a wildcard (e.g., `addenda/funders/A_funder_*` with a generic trigger), expand it into individual table rows with per-file triggers. Each row has its own `load_when:` sentence specific to that file. Generic wildcards turn into discretionary tool work in practice — explicit per-file rows give the runtime agent a checklist.
 
 **The build metadata section (HTML comment, not visible to the agent) tracks:**
-- Token budget breakdown — total of `always_load` items only (conditional items don't count against the budget)
-- Module rationale table (why each item is in this agent's set, and the classification reasoning)
+- Token budget breakdown — total of always-load items only (conditional items don't count against the budget)
+- Item rationale table (why each item is in this agent's set, and the classification reasoning)
 - Build notes (decisions made about this agent's configuration)
 
 **Budget assessment for each agent:**
-- Sum tokens from `always_load` items (modules and addenda alike — both count when always-loaded)
+- Sum tokens from always-load items (modules and addenda alike — both count when always-loaded)
 - Compare to 10% of target model context window
-- If under 50%: flag as potentially underserved — review whether the agent needs richer modules or additional always-loaded context
+- If under 50%: flag as potentially underserved — review whether the agent needs richer modules or additional always-loaded content
 - If over 100%: identify what to trim — remove items not essential for this role, not compress existing items
 
 **Do not write custom guardrail sections in agent definitions.** Load the standard guardrail modules (F0 always; S0 always for any agent that writes anything) and add only domain-specific extensions if needed.
 
 ### Hard-Rule Self-Check
 
-After writing each agent's manifest, verify:
+After writing each agent file, verify:
 
-- **F0_agent_behavioral_standards is in `always_load`** if it appears in this agent's set. If it's in `conditional`, the manifest is wrong — fix before continuing. (Hard rule. Not a judgment call.)
-- **S0_natural_prose_standards is in `always_load`** if it appears in this agent's set. If it's in `conditional`, the manifest is wrong — fix before continuing. (Hard rule. Not a judgment call.)
-- **Every `conditional` item has a `load_when:` trigger** that meets the Trigger Discipline (see ARCHITECTURE.md): one axis, plain "when X" phrasing, right-side specificity. If a trigger is missing or fails the discipline, fix before continuing.
-- **The classification matches the proposal's Load-Discipline Classification table** for this agent. If you disagreed with the proposal's classification while writing, surface that to the user — do not silently change it.
+- **F0_agent_behavioral_standards has an `@`-directive in `## Required Reading`** if it appears in this agent's set. If it's in the Conditional Loads table, the file is wrong — fix before continuing. (Hard rule. Not a judgment call.)
+- **S0_natural_prose_standards has an `@`-directive in `## Required Reading`** if it appears in this agent's set. If it's in the Conditional Loads table, the file is wrong — fix before continuing. (Hard rule. Not a judgment call.)
+- **Every Conditional Loads table row has a non-empty `Load when` cell** with a trigger that meets the Trigger Discipline (see ARCHITECTURE.md): one axis, plain "when X" phrasing, right-side specificity. If a trigger is missing or fails the discipline, fix before continuing.
+- **The classification matches the proposal's Load-Discipline Classification table** for this agent. Always-load items appear as `@`-directives; conditional items appear as table rows. If you disagreed with the proposal's classification while writing, surface that to the user — do not silently change it.
+- **No prose between `## Required Reading` and the first `@`-directive, and no prose interleaved with the directives.** Prose in this section turns content delivery into discretionary tool work — the architectural failure mode the shape is designed to remove.
 
-**The test:** Read the agent definition back. Does it sound like a system prompt that configures an agent, or like a project management document that describes one? If the latter, rewrite it as instructions the agent will follow. Does the manifest's `always_load` set match what the agent's runtime context will be? If a runtime task could plausibly be one where the agent skips an `always_load` item by judgment, that item should not be `always_load` — or it should be `always_load` with the discipline that the agent does not skip it. The classification removes the judgment call; the manifest must reflect that.
+**The test:** Read the agent file back. Does it sound like a system prompt that configures an agent, or like a project management document that describes one? If the latter, rewrite it as instructions the agent will follow. Are the always-load items in Required Reading and the conditional items in the table? If a runtime task could plausibly be one where the agent skips a Required Reading item by judgment, that item is misclassified — but the failure here is the classification, not the file shape.
+
+### Build the Deployment Bundles
+
+After all agent files are written. Each step produces an artifact; verify the artifact exists on disk before advancing to the next step. **Do not batch these as "I'll do all five and then check" — the GATE catches that, but the cost is a roundtrip.**
+
+1. **Copy `templates/build-deploy-bundles.py` into `<OUTPUT_PATH>/scripts/`.** Verify: `ls <OUTPUT_PATH>/scripts/build-deploy-bundles.py` returns the path. The script resolves `@`-include directives in agent files and writes self-contained bundles to `deploy/agents/`. Suitable for runtimes that don't process `@` natively (Claude.ai project upload, Cowork, generic API integrations).
+2. **Add `deploy/` to the library's `.gitignore`.** Verify: `grep '^deploy/' <OUTPUT_PATH>/.gitignore` returns the line. If the library has no `.gitignore`, create one with `deploy/` as the first entry. Bundles are regeneration artifacts; the agent files in `agents/` are the source of truth.
+3. **Run the script: `cd <OUTPUT_PATH> && scripts/build-deploy-bundles.py`.** Verify: the script reports `built deploy/agents/<name>.md` for each agent and exits with status 0. Verify additionally: `ls <OUTPUT_PATH>/deploy/agents/*.md` returns one bundle per agent file.
+4. **Optionally build the all-inclusive variant: `scripts/build-deploy-bundles.py --all-inclusive`.** Verify: `ls <OUTPUT_PATH>/deploy/agents/*.all-inclusive.md` returns one variant bundle per agent. Skip this step unless the user has identified a runtime that needs it; defer with a note in the GATE rather than building speculatively. (See ARCHITECTURE.md, "The All-Inclusive Bundle Variant.")
+5. **Copy `templates/library-README.md` into `<OUTPUT_PATH>/README.md`** (or merge into existing README). Verify: `cat <OUTPUT_PATH>/README.md` shows the deployment-doc content. The README explains the bundle approach for library consumers.
+
+If any `@`-directive fails to resolve in step 3, the script reports the missing target — fix the agent file or the target's path before continuing. Do not proceed to the GATE with unresolved directives.
 </phase_build_agents>
 
 ---
@@ -515,7 +538,12 @@ scripts/count_tokens.py <OUTPUT_PATH>
 
 # Verify facts against sources (run for each module)
 scripts/verify_module.py <OUTPUT_PATH>/modules/<module_file> <SOURCE_PATH>
+
+# Verify deployment bundles match source agent files (drift detection)
+cd <OUTPUT_PATH> && scripts/build-deploy-bundles.py --check
 ```
+
+If the bundle drift check reports DRIFT, run `scripts/build-deploy-bundles.py` (without `--check`) to rebuild. Drift typically appears after iterative edits to agent files or modules during the build.
 
 ### Quality Checklist
 
@@ -542,12 +570,23 @@ scripts/verify_module.py <OUTPUT_PATH>/modules/<module_file> <SOURCE_PATH>
 **For each agent definition:**
 - [ ] Role is behavioral (actions), not taxonomic (knowledge areas)
 - [ ] Item set serves the agent's actual decision-making needs
-- [ ] Manifest uses `always_load` / `conditional` shape (not tier-grouped)
-- [ ] F0 in `always_load` if present (hard rule)
-- [ ] S0 in `always_load` if present (hard rule)
-- [ ] Every `conditional` item has a `load_when:` trigger meeting Trigger Discipline
-- [ ] Token budget assessed (always_load items only) — neither starved nor bloated
+- [ ] Frontmatter is identity-only (no `always_load:` or `conditional:` YAML blocks)
+- [ ] `## Required Reading` contains only `@`-directives, no surrounding prose
+- [ ] `## Conditional Loads` is a table with one row per file, each with a `load_when:` trigger
+- [ ] F0 has an `@`-directive in Required Reading if present (hard rule)
+- [ ] S0 has an `@`-directive in Required Reading if present (hard rule)
+- [ ] Every Conditional Loads row has a non-empty `Load when` cell meeting Trigger Discipline
+- [ ] `## Ask the [Role]` block uses the library-wide role name from build-state and renders the agent-needs escalation triggers
+- [ ] No "Your Context" descriptive section duplicating the manifest
+- [ ] Token budget assessed (always-load items only) — neither starved nor bloated
 - [ ] Standard guardrails loaded (F0 for all; S0 for any agent that writes anything)
+
+**For deployment bundles:**
+- [ ] `scripts/build-deploy-bundles.py` copied into `<OUTPUT_PATH>/scripts/`
+- [ ] `deploy/` added to the library's `.gitignore`
+- [ ] Standard bundle built successfully for every agent (`deploy/agents/<name>.md`)
+- [ ] `--check` passes (bundles match source agent files; no drift)
+- [ ] Library README explains the bundle approach for consumers
 
 **Library-wide:**
 - [ ] Single source of truth — no fact in more than one module
@@ -561,15 +600,24 @@ scripts/verify_module.py <OUTPUT_PATH>/modules/<module_file> <SOURCE_PATH>
 
 ## GATE
 
-Write to the build state:
-- "Modules built: [count] / [total]"
-- "Addenda built: [count] / [total]"
-- "Agent definitions written: [count] / [total]"
-- "Validation scripts run: [list results]"
+Write to the build state. Each line names a file that must exist on disk or a script run that must have completed; do not write a line until you have confirmed the artifact:
+
+- "Modules built: [count] / [total]" — count from `ls <OUTPUT_PATH>/modules/**/*.md`
+- "Addenda built: [count] / [total]" — count from `ls <OUTPUT_PATH>/addenda/**/*.md`
+- "Agent definitions written: [count] / [total]" — count from `ls <OUTPUT_PATH>/agents/*.md`
+- "Build script vendored: [yes — path: `<OUTPUT_PATH>/scripts/build-deploy-bundles.py`]" — confirm by reading the file's first line (the script's docstring)
+- "Library README written: [yes — path: `<OUTPUT_PATH>/README.md`]" — confirm the file exists and contains the deployment-doc content
+- "deploy/ in .gitignore: [yes]" — confirm by grepping the library's `.gitignore` for `deploy/`
+- "Standard bundles built: [count] / [agent count]" — confirm by `ls <OUTPUT_PATH>/deploy/agents/*.md` (excluding `*.all-inclusive.md`)
+- "All-inclusive bundles built: [count or 'not built — defer until runtime requires']" — confirm or note the deferral
+- "Bundle drift check: [pass/fail]" — confirm by running `scripts/build-deploy-bundles.py --check` and capturing the result
+- "Validation scripts run: [list results from validate_library.py, count_tokens.py, verify_module.py]"
 - "Under-budget agents: [list or 'none']"
 - "Over-budget agents: [list or 'none']"
 - "Build artifacts removed: [yes/no]"
 - "Quality checklist complete: [yes/no]"
+
+**The GATE fails** if any of these is missing or unverified. The build does not advance to STOP until every artifact is on disk and every script run has reported success. If the build agent writes "yes" without the corresponding file existing, that is the same prose-instruction-treated-as-discretionary-tool-work failure mode the 1.6 architecture is designed to eliminate — at the build layer instead of the runtime layer. Catch it at the GATE.
 
 ---
 
@@ -579,6 +627,7 @@ Write to the build state:
 - Complete library summary — modules, addenda, agents
 - Token budget report — per-agent utilization
 - Validation results — any issues found and fixed
+- Bundle build status — standard bundle built for each agent; `--check` passes
 - Any remaining gaps or limitations
 - The library is ready for use
 
@@ -596,6 +645,7 @@ The build is complete. The context library is at `<OUTPUT_PATH>/` and ready for 
 **Library structure:**
 ```
 <OUTPUT_PATH>/
+├── README.md                    (deployment doc for library consumers)
 ├── source-index.md
 ├── build-state.md
 ├── process-log.md
@@ -605,7 +655,15 @@ The build is complete. The context library is at `<OUTPUT_PATH>/` and ready for 
 │   ├── shared/
 │   └── specialized/
 ├── addenda/
-└── agents/
+├── agents/                      (source agent files with @-directives)
+├── scripts/
+│   └── build-deploy-bundles.py  (resolves @-directives into self-contained bundles)
+└── deploy/                      (gitignored — generated bundles)
+    └── agents/
+        ├── <name>.md            (standard bundle: required-reading inlined)
+        └── <name>.all-inclusive.md  (optional: also inlines conditional addenda)
 ```
 
-**To use:** Load an agent's definition file, then load the modules it specifies into the agent's system prompt. Consult addenda on demand as modules direct.
+**To use in Claude Code:** Load an agent's source file from `agents/` — Claude Code expands `@`-directives natively at load time. The conditional table tells the agent when to load specific addenda for the work in front of it.
+
+**To use in other runtimes:** Load the agent's standard bundle from `deploy/agents/<name>.md` — it's a self-contained file with all required-reading content inlined. The conditional table still applies; conditional addenda are loaded on demand when their triggers fire (depends on the runtime supporting work-time file fetch or retrieval). For runtimes where conditional fetch is unreliable, use the all-inclusive bundle (`<name>.all-inclusive.md`) which inlines conditional content too — at the cost of token weight on every turn.

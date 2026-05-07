@@ -4,6 +4,30 @@ All notable changes to this skill are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this skill follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] — 2026-05-07
+
+### Added
+- **`@`-include + build-script delivery for always-load content.** Agent files now declare always-load items as `@`-include directives in a `## Required Reading` section. Claude Code expands `@` directives natively at load time. For runtimes that don't process `@` (Claude.ai project upload, Cowork, generic API integrations), the bundled `build-deploy-bundles.py` script resolves directives offline into self-contained `deploy/agents/<name>.md` bundles. Always-load content reaches the agent's system prompt from turn one regardless of runtime — the agent never participates in always-load delivery.
+- **`--all-inclusive` bundle variant.** For runtimes where work-time fetch of conditional addenda is unreliable, the build script supports an `--all-inclusive` flag that produces `deploy/agents/<name>.all-inclusive.md` — bundles that inline every conditional addendum's content alongside required-reading content. The Conditional Loads table is preserved so the agent retains per-work selectivity over already-loaded content. Trade-off: token weight on every turn vs. runtime independence from fetch reliability. Documented as the fallback variant; standard bundle remains the default.
+- **`## Ask the [Role]` escalation block in agent definitions.** Renders the agent-needs synthesis's escalation triggers (situations where the agent should defer rather than answer). Phase 3 commits a library-wide role name ("Engagement Principal," "Engagement Lead," "Project Sponsor," "User," etc.) used in every agent file's escalation block.
+- **Escalation triggers in agent-needs synthesis.** Phase 2 Pass 2's `agent-needs.md` artifact gains an "Escalation triggers" section per agent — patterns surfaced from sources where the right move is deferral, distinct from reach-beyond mechanics.
+- **`templates/build-deploy-bundles.py`** (vendored). Self-contained Python script (~250 lines) with no external dependencies. Resolves `@`-includes recursively (cycle detection, depth limit), handles both standard and all-inclusive variants, supports `--check` for drift detection in CI.
+- **`templates/library-README.md`** (deployment doc). Copied into output libraries during Phase 4 to explain the bundle approach for library consumers — when to use the standard bundle, when to use the all-inclusive variant, how to rebuild after edits.
+- **`agent-include-and-bundles` migration (1.5.x → 1.6.0)** in PHASE_M_MIGRATION.md. Mostly mechanical — the YAML manifest carries everything the new shape needs, including `load_when:` triggers. Pre-1.5 libraries run both migrations in sequence (1.4.x → 1.5.0, then 1.5.x → 1.6.0); the bootstrap presents this as a single user-facing migration plan.
+
+### Changed
+- **Agent definition shape rewritten.** Frontmatter shrinks to identity-only (agent_name, agent_domain, purpose, last_updated). The previous `always_load:` / `conditional:` YAML blocks are removed — they were declarative manifests no runtime processed as instruction. The previous `## Your Context` descriptive section (which named what each module gave the agent) is removed — module purpose surfaces from each module's own `## Purpose` section at expansion time. The runtime artifacts are `## Required Reading` (`@`-directives, no surrounding prose) and `## Conditional Loads` (table with one row per file).
+- **`count_tokens.py` parser updated.** Reads `## Required Reading` and `## Conditional Loads` from the agent file body instead of YAML frontmatter. Detects both pre-1.5 (tier-grouped) and 1.5 (YAML-block) formats and refuses with a pointer to the migration phase. Detects malformed Required Reading sections (missing or no `@`-directives) and refuses.
+- **Phase 4 build flow.** Agent-writing step now copies `templates/build-deploy-bundles.py` into `<OUTPUT_PATH>/scripts/`, adds `deploy/` to `.gitignore`, runs the script to verify bundles build cleanly, and copies `templates/library-README.md` into the library README. Final Validation adds `build-deploy-bundles.py --check` for drift detection.
+- **Phase 3 GATE** records the library-wide escalation role name decision in build-state.
+
+### Removed
+- The YAML `always_load:` / `conditional:` frontmatter blocks. The classification reasoning lives in Phase 3's table (in the proposal); the runtime artifacts are `@`-directives and the conditional table.
+- The `## Your Context` and `### Always Loaded` / `### Conditional` descriptive body sections. They duplicated the manifest and produced the prose-mirror failure mode.
+
+### Driven by
+A production failure where agents in non-`@`-aware runtimes (notably Claude.ai project upload) treated the YAML manifest as metadata the runtime didn't process, and the prose mirror ("read these files before responding") as discretionary tool work the agent could choose to skip, batch, or partially execute. Always-load content didn't reach the system prompt reliably. The 1.5 classification was correct; the artifact didn't deliver the content. The `@`-include + bundle approach removes the agent and the runtime's RAG/retrieval mechanisms from the always-load delivery path entirely. See SKILL.md, "Failed Attempts" → "Always-load classification correct, delivery mechanism unreliable," and ARCHITECTURE.md, "Always-Load Delivery."
+
 ## [1.5.0] — 2026-05-07
 
 ### Added
@@ -44,5 +68,6 @@ Two failed Phase 4 builds in production that exposed architectural failure modes
 
 ---
 
+[1.6.0]: https://github.com/WeMakeGood/building-context-libraries/releases/tag/v1.6.0
 [1.5.0]: https://github.com/WeMakeGood/building-context-libraries/releases/tag/v1.5.0
 [1.4.2]: https://github.com/WeMakeGood/building-context-libraries/releases/tag/v1.4.2

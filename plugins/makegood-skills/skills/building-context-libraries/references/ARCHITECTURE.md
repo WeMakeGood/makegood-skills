@@ -410,6 +410,54 @@ Each names a diagnostic axis, uses plain "when X" phrasing, and is specific enou
 
 ---
 
+## Always-Load Delivery
+
+Classification decides *whether* an item is always-load. Delivery is the separate question: how does an always-load item actually reach the agent's system prompt? The two questions are independent, and getting delivery wrong undoes the classification.
+
+### The Delivery Principle
+
+Always-load items must be in the agent's system prompt from turn one. Not loaded on instruction. Not fetched when the agent decides to read them. Not retrieved by the runtime when the agent's request matches a file. **In the system prompt, before the first turn.**
+
+This rule exists because the failure mode the classification was designed to remove — the agent's runtime judgment about whether to load — re-enters whenever delivery depends on the agent or runtime making a load decision. The originating failure (an agent skipping S0 because it judged the immediate task didn't need prose discipline) was a classification failure. The same failure mode in delivery: an agent ignoring instructions to load files, or batching the loads as tool calls, or partially loading them, or having them retrieved unreliably by RAG. Same agent, same wrong-judgment risk, different layer.
+
+### Two Delivery Mechanisms
+
+The agent definition file declares always-load items as `@`-directive lines in a `## Required Reading` section — one directive per file, no surrounding prose. These directives are content-delivery instructions, not behavioral instructions to the agent.
+
+**In `@`-aware runtimes (Claude Code), the runtime expands `@` directives at load time.** The harness reads the agent file, finds each `@path`, reads the target file, and inlines its content into the system prompt before the model sees the prompt. Recursive: included files' own `@` directives expand the same way. The agent never sees the directives; it sees the inlined content.
+
+**In runtimes that don't process `@` (Claude.ai project upload, Cowork, generic API integrations), an offline build script resolves the directives.** The script walks the agent file, expands every `@` directive recursively, and writes the result to `deploy/agents/<name>.md` — a self-contained bundle with all required-reading content already inlined. The bundle is what gets uploaded or pasted as the system prompt.
+
+Both mechanisms produce the same end state: required-reading content is in the system prompt from turn one. The difference is *who* does the expansion (runtime vs. build-time script). Neither asks the agent to participate in delivery.
+
+### Why Always-Load Concatenates and Conditional Stays Separate
+
+This separation is load-bearing for the architecture. Both library designers and library consumers need to understand it.
+
+**Always-load content concatenates** because every output the agent produces depends on it. Concatenating into a self-contained bundle removes the runtime's judgment about whether to load, the agent's judgment about whether to fetch, and the latency cost of sequential fetches. The bundle *is* the system prompt; everything that needs to be in the system prompt is already there.
+
+**Conditional addenda stay separate** because they're work-specific. Inlining all of them would force every output through every funder profile, every cultural context, every project. The whole point of the conditional table is that the agent reads it as runtime instruction and pulls the right addendum for the work in front of it. The conditional table's `load_when:` triggers are the agent's instruction set for that selectivity.
+
+The cost of conditional separation is real: it depends on the runtime's ability to fetch the right addendum at work-time when the trigger fires. In Claude Code with files visible in the project tree, that's reliable. In Claude.ai project upload with conditional addenda also uploaded as project files, retrieval-style mechanisms surface them when relevant. In runtimes without reliable file access at work-time, the agent recognizes the trigger but has no way to load the addendum.
+
+### The All-Inclusive Bundle Variant
+
+For runtimes where conditional fetch at work-time is unreliable, the build script supports an `--all-inclusive` flag that produces a heavier bundle variant. The variant inlines every conditional addendum's content alongside the always-load content, with the conditional table preserved so the agent retains per-work selectivity over already-loaded content.
+
+The trade is straightforward: the variant guarantees content availability in any runtime, at the cost of token weight on every turn (every conditional item carried whether the work needs it or not). The standard bundle is the default; the all-inclusive variant is the documented fallback when conditional fetch reliability becomes a production problem.
+
+count_tokens.py reports against the standard bundle only — the all-inclusive variant intentionally carries content beyond the 10% per-agent budget, and budget compliance applies to the universally-loaded set.
+
+### The Optionality Problem
+
+Both Claude.ai's RAG-style retrieval over uploaded project files and Claude Code's `@`-include expansion present uploaded/referenced files as *optional context* rather than *required context* at the model layer. The model has the architectural option to not engage with the file content, even when the prompt says "you must read this." Eden's testing surfaced exactly this: an agent treated mandatory-read prose instructions as discretionary tool work, sometimes skipping the load entirely.
+
+The skill's response is to make peace with this and design around it, not pretend it's solvable at the prompt level. The classification names which content governs every output; the delivery mechanism gets that content into the system prompt without asking the model to participate. Where the runtime is reliable (Claude Code with `@`, Claude.ai with the bundle as a project file plus uploaded conditional addenda for retrieval), the standard bundle works. Where the runtime is unreliable (no fetch, no retrieval, or known-flaky retrieval for specific content), the all-inclusive bundle removes the runtime variable.
+
+The library consumer (the human deploying the library to a runtime) needs to know which bundle variant their runtime requires. The library designer (the user running the skill) needs to know that the architectural decision between the variants is about runtime reliability, not about the library's content. The deployment-doc that ships in the output library's README articulates both.
+
+---
+
 ## Single Source of Truth
 
 Each piece of information exists in exactly ONE module. Other modules incorporate that content by cross-reference, not by restatement. The proposal's Ownership and Use-Shape table commits to *both* which module owns each content area *and* the specific shape used by every other module that needs it.

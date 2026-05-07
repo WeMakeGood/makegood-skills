@@ -15,12 +15,20 @@ Examples:
 
 import sys
 import argparse
+import re
 import yaml
 from pathlib import Path
 
 
 DEFAULT_CONTEXT_WINDOW = 200000  # Claude Sonnet 4.5
 BUDGET_PERCENTAGE = 0.10  # 10% of context window
+
+# Patterns for parsing the 1.6 agent file body shape.
+INCLUDE_DIRECTIVE = re.compile(r"^\s*@(\S+)\s*$")
+REQUIRED_READING_HEADER = re.compile(r"^##\s+Required Reading\s*$")
+CONDITIONAL_HEADER = re.compile(r"^##\s+Conditional Loads\s*$")
+SECTION_HEADER = re.compile(r"^##\s+\S")
+TABLE_ROW = re.compile(r"^\|\s*`?([^`|]+?)`?\s*\|\s*(.+?)\s*\|\s*$")
 
 
 def estimate_tokens(text: str) -> int:
@@ -71,11 +79,66 @@ def analyze_module(filepath: Path) -> dict:
 HARD_RULE_ALWAYS_LOAD = {'F0_agent_behavioral_standards', 'S0_natural_prose_standards'}
 
 
-def analyze_agent(filepath: Path) -> dict:
-    """Analyze an agent definition file using the always_load/conditional manifest format.
+def parse_required_reading(body: str) -> list[str]:
+    """Extract @-include paths from the `## Required Reading` section.
+    Returns the list of paths in order. Empty list if section is missing."""
+    paths: list[str] = []
+    in_section = False
+    for line in body.splitlines():
+        if REQUIRED_READING_HEADER.match(line):
+            in_section = True
+            continue
+        if in_section and SECTION_HEADER.match(line):
+            break
+        if in_section:
+            match = INCLUDE_DIRECTIVE.match(line)
+            if match:
+                paths.append(match.group(1))
+    return paths
 
-    Returns a dict with the agent's classified items, or an error if the manifest
-    is in the pre-1.5 format and needs migration.
+
+def parse_conditional_table(body: str) -> list[tuple[str, str]]:
+    """Extract (file_path, trigger) pairs from `## Conditional Loads` table.
+    Returns empty list if section or table is missing."""
+    rows: list[tuple[str, str]] = []
+    in_section = False
+    in_table = False
+    saw_separator = False
+
+    for line in body.splitlines():
+        if CONDITIONAL_HEADER.match(line):
+            in_section = True
+            continue
+        if in_section and SECTION_HEADER.match(line):
+            break
+        if not in_section:
+            continue
+
+        stripped = line.strip()
+        if stripped.startswith("|"):
+            if not in_table:
+                in_table = True
+                continue  # header row
+            if not saw_separator:
+                saw_separator = True
+                continue  # separator row
+            match = TABLE_ROW.match(stripped)
+            if match:
+                file_path = match.group(1).strip()
+                trigger = match.group(2).strip()
+                if file_path and trigger and not file_path.startswith("--"):
+                    rows.append((file_path, trigger))
+        elif in_table and not stripped:
+            break
+
+    return rows
+
+
+def analyze_agent(filepath: Path) -> dict:
+    """Analyze an agent definition file using the 1.6 @-include + table format.
+
+    Returns a dict with the agent's classified items, or an error if the file
+    is in a pre-1.6 format (tier-grouped or YAML-manifest) and needs migration.
     """
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
@@ -83,8 +146,8 @@ def analyze_agent(filepath: Path) -> dict:
 
         frontmatter, body = parse_frontmatter(content)
 
-        # Detect old-format manifests and refuse with a migration pointer.
-        if 'modules' in frontmatter and 'always_load' not in frontmatter:
+        # Detect pre-1.5 format (tier-grouped modules:/addenda: in frontmatter).
+        if 'modules' in frontmatter:
             modules_field = frontmatter.get('modules')
             if isinstance(modules_field, dict) and any(
                 k in modules_field for k in ('foundation', 'shared', 'specialized')
@@ -100,24 +163,43 @@ def analyze_agent(filepath: Path) -> dict:
                     'needs_migration': True,
                 }
 
-        # New-format parsing.
-        always_load = frontmatter.get('always_load', []) or []
-        conditional_raw = frontmatter.get('conditional', []) or []
+        # Detect 1.5 format (YAML always_load:/conditional: blocks in frontmatter).
+        if 'always_load' in frontmatter or 'conditional' in frontmatter:
+            return {
+                'path': str(filepath),
+                'name': frontmatter.get('agent_name', filepath.stem),
+                'error': (
+                    "1.5 manifest format (YAML always_load:/conditional: blocks). "
+                    "This library needs migration to the 1.6 @-include + table shape "
+                    "before token counting will be accurate. "
+                    "See references/phases/PHASE_M_MIGRATION.md, "
+                    "Migration: agent-include-and-bundles."
+                ),
+                'needs_migration': True,
+            }
 
-        # Conditional items are dicts with module:/addendum: + load_when:.
-        # We only need item names for budget purposes; conditional doesn't count.
-        conditional_items = []
-        for entry in conditional_raw:
-            if isinstance(entry, dict):
-                # Pick whichever key is present (module or addendum).
-                name = entry.get('module') or entry.get('addendum') or ''
-                if name:
-                    conditional_items.append(name)
+        # 1.6 parsing: @-includes from Required Reading, table from Conditional Loads.
+        always_load_paths = parse_required_reading(body)
+        conditional_rows = parse_conditional_table(body)
 
-        # F0/S0 hard-rule check: if either appears in conditional, refuse.
+        if not always_load_paths:
+            return {
+                'path': str(filepath),
+                'name': frontmatter.get('agent_name', filepath.stem),
+                'error': (
+                    "No `## Required Reading` section found, or section contains no "
+                    "@-include directives. The 1.6 agent file shape requires Required "
+                    "Reading to declare always-load items as @path lines. "
+                    "See references/TEMPLATES.md, Agent Definition Template."
+                ),
+                'malformed': True,
+            }
+
+        # F0/S0 hard-rule check: if either appears in the Conditional Loads table, refuse.
+        conditional_paths = [path for path, _ in conditional_rows]
         violations = []
-        for name in conditional_items:
-            base = name.split('/')[-1]  # strip any path prefix
+        for path in conditional_paths:
+            base = Path(path).stem
             if base in HARD_RULE_ALWAYS_LOAD:
                 violations.append(base)
 
@@ -126,9 +208,11 @@ def analyze_agent(filepath: Path) -> dict:
                 'path': str(filepath),
                 'name': frontmatter.get('agent_name', filepath.stem),
                 'error': (
-                    f"Hard-rule violation: {', '.join(violations)} appears in `conditional`. "
-                    "F0_agent_behavioral_standards and S0_natural_prose_standards are always_load "
-                    "whenever they appear in an agent's set. See SKILL.md, Critical Rules."
+                    f"Hard-rule violation: {', '.join(violations)} appears in the "
+                    "Conditional Loads table. F0_agent_behavioral_standards and "
+                    "S0_natural_prose_standards must be in `## Required Reading` "
+                    "(as @-include directives) whenever they appear in an agent's set. "
+                    "See SKILL.md, Critical Rules."
                 ),
                 'hard_rule_violation': True,
             }
@@ -136,9 +220,9 @@ def analyze_agent(filepath: Path) -> dict:
         return {
             'path': str(filepath),
             'name': frontmatter.get('agent_name', filepath.stem),
-            'always_load': always_load,
-            'conditional': conditional_items,
-            'stated_tokens': frontmatter.get('estimated_tokens'),
+            'always_load': always_load_paths,
+            'conditional': conditional_paths,
+            'stated_tokens': None,  # 1.6 does not record stated tokens in frontmatter
             'error': None,
         }
     except Exception as e:
@@ -260,13 +344,12 @@ def main():
                     continue
 
                 # Calculate tokens from always_load items only.
+                # Item refs in 1.6 are repo-relative paths like
+                # `modules/foundation/F0_agent_behavioral_standards.md` — match by stem.
                 agent_tokens = 0
                 missing_items = []
                 for item_ref in agent['always_load']:
-                    # Item refs may be bare names (F1_org_identity) or path-prefixed
-                    # (reference/A0_organizational_reference). Match by stem against
-                    # both modules and addenda dicts.
-                    stem = item_ref.split('/')[-1]
+                    stem = Path(item_ref).stem
                     matched = False
                     # Try modules first.
                     for mid, mdata in modules.items():
@@ -309,7 +392,7 @@ def main():
 
             if had_errors:
                 print()
-                print("WARNING: One or more agents had errors. Pre-1.5 manifests need migration; hard-rule violations need correction. See messages above.")
+                print("WARNING: One or more agents had errors. Pre-1.6 manifests (tier-grouped or YAML-block) need migration via PHASE_M_MIGRATION.md; hard-rule violations need correction; malformed Required Reading sections need fixing per the 1.6 template. See messages above.")
                 sys.exit(1)
 
     else:

@@ -85,8 +85,9 @@ Create at `<OUTPUT_PATH>/build-state.md` during Phase 1 (Setup).
 - A build-state's "Redo Session" field marked "yes" (definitive)
 
 *Migration signals (different from redo):*
-- Agent files in `<OUTPUT_PATH>/agents/` whose frontmatter uses `modules:` with `foundation:` / `shared:` / `specialized:` subkeys (old tier-grouped manifest shape — pre-1.5 format)
-- Agent files whose frontmatter has a top-level `addenda:` list separate from modules (old format)
+- Agent files in `<OUTPUT_PATH>/agents/` whose frontmatter uses `modules:` with `foundation:` / `shared:` / `specialized:` subkeys, or has a top-level `addenda:` list (pre-1.5 tier-grouped format)
+- Agent files whose frontmatter has `always_load:` and/or `conditional:` YAML blocks (1.5 manifest format — needs migration to 1.6's `@`-include + table shape)
+- Agent files missing a `## Required Reading` section with `@`-include directives (any pre-1.6 format)
 - Any other format mismatch between artifacts on disk and the current skill version's expected shapes
 
 A library with migration signals is not necessarily a redo — it may be a maintenance session on a library built with an earlier skill version. Migration is a separate flow from redo (see PHASE_M_MIGRATION.md).
@@ -94,7 +95,7 @@ A library with migration signals is not necessarily a redo — it may be a maint
 **B. Ask the user.** Frame the question around what you found:
 
 - If you found redo signals: "I noticed [signal]. Is this a redo session after a rolled-back build? [yes/no]"
-- If you found migration signals: "I noticed agent files using the pre-1.5 manifest format ([list signals]). This library was built with an earlier skill version. Should we migrate the manifest format before continuing? [migrate/proceed/redo]"
+- If you found migration signals: "I noticed agent files using a pre-1.6 format ([list signals]). This library was built with an earlier skill version. Should we migrate before continuing? Pre-1.5 libraries run two migrations in sequence (tier-grouped → YAML manifest → `@`-include + table); 1.5 libraries run one migration. [migrate/proceed/redo]"
 - If you found neither: "Is this a redo session after a rolled-back build? [yes/no]"
 
 If the user chooses **migrate**: follow the migration protocol in [references/phases/PHASE_M_MIGRATION.md](../phases/PHASE_M_MIGRATION.md) before continuing the bootstrap below. Migration is a one-time transformation that brings the library's artifacts to the current skill version. The bootstrap resumes after migration.
@@ -512,7 +513,7 @@ Written as instructions — principles, decision frameworks, reach-beyond signal
 
 Agent definitions are **system prompt preambles** — they are loaded into the agent's context at runtime. Write them as instructions TO the agent, not documentation ABOUT the agent.
 
-The manifest uses `always_load` / `conditional` classification (see ARCHITECTURE.md, "Load Discipline"). The classification is set in Phase 3 Design's Load-Discipline Classification table; Build executes the table, does not redecide it.
+The classification of always-load vs. conditional is set in Phase 3 Design's Load-Discipline Classification table; Build executes the table, does not redecide it. **The classification is rendered as `@`-include directives in `## Required Reading` (always-load) and a `## Conditional Loads` table (conditional)** — not as YAML frontmatter, and not as a prose mirror of the manifest. See ARCHITECTURE.md, "Always-Load Delivery," for why the `@`-include + table shape replaces the prior YAML-manifest approach.
 
 The file has two sections: the runtime system prompt (what the agent reads) and build metadata (what humans managing the library reference, hidden from the agent in an HTML comment).
 
@@ -520,76 +521,48 @@ The file has two sections: the runtime system prompt (what the agent reads) and 
 ---
 agent_name: [Name]
 agent_domain: [domain]
-purpose: "[What this agent does]"
-always_load:
-  - F0_agent_behavioral_standards
-  - F1_[name]
-  - F2_[name]
-  - S0_natural_prose_standards  # if agent writes anything for any audience — hard rule
-  - S1_[name]
-  - D1_[name]
-  - reference/A0_organizational_reference  # often always_load; classification decided in Design
-conditional:
-  - module: S2_[name]
-    load_when: "[Plain-language trigger naming the work that triggers loading]"
-  - addendum: [path/A_name]
-    load_when: "[Plain-language trigger]"
-estimated_tokens: [total of always_load items only]
+purpose: "[One-paragraph purpose statement — what this agent does and what reasoning anchors it]"
 last_updated: YYYY-MM-DD
 ---
 
 # [Agent Name]
 
-You are [the organization]'s [domain] agent. [2-3 sentences: what you do, what decisions you make, what you produce. Written as identity — "You handle...", "You advise...", "You create..." — not as description.]
+You are [the organization]'s [domain] practitioner. [2-3 sentences: what you do, what decisions you make, what you produce. Written as identity — "You handle...", "You advise...", "You create..." — not as description.]
 
-## Your Context
+## Required Reading
 
-The items in `always_load` are in your system prompt every time. The items in `conditional` are loaded when their `load_when:` trigger applies to the work in front of you.
+@modules/foundation/F0_agent_behavioral_standards.md
+@modules/foundation/F1_[name].md
+@modules/foundation/F2_[name].md
+@modules/shared/S0_natural_prose_standards.md
+@modules/shared/S1_[name].md
+@modules/specialized/D1_[name].md
+@addenda/reference/A0_organizational_reference.md
 
-### Always Loaded
+## Conditional Loads
 
-These items govern every output you produce. They are in your context every time.
+Load the file when its trigger applies to the work at hand.
 
-- `modules/foundation/F0_agent_behavioral_standards.md` — behavioral process gates (all agents)
-- `modules/foundation/F1_[name].md` — [what this gives you]
-- `modules/shared/S0_natural_prose_standards.md` — natural prose standards for everything you write
-- `modules/shared/S1_[name].md` — [what this gives you]
-- `modules/specialized/D1_[name].md` — [what this gives you]
-- `addenda/reference/A0_organizational_reference.md` — [what this gives you, e.g., legal entity name, EIN, addresses, current senior leaders]
-
-### Conditional (load when the trigger applies)
-
-These items apply only in specific task or audience contexts. Read each `load_when:` as a runtime instruction. When in doubt, load the item — the cost of loading an unneeded item is small compared to the cost of skipping a needed one.
-
-| Item | Load When |
+| File | Load when |
 |------|-----------|
-| `modules/shared/S2_[name].md` | [Plain-language trigger] |
+| `modules/shared/S2_[name].md` | [Plain-language trigger naming the work that triggers loading] |
 | `addenda/[path/A_name].md` | [Plain-language trigger] |
 
-## When to Reach Beyond Your Context
+## Ask the [Role]
 
-`always_load` and `conditional` items are everything in the library that's available to you. Beyond the library, reach for:
+Escalate when you encounter:
 
-**Invoke a skill** when you need a capability beyond your context:
-- [e.g., "Use the drafting-articles skill for long-form content production"]
-- [e.g., "Use the writing-case-studies skill when asked to produce a case study"]
-
-**Ask the user** when you encounter:
-- Situations where organizational values are in tension and the right tradeoff isn't clear from your modules
-- Requests that require judgment about organizational direction or strategy
-- Information gaps your modules flag but don't resolve
+- [Situation where the right move is to ask, not to answer — drawn from Phase 2's agent-needs escalation triggers]
+- [Information gap the library flags but doesn't resolve]
+- [Judgment call requiring organizational direction beyond what modules carry]
 
 ## Domain Guidelines
-
-[Behavioral extensions specific to this agent's domain. Only include guidance beyond what the standard guardrail modules provide.]
 
 **Do:**
 - [Domain-specific behavioral instruction]
 
 **Don't:**
 - [Domain-specific anti-pattern]
-
-[Optional: escalation rules, verification requirements, domain constraints]
 
 <!-- BUILD METADATA (not part of the agent's runtime context)
 Token Budget:
@@ -602,15 +575,24 @@ Token Budget:
 Item Rationale:
 | Item | Classification | Why This Classification |
 |------|----------------|-------------------------|
-| F0_agent_behavioral_standards | always_load | Hard rule (see SKILL.md) |
-| S0_natural_prose_standards | always_load | Hard rule (see SKILL.md) |
-| [ID] | always_load | [Why this governs every output for this agent] |
-| [ID] | conditional | [Why this applies only in specific contexts] |
+| F0_agent_behavioral_standards | always_load (Required Reading) | Hard rule (see SKILL.md) |
+| S0_natural_prose_standards | always_load (Required Reading) | Hard rule (see SKILL.md) |
+| [ID] | always_load (Required Reading) | [Why this governs every output for this agent] |
+| [ID] | conditional (table) | [Why this applies only in specific contexts] |
 
 Build Notes:
 - [Any decisions made during the build about this agent's classification]
 -->
 ```
+
+**Notes on the shape:**
+
+- **Frontmatter is identity-only.** No `always_load:` or `conditional:` YAML blocks — those were declarative manifests that runtimes don't process as instruction. The classification reasoning lives in Phase 3's table (recorded in the proposal); the runtime artifact lives in the body.
+- **`## Required Reading` contains only `@`-directives, no surrounding prose.** Each line is a content-delivery instruction the runtime expands at load time (Claude Code) or the build script resolves offline (Claude.ai project upload, generic API integrations). The agent never sees the directives; it sees the inlined content. Adding prose like "read these files in order" turns content delivery into discretionary tool work — that's the failure the `@`-include shape is designed to remove.
+- **`## Conditional Loads` is a single table with one row per file.** Wildcards (`A_funder_*`) get expanded into individual rows, each with its own plain-language `load_when:` trigger. The triggers must meet the Trigger Discipline — one axis, plain "when X" phrasing, right-side specificity (see ARCHITECTURE.md, "Trigger Discipline").
+- **The escalation block uses an organization-specific role name.** Phase 3 Design commits the role-name choice for the library (`Engagement Principal`, `Engagement Lead`, `Project Sponsor`, `User`, etc.). The build agent uses the same name across all agent files for the library.
+- **No "Your Context" descriptive section.** The previous template described what each module gave the agent; module purpose comes through each module's own `## Purpose` section at expansion time. The descriptive section duplicated content that surfaces when the module loads.
+- **F0 and S0 are hard-rule Required Reading.** F0_agent_behavioral_standards has an `@`-directive in Required Reading whenever it appears in the agent's set; S0_natural_prose_standards has an `@`-directive in Required Reading whenever it appears (i.e., for any agent that writes anything for any audience). No exceptions.
 
 ---
 

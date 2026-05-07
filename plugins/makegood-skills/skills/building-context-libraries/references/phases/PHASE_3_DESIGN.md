@@ -156,6 +156,23 @@ Produce a sibling table to the Ownership and Use-Shape table — the **Load-Disc
 
 Every (item, agent) pair where the item is in the agent's set must appear with a classification. Conditional rows must have a `load_when:` sentence.
 
+**The classification renders as `@`-includes (always-load) and a triggers table (conditional) in Phase 4's agent files.** Classification is the reasoning artifact recorded in the proposal; the runtime artifact is the agent file's `## Required Reading` section (one `@`-directive per always-load item) and `## Conditional Loads` table (one row per conditional item). See ARCHITECTURE.md, "Always-Load Delivery" — the YAML-manifest shape used in earlier skill versions has been replaced.
+
+### Escalation Role Name (one decision per library)
+
+Phase 2's agent-needs synthesis surfaces escalation triggers per agent — situations where the right move is to defer rather than answer. Each agent file's `## Ask the [Role]` block renders those triggers. The role name is library-wide: every agent's escalation block uses the same role.
+
+Choose the role name in Phase 3 Design from the engagement model the sources describe. Common choices:
+
+- **Engagement Principal** — for engagements where a senior practitioner holds decision authority and the agents support their work
+- **Engagement Lead** — for client-engagement contexts where a project lead carries the stakeholder relationship
+- **Project Sponsor** — for internal-team contexts where work happens within a defined project structure
+- **User** — for personal-tool contexts where the human invoking the agent holds all decision authority
+
+The choice depends on what the sources describe about who carries the decision authority that escalations should reach. If sources don't describe an explicit engagement model, ask the user.
+
+Record the chosen role name in `build-state.md` under "Library decisions" — Phase 4 reads this when rendering each agent file's escalation block.
+
 ### Trigger Discipline
 
 `load_when:` triggers are not free-form. They have a discipline (see ARCHITECTURE.md, "Trigger Discipline"):
@@ -235,6 +252,9 @@ For each agent:
 ### Conflicts Resolved
 - What conflicted, how it was resolved, user's decision
 
+### Library Decisions
+- **Escalation role name** (from Step 2's Escalation Role Name decision) — the role used in every agent file's `## Ask the [Role]` block (e.g., "Engagement Principal," "Engagement Lead," "Project Sponsor," "User")
+
 ### Build Plan
 - Recommended build order for modules
 - Which modules share sources (highest duplication risk — build these with extra cross-reference checking)
@@ -282,6 +302,7 @@ Write to the build state:
 - "Load-Discipline Classification table complete: [yes/no — every (item, agent) pair has a classification; every conditional row has a load_when trigger]"
 - "F0 hard rule satisfied: [yes — F0 is always_load for every agent in whose set it appears / FAIL — list violations]"
 - "S0 hard rule satisfied: [yes — S0 is always_load for every agent in whose set it appears / FAIL — list violations]"
+- "Escalation role name chosen: [name, e.g. 'Engagement Principal']"
 - "Guardrail modules copied: [yes/no]"
 - "BLOCKING gaps resolved: [yes/list remaining]"
 
