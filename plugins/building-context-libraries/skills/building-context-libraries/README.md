@@ -2,11 +2,12 @@
 
 Transforms organizational source documents into modular context libraries that change how AI agents behave. Modules are metaprompts — system prompt components that shape agent decision-making — not fact sheets.
 
-The skill is built around three architectural commitments that prevent recurring build failures:
+The skill is built around four architectural commitments that prevent recurring build failures:
 
 - **The runtime agent's perspective is the writing frame.** Modules are read by an agent that has only its loaded modules and a user message — no source files, no proposal, no awareness of the build. Sentences that only make sense inside the build are contamination.
 - **Planning precedes prose.** Each module gets a Substantive Source Surface and a Section Plan that commit to shape, source patterns, and use-shape *before* writing. When prose drifts from the plan, the failure-recovery protocol fixes the upstream plan rather than regenerating the prose.
 - **Single source of truth is a use-shape commitment.** The proposal's Ownership and Use-Shape table commits every using module to one of four shapes (cross-reference, subset, invocation by name, reach-beyond). Restatement is not a shape.
+- **Load discipline is a classification.** Each loadable item in an agent's manifest is `always_load` (governs every output, agent's runtime judgment about loading is unreliable) or `conditional` (applies only in specific contexts, with a `load_when:` trigger written in plain language). F0 (behavioral standards) and S0 (natural prose standards) are hard-rule `always_load` whenever they appear. The classification is decided in Design, not at agent-write time.
 
 ## When to Use
 
@@ -71,3 +72,7 @@ The two-pass structure for Comprehend exists because single-pass synthesis on a 
 ## Redoing a Build After a Rollback
 
 If a build attempt produced a library you needed to roll back, tell the skill at the start of the next session that this is a redo. The redo-session protocol moves retrospective documents and prior-attempt module files to an archive (so they cannot anchor the new attempt) and gathers from you a list of *named failure patterns* to avoid. The build agent regenerates from the proposal and sources, not from retrospective examples.
+
+## Migrating a Library to a Newer Skill Version
+
+If you maintain a library built with an earlier skill version and the manifest format has changed, the bootstrap will detect the format mismatch and offer to run the migration phase. Migrations are versioned and applied in order — each migration brings artifacts from one specific format version to the next. The 1.4 → 1.5 migration converts agent manifests from tier-grouped to `always_load`/`conditional` classification; future migrations will be added as further format changes ship.

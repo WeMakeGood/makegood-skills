@@ -452,34 +452,47 @@ For each addendum:
 
 After modules and addenda are complete, write the agent definition files.
 
-**Agent definitions are system prompt preambles.** They are loaded into the agent's context at runtime — they tell the agent who it is, what it does, and what modules to load. Write them as instructions TO the agent, not documentation ABOUT the agent.
+**Agent definitions are system prompt preambles.** They are loaded into the agent's context at runtime — they tell the agent who it is, what it does, and what items are always in its context vs. conditionally loaded. Write them as instructions TO the agent, not documentation ABOUT the agent.
 
 For each agent (from the proposal):
 
 1. **Re-read the proposal's agent definition** for this agent
-2. **Review all modules this agent will load** — skim each one to confirm the module set serves this agent's role
-3. **Write the agent definition** using the template from [references/TEMPLATES.md](../TEMPLATES.md)
+2. **Re-read the proposal's Load-Discipline Classification table** for this agent's rows. The classification commits which items are `always_load` vs. `conditional` and the `load_when:` triggers. Build executes the table; do not redecide at agent-write time.
+3. **Review all `always_load` items** — skim each one to confirm the always-loaded set serves this agent's role
+4. **Write the agent definition** using the template from [references/TEMPLATES.md](../TEMPLATES.md)
 
 **The runtime section (what the agent reads) must include:**
+
 - Identity and role — written in second person ("You are...", "You handle...")
-- Module loading instructions — which modules to load, in what order, with a brief note on what each provides
-- Addenda triggers — when to consult reference data
+- The `always_load` set — items in the agent's system prompt every time, with brief notes on what each provides
+- The `conditional` set — items with `load_when:` triggers in plain language; the agent reads these as runtime instructions for when to load each
 - Domain-specific guidelines — behavioral extensions beyond standard guardrails
 
+**The manifest frontmatter must use the `always_load` / `conditional` shape from the template, not earlier tier-grouped shapes.** The body of the agent definition mirrors the manifest's classification (group items by load discipline, not by tier). Tier folders (`modules/foundation/`, `modules/shared/`, `modules/specialized/`) are structural file locations for humans and tooling — they do not describe load discipline. The runtime agent reads the manifest, not the folder structure.
+
 **The build metadata section (HTML comment, not visible to the agent) tracks:**
-- Token budget breakdown and utilization assessment
-- Module rationale table (why each module was assigned)
+- Token budget breakdown — total of `always_load` items only (conditional items don't count against the budget)
+- Module rationale table (why each item is in this agent's set, and the classification reasoning)
 - Build notes (decisions made about this agent's configuration)
 
 **Budget assessment for each agent:**
-- Calculate total tokens from assigned modules
+- Sum tokens from `always_load` items (modules and addenda alike — both count when always-loaded)
 - Compare to 10% of target model context window
-- If under 50%: flag as potentially underserved — review whether modules need more depth or additional modules are needed
-- If over 100%: identify what to trim — remove modules not essential for this role, not compress existing modules
+- If under 50%: flag as potentially underserved — review whether the agent needs richer modules or additional always-loaded context
+- If over 100%: identify what to trim — remove items not essential for this role, not compress existing items
 
-**Do not write custom guardrail sections in agent definitions.** Load the standard guardrail modules and add only domain-specific extensions if needed.
+**Do not write custom guardrail sections in agent definitions.** Load the standard guardrail modules (F0 always; S0 always for any agent that writes anything) and add only domain-specific extensions if needed.
 
-**The test:** Read the agent definition back. Does it sound like a system prompt that configures an agent, or like a project management document that describes one? If the latter, rewrite it as instructions the agent will follow.
+### Hard-Rule Self-Check
+
+After writing each agent's manifest, verify:
+
+- **F0_agent_behavioral_standards is in `always_load`** if it appears in this agent's set. If it's in `conditional`, the manifest is wrong — fix before continuing. (Hard rule. Not a judgment call.)
+- **S0_natural_prose_standards is in `always_load`** if it appears in this agent's set. If it's in `conditional`, the manifest is wrong — fix before continuing. (Hard rule. Not a judgment call.)
+- **Every `conditional` item has a `load_when:` trigger** that meets the Trigger Discipline (see ARCHITECTURE.md): one axis, plain "when X" phrasing, right-side specificity. If a trigger is missing or fails the discipline, fix before continuing.
+- **The classification matches the proposal's Load-Discipline Classification table** for this agent. If you disagreed with the proposal's classification while writing, surface that to the user — do not silently change it.
+
+**The test:** Read the agent definition back. Does it sound like a system prompt that configures an agent, or like a project management document that describes one? If the latter, rewrite it as instructions the agent will follow. Does the manifest's `always_load` set match what the agent's runtime context will be? If a runtime task could plausibly be one where the agent skips an `always_load` item by judgment, that item should not be `always_load` — or it should be `always_load` with the discipline that the agent does not skip it. The classification removes the judgment call; the manifest must reflect that.
 </phase_build_agents>
 
 ---
@@ -528,9 +541,13 @@ scripts/verify_module.py <OUTPUT_PATH>/modules/<module_file> <SOURCE_PATH>
 
 **For each agent definition:**
 - [ ] Role is behavioral (actions), not taxonomic (knowledge areas)
-- [ ] Module set serves the agent's actual decision-making needs
-- [ ] Token budget assessed — neither starved nor bloated
-- [ ] Standard guardrails loaded (F0_agent_behavioral_standards for all; S0_natural_prose_standards for external-facing)
+- [ ] Item set serves the agent's actual decision-making needs
+- [ ] Manifest uses `always_load` / `conditional` shape (not tier-grouped)
+- [ ] F0 in `always_load` if present (hard rule)
+- [ ] S0 in `always_load` if present (hard rule)
+- [ ] Every `conditional` item has a `load_when:` trigger meeting Trigger Discipline
+- [ ] Token budget assessed (always_load items only) — neither starved nor bloated
+- [ ] Standard guardrails loaded (F0 for all; S0 for any agent that writes anything)
 
 **Library-wide:**
 - [ ] Single source of truth — no fact in more than one module

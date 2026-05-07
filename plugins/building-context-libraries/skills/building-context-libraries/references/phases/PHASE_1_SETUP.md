@@ -15,17 +15,24 @@ Inventory all source documents, classify them, identify what domain agents will 
 
 ---
 
-## Step 0: Redo Detection
+## Step 0: Redo and Migration Detection
 
 **Before any other work:**
 
-1. **Scan `<OUTPUT_PATH>/` for redo signals.** If `<OUTPUT_PATH>/` exists, list its contents and look for: `_retrospective_archive/`, audit/retrospective/post-mortem documents, partial module/addendum/agent files, or a build-state with "Redo Session: yes."
+1. **Scan `<OUTPUT_PATH>/` for redo and migration signals.** If `<OUTPUT_PATH>/` exists, list its contents and look for:
+   - **Redo signals:** `_retrospective_archive/`, audit/retrospective/post-mortem documents, partial module/addendum/agent files, or a build-state with "Redo Session: yes."
+   - **Migration signals:** agent files using the pre-1.5 manifest format (tier-grouped `modules:` with `foundation:`/`shared:`/`specialized:`, top-level `addenda:` list).
 
-2. **Ask the user:** "Is this a redo session after a previous build was rolled back?" If your scan found redo signals, mention them in the question.
+2. **Ask the user.** Frame the question around what you found:
+   - Redo signals: "Is this a redo session after a previous build was rolled back?"
+   - Migration signals: "I noticed agent files using the pre-1.5 manifest format. This library was built with an earlier skill version. Should we migrate before continuing?"
+   - Both: surface both and ask which path applies (migration is a separate flow from redo; if both are needed, migrate first).
 
-If **no signals found and user says no**, proceed to Step 1.
+If **no signals found and user says no/proceed**, proceed to Step 1.
 
-If **yes** (user confirms or signals are definitive), follow the redo-session protocol in PHASE_4_BUILD.md *before* starting the source index. The redo protocol moves retrospective documents and prior-attempt artifacts out of the working directory and gathers a list of named failure patterns from the user. Setup proceeds normally after that.
+If **redo** (user confirms or signals are definitive), follow the redo-session protocol in PHASE_4_BUILD.md *before* starting the source index. The redo protocol moves retrospective documents and prior-attempt artifacts out of the working directory and gathers a list of named failure patterns from the user. Setup proceeds normally after that.
+
+If **migrate**, follow the migration protocol in PHASE_M_MIGRATION.md *before* starting the source index. The migration phase brings library artifacts to the current skill version. Setup resumes after migration.
 
 If signals were found but the user says no, pause and resolve the discrepancy before continuing — do not proceed past Step 0 until the working set is clear.
 

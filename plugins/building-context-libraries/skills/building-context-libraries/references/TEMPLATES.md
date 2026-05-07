@@ -74,8 +74,9 @@ Create at `<OUTPUT_PATH>/build-state.md` during Phase 1 (Setup).
 
 **Step 0 — Redo Triage.** Before reading any other file in this directory, do these two things in order:
 
-**A. Scan the output directory.** List the files and subdirectories in `<OUTPUT_PATH>/`. Look for redo signals:
+**A. Scan the output directory.** List the files and subdirectories in `<OUTPUT_PATH>/`. Look for redo signals AND migration signals:
 
+*Redo signals:*
 - A `_retrospective_archive/` directory (definitive — a prior redo protocol ran)
 - Files with audit/retrospective/post-mortem/failure-analysis names at the top level (likely — a retrospective was produced but not yet archived)
 - A `modules/`, `addenda/`, or `agents/` directory containing files that aren't accounted for in build-state's checklist (suspicious — partial work from a prior attempt may exist)
@@ -83,9 +84,24 @@ Create at `<OUTPUT_PATH>/build-state.md` during Phase 1 (Setup).
 - A `_scratch/` directory containing per-module plan files that aren't accounted for in build-state's Module Build Checklist (suspicious — partial Phase 4 work from a prior attempt may exist)
 - A build-state's "Redo Session" field marked "yes" (definitive)
 
-**B. Ask the user.** "Is this a redo session after a rolled-back build? [yes/no]" If your scan in (A) found any redo signal, mention what you found in the question — e.g., "I noticed `_retrospective_archive/` exists. Is this a redo session?"
+*Migration signals (different from redo):*
+- Agent files in `<OUTPUT_PATH>/agents/` whose frontmatter uses `modules:` with `foundation:` / `shared:` / `specialized:` subkeys (old tier-grouped manifest shape — pre-1.5 format)
+- Agent files whose frontmatter has a top-level `addenda:` list separate from modules (old format)
+- Any other format mismatch between artifacts on disk and the current skill version's expected shapes
 
-If the user says **yes** OR your scan found a definitive redo signal, follow the redo-session protocol in PHASE_4_BUILD.md before continuing the bootstrap below.
+A library with migration signals is not necessarily a redo — it may be a maintenance session on a library built with an earlier skill version. Migration is a separate flow from redo (see PHASE_M_MIGRATION.md).
+
+**B. Ask the user.** Frame the question around what you found:
+
+- If you found redo signals: "I noticed [signal]. Is this a redo session after a rolled-back build? [yes/no]"
+- If you found migration signals: "I noticed agent files using the pre-1.5 manifest format ([list signals]). This library was built with an earlier skill version. Should we migrate the manifest format before continuing? [migrate/proceed/redo]"
+- If you found neither: "Is this a redo session after a rolled-back build? [yes/no]"
+
+If the user chooses **migrate**: follow the migration protocol in [references/phases/PHASE_M_MIGRATION.md](../phases/PHASE_M_MIGRATION.md) before continuing the bootstrap below. Migration is a one-time transformation that brings the library's artifacts to the current skill version. The bootstrap resumes after migration.
+
+If the user chooses **redo** OR your scan found a definitive redo signal, follow the redo-session protocol in PHASE_4_BUILD.md before continuing the bootstrap below.
+
+If the user chooses **proceed** with old-format artifacts present, pause and surface the consequence: subsequent phase work and validation scripts may fail or produce wrong results because the artifacts don't match the current skill version. Recommend migration. Do not proceed past triage if the user proceeds anyway and old-format artifacts will be touched by current-version work — that path produces silent inconsistency.
 
 If the user says **no** but your scan found a suspicious-but-not-definitive signal (orphan module files, unfamiliar audit-shaped documents), pause and resolve the discrepancy before continuing. Do not proceed past the triage step until the working set is clear.
 
@@ -496,6 +512,8 @@ Written as instructions — principles, decision frameworks, reach-beyond signal
 
 Agent definitions are **system prompt preambles** — they are loaded into the agent's context at runtime. Write them as instructions TO the agent, not documentation ABOUT the agent.
 
+The manifest uses `always_load` / `conditional` classification (see ARCHITECTURE.md, "Load Discipline"). The classification is set in Phase 3 Design's Load-Discipline Classification table; Build executes the table, does not redecide it.
+
 The file has two sections: the runtime system prompt (what the agent reads) and build metadata (what humans managing the library reference, hidden from the agent in an HTML comment).
 
 ```markdown
@@ -503,18 +521,20 @@ The file has two sections: the runtime system prompt (what the agent reads) and 
 agent_name: [Name]
 agent_domain: [domain]
 purpose: "[What this agent does]"
-modules:
-  foundation:
-    - F1_[name]
-    - F0_agent_behavioral_standards
-  shared:
-    - S1_[name]
-    - S0_natural_prose_standards  # if external-facing
-  specialized:
-    - D1_[name]
-addenda:
-  - addendum_name: "[what data]"
-estimated_tokens: [total]
+always_load:
+  - F0_agent_behavioral_standards
+  - F1_[name]
+  - F2_[name]
+  - S0_natural_prose_standards  # if agent writes anything for any audience — hard rule
+  - S1_[name]
+  - D1_[name]
+  - reference/A0_organizational_reference  # often always_load; classification decided in Design
+conditional:
+  - module: S2_[name]
+    load_when: "[Plain-language trigger naming the work that triggers loading]"
+  - addendum: [path/A_name]
+    load_when: "[Plain-language trigger]"
+estimated_tokens: [total of always_load items only]
 last_updated: YYYY-MM-DD
 ---
 
@@ -524,28 +544,31 @@ You are [the organization]'s [domain] agent. [2-3 sentences: what you do, what d
 
 ## Your Context
 
-Load these modules in order. They provide the organizational knowledge you need to do your work:
+The items in `always_load` are in your system prompt every time. The items in `conditional` are loaded when their `load_when:` trigger applies to the work in front of you.
 
-**Foundation (always loaded):**
+### Always Loaded
+
+These items govern every output you produce. They are in your context every time.
+
 - `modules/foundation/F0_agent_behavioral_standards.md` — behavioral process gates (all agents)
 - `modules/foundation/F1_[name].md` — [what this gives you]
-
-**Shared:**
+- `modules/shared/S0_natural_prose_standards.md` — natural prose standards for everything you write
 - `modules/shared/S1_[name].md` — [what this gives you]
-- `modules/shared/S0_natural_prose_standards.md` — prose standards (if external-facing)
-
-**Specialized:**
 - `modules/specialized/D1_[name].md` — [what this gives you]
+- `addenda/reference/A0_organizational_reference.md` — [what this gives you, e.g., legal entity name, EIN, addresses, current senior leaders]
 
-## When to Reach Beyond Your Modules
+### Conditional (load when the trigger applies)
 
-Your modules give you the organization's reasoning patterns. They don't contain everything — by design. Know when to reach for more:
+These items apply only in specific task or audience contexts. Read each `load_when:` as a runtime instruction. When in doubt, load the item — the cost of loading an unneeded item is small compared to the cost of skipping a needed one.
 
-**Load an addendum** when you need specific data your modules reference but don't contain:
+| Item | Load When |
+|------|-----------|
+| `modules/shared/S2_[name].md` | [Plain-language trigger] |
+| `addenda/[path/A_name].md` | [Plain-language trigger] |
 
-| Addendum | Load When |
-|----------|----------|
-| `addenda/[name].md` | [Specific trigger — e.g., "When building proposals that include pricing"] |
+## When to Reach Beyond Your Context
+
+`always_load` and `conditional` items are everything in the library that's available to you. Beyond the library, reach for:
 
 **Invoke a skill** when you need a capability beyond your context:
 - [e.g., "Use the drafting-articles skill for long-form content production"]
@@ -570,20 +593,22 @@ Your modules give you the organization's reasoning patterns. They don't contain 
 
 <!-- BUILD METADATA (not part of the agent's runtime context)
 Token Budget:
-- Foundation: [X] tokens
-- Shared: [X] tokens
-- Specialized: [X] tokens
-- Total: [X] tokens ([X]% of per-agent limit)
-- Addenda: not counted (loaded on demand)
+- Always-loaded items total: [X] tokens
+- Per-agent budget: [Y] tokens (10% of context window)
+- Utilization: [X]%
+- Conditional items: not counted (loaded only when triggered)
 - Budget assessment: [well-served / potentially underserved / over-budget]
 
-Module Rationale:
-| Module | Why This Agent Needs It |
-|--------|----------------------|
-| [ID] | [What decisions this enables] |
+Item Rationale:
+| Item | Classification | Why This Classification |
+|------|----------------|-------------------------|
+| F0_agent_behavioral_standards | always_load | Hard rule (see SKILL.md) |
+| S0_natural_prose_standards | always_load | Hard rule (see SKILL.md) |
+| [ID] | always_load | [Why this governs every output for this agent] |
+| [ID] | conditional | [Why this applies only in specific contexts] |
 
 Build Notes:
-- [Any decisions made during the build about this agent's module set]
+- [Any decisions made during the build about this agent's classification]
 -->
 ```
 
@@ -687,11 +712,32 @@ The bracketed placeholders are intentional — examples that name concrete conte
 
 Every row where Used By is non-empty must have a use-shape. A row without a use-shape is incomplete.
 
+## Load-Discipline Classification
+
+For each (item, agent) pair where the item is in the agent's set, classify as `always_load` (governs every output that agent produces) or `conditional` (applies only in specific task/audience contexts). See ARCHITECTURE.md, "Load Discipline" for the classification rule.
+
+**Hard rules:**
+
+- `F0_agent_behavioral_standards` is `always_load` whenever it appears in any agent's set.
+- `S0_natural_prose_standards` is `always_load` whenever it appears in any agent's set.
+
+| Item | Container | Agent | Classification | `load_when:` (if conditional) |
+|------|-----------|-------|----------------|-------------------------------|
+| F0_agent_behavioral_standards | module | [Agent A] | always_load | — |
+| S0_natural_prose_standards | module | [Agent A] | always_load | — |
+| F1_[name] | module | [Agent A] | always_load | — |
+| S2_[name] | module | [Agent A] | always_load | — |
+| S2_[name] | module | [Agent B] | conditional | "[Plain-language trigger]" |
+| reference/A0_organizational_reference | addendum | [Agent A] | always_load | — |
+| [path/A_name] | addendum | [Agent A] | conditional | "[Plain-language trigger]" |
+
+Every (item, agent) pair where the item is in the agent's set must appear with a classification. Conditional rows must have a `load_when:` trigger meeting the Trigger Discipline (one axis, plain "when X" phrasing, right-side specificity — see ARCHITECTURE.md).
+
 ## Agent Definitions
 
-| Agent | Role | Foundation | Shared | Specialized | Total | Budget % |
-|-------|------|-----------|--------|-------------|-------|----------|
-| [Name] | [What it does] | F1,F_abs | S1,S_nps | D1 | [X]K | [X]% |
+| Agent | Role | Always-Loaded Items | Conditional Items (count) | Total tokens (always_load only) | Budget % |
+|-------|------|---------------------|---------------------------|-------------------------------|----------|
+| [Name] | [What it does] | F0, F1, S0, S1, D1, ref/A0 | [n] | [X]K | [X]% |
 
 ## Gaps and Limitations
 

@@ -121,10 +121,57 @@ For each agent role (refined in Comprehend):
 
 - **Agent name and domain**
 - **Role** — focused on actions and decisions, not knowledge areas. "Handles [what] and recommends [what]" not "Knows about [topic]"
-- **Modules to load** — Foundation + relevant Shared + Specialized
-- **Addenda available** — reference data the agent can consult on demand
-- **Estimated total tokens** — sum of all loaded modules (excluding addenda)
-- **Budget assessment** — is this agent well-served by its module set? An agent at 60% of budget may need richer modules or additional context
+- **Modules and addenda available to this agent** — the full set; the classification step (next) decides which load always vs. conditionally
+- **Estimated total tokens** — sum of all `always_load` items (Step 3 produces the classification)
+- **Budget assessment** — is this agent well-served by its always-loaded set? An agent at 60% of budget may need richer modules or additional always-loaded context
+
+### Load-Discipline Classification (per agent)
+
+For each agent, classify every available item (module or addendum) as `always_load` or `conditional`. See ARCHITECTURE.md, "Load Discipline" for the full reasoning.
+
+**The classification rule:**
+
+> An item is `always_load` when its content governs the quality, accuracy, or compliance of *this specific agent's* output universally — meaning the agent's runtime judgment about whether to load it would be unreliable. An item is `conditional` when its content applies only in specific task or audience contexts, with a load-time trigger expressible as a plain-language sentence.
+
+**Hard rules:**
+
+- `F0_agent_behavioral_standards` is `always_load` whenever it appears in any agent's set. Not a judgment call.
+- `S0_natural_prose_standards` is `always_load` whenever it appears in any agent's set. Not a judgment call.
+
+**Per-agent reasoning:** the same module may be `always_load` for one agent and `conditional` for another. Methodology content is `always_load` for an agent that writes proposals (every proposal is methodology-anchored); the same content is `conditional` for an agent doing prospect research (only some prospects need methodology depth). Ask, per agent: *does this govern every output this specific agent produces?*
+
+**Container is independent of load discipline.** A reference addendum can be `always_load` (e.g., A0 organizational reference for any external-facing agent — the agent's judgment about whether output names the organization is unreliable). A shared module can be `conditional` (e.g., a region-specific shared module loaded only when the work crosses into that region).
+
+Produce a sibling table to the Ownership and Use-Shape table — the **Load-Discipline Classification** table:
+
+| Item | Container | Agent | Classification | `load_when:` (if conditional) |
+|------|-----------|-------|----------------|-------------------------------|
+| F0_agent_behavioral_standards | module | [Agent A] | always_load | — |
+| F0_agent_behavioral_standards | module | [Agent B] | always_load | — |
+| S0_natural_prose_standards | module | [Agent A] | always_load | — |
+| S2_methodology | module | [Agent A] | always_load | — |
+| S2_methodology | module | [Agent B] | conditional | "Work touches project methodology depth or community-ownership claims" |
+| A0_organizational_reference | addendum | [Agent A] | always_load | — |
+| funders/A_funder_climate | addendum | [Agent A] | conditional | "Work is anchored in climate-focused foundations as the funder type" |
+
+Every (item, agent) pair where the item is in the agent's set must appear with a classification. Conditional rows must have a `load_when:` sentence.
+
+### Trigger Discipline
+
+`load_when:` triggers are not free-form. They have a discipline (see ARCHITECTURE.md, "Trigger Discipline"):
+
+- **One axis per trigger** (audience type | task type | content type | domain). If a trigger combines axes, split it.
+- **Plain "when X" or "if X" phrasing.** Names the situation, not the agent's judgment about the situation.
+- **Right-side specificity** concrete enough that two reasonable readers would agree on whether it applies.
+
+Apply the discipline before adding any trigger to the table. A trigger that fails the discipline test is a sign that either the item is mis-classified (should be `always_load`) or the trigger needs to be split into multiple items.
+
+### Generalization Check (extends the existing check)
+
+Before approving the proposal, in addition to the architecture-generalization questions already in the STOP, work through:
+
+- **Are the load-discipline classifications appropriate for *this* organization?** What features of the organization's work shape which items are universal vs. situational? If you're applying the same classifications you would for any organization, the classifications are generic and may be wrong.
+- **Are the `load_when:` triggers diagnostic?** Pick three triggers at random. For each, can you describe two pieces of work — one where the trigger fires, one where it doesn't — drawn from this organization's actual situations? If the trigger doesn't generate clear cases, it's not diagnostic enough.
 
 **Budget check:** Each agent's module total should use the budget well — neither cramped over 100% nor starved under 50%. If agents are consistently under-budget, the modules are likely too thin or there's missing content. If over-budget, look for duplication or modules the agent doesn't actually need.
 
@@ -170,12 +217,14 @@ For each addendum:
 ### Ownership and Use-Shape Table
 (From Step 1 — every shared content area with owner, users, and committed use-shape per using module)
 
+### Load-Discipline Classification Table
+(From Step 2 — every (item, agent) pair with `always_load` or `conditional` classification, and `load_when:` triggers for conditional items)
+
 ### Agent Definitions
 For each agent:
 - Name and role
-- Modules loaded (with token estimates)
-- Addenda available
-- Total estimated tokens
+- All items in the agent's set (modules + addenda), with their classification from the Load-Discipline table
+- Total estimated tokens (sum of `always_load` items only — conditional items don't count against the budget)
 - Budget utilization (% of 10% context window)
 
 ### Gaps and Limitations
@@ -210,6 +259,7 @@ Steps 4 and 5 are planning artifacts the agent commits to BEFORE writing prose. 
 
 - Modules are read by a runtime agent that has no awareness of sources, the build, or the library.
 - Use the Ownership and Use-Shape table above. The table commits using modules to specific shapes; do not restate at write-time.
+- Use the Load-Discipline Classification table above when writing agent definitions. The table commits each (item, agent) pair to `always_load` or `conditional`; do not redecide at agent-write time. F0 and S0 are hard-rule `always_load` whenever they appear.
 - Quotes and named individuals from sources do not appear in modules. Extract reasoning before generating, in the Section Plan.
 - [PROPOSED] marks inferences. [HIGH-STAKES] marks exact-copy content. Both removed before delivery.
 - Token budget is room for useful content, not a ceiling. Under-budget modules need more depth.
@@ -229,8 +279,19 @@ Write to the build state:
 - "Under-budget agents flagged: [list or 'none']"
 - "Alternative structure considered: [what, why rejected]"
 - "Ownership and use-shape table complete: [yes/no — every using module has a use-shape, none rely on restatement]"
+- "Load-Discipline Classification table complete: [yes/no — every (item, agent) pair has a classification; every conditional row has a load_when trigger]"
+- "F0 hard rule satisfied: [yes — F0 is always_load for every agent in whose set it appears / FAIL — list violations]"
+- "S0 hard rule satisfied: [yes — S0 is always_load for every agent in whose set it appears / FAIL — list violations]"
 - "Guardrail modules copied: [yes/no]"
 - "BLOCKING gaps resolved: [yes/list remaining]"
+
+**Hard rules — failing any of these fails the GATE:**
+
+- F0_agent_behavioral_standards must be `always_load` in every agent that has it in their set.
+- S0_natural_prose_standards must be `always_load` in every agent that has it in their set.
+- Every conditional item must have a `load_when:` trigger meeting the Trigger Discipline (one axis, plain "when X" phrasing, right-side specificity — see ARCHITECTURE.md).
+
+If any of these fail, fix before proceeding to STOP.
 
 ---
 

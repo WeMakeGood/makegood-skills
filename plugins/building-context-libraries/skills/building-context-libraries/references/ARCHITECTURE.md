@@ -331,12 +331,82 @@ Domain-specific knowledge for particular agent roles.
 
 ### Addenda (Reference Data)
 
-| Component | Contains | Changes When | Loaded | Token Budget |
-|-----------|----------|-------------|--------|-------------|
-| **Modules** | Reasoning context, decision frameworks, organizational principles | Processes redesigned | Always (per agent) | Counts against per-agent limit |
-| **Addenda** | Data — pricing, bios, catalogs, inventories | Business evolves | On demand | Does NOT count against limit |
+**Container** (modules vs. addenda) and **load discipline** (always_load vs. conditional) are orthogonal. Confusing them is a documented failure mode — see "Load Discipline" below.
+
+| Component | Contains | Changes When |
+|-----------|----------|-------------|
+| **Modules** | Reasoning context, decision frameworks, organizational principles | Processes redesigned |
+| **Addenda** | Data — pricing, bios, catalogs, inventories | Business evolves |
 
 Modules reference addenda; addenda don't reference modules.
+
+---
+
+## Load Discipline
+
+Each item an agent might load is classified as **`always_load`** (loaded into the agent's system prompt every time) or **`conditional`** (loaded only when a specific runtime trigger applies). Container and load discipline are independent dimensions:
+
+| | Module | Addendum |
+|---|---|---|
+| **`always_load`** | Foundation modules in most agents (F0, F1, F2, F3); shared modules whose content governs every output (e.g., S0 for any external-facing agent); specialized modules whose content governs every output for that agent's role (e.g., D2 for an external-communications agent) | Reference addenda containing universal organizational data the agent's judgment about needing is unreliable (e.g., A0 organizational reference for any agent that names the organization) |
+| **`conditional`** | Shared modules that apply only in specific task or audience contexts | Most addenda — funder-specific, region-specific, project-specific, peer-specific, sector-specific |
+
+### The Classification Rule
+
+An item is **`always_load`** when its content governs the quality, accuracy, or compliance of the agent's output universally — meaning the agent's judgment about whether to load it is unreliable.
+
+An item is **`conditional`** when its content applies only in specific task or audience contexts, with a load-time trigger expressible as a plain-language sentence.
+
+**The classification is per-agent.** The same module may be `always_load` for one agent and `conditional` for another. Methodology content is `always_load` for an agent that writes proposals (every proposal is methodology-anchored); the same content is `conditional` for an agent doing prospect research (only some prospects need methodology depth). The question to ask, per agent: *does this govern every output this specific agent produces?*
+
+### F0 and S0 Are a Hard Rule
+
+`F0_agent_behavioral_standards` is `always_load` whenever it appears in an agent's set. No exceptions.
+
+`S0_natural_prose_standards` is `always_load` whenever it appears in an agent's set (i.e., for any agent that writes anything for any audience). No exceptions.
+
+Both rules exist because the failure mode they prevent (agent's runtime judgment about whether to apply behavioral guardrails or prose discipline) was the originating failure that produced this classification system. The hard rule is enforced at three layers: Phase 3 GATE (Design refuses to advance), Phase 4 self-check (Build flags violations), and `scripts/count_tokens.py` (script refuses to compute a budget).
+
+### Why This Classification Replaces Tiered Manifests
+
+Earlier versions of the agent-definition template grouped modules by tier (foundation/shared/specialized) and listed addenda separately as reach-beyond. The visual structure suggested two categories of load decision: modules were the agent's context, addenda were things to reach for. In runtime behavior, this distinction collapsed. Agents made their own load-time judgments — sometimes deciding S0 didn't apply for "quick" tasks, then producing output that violated S0's prose standards. Sometimes deciding A0's legal-entity data wasn't needed, then generating from inference instead of from the loaded reference.
+
+The pattern: when the manifest leaves to the agent's judgment whether a piece of context governs output, the agent will sometimes get that judgment wrong — confidently. Items that govern output universally must be loaded universally; items that apply only in specific situations are loaded with explicit triggers.
+
+The tier structure (foundation/shared/specialized) still describes where module *files* live in the library directory, and what scope of agents typically use each tier. It does not describe load discipline. The two are independent.
+
+### Trigger Discipline (`load_when:`)
+
+A `load_when:` trigger is a plain-language sentence the runtime agent reads and applies to the work in front of it. Triggers must be diagnostic — concrete enough that two reasonable readers would agree on whether the trigger fires for a given piece of work.
+
+**Three components:**
+
+1. **The diagnostic axis.** Audience type ("when work is anchored in climate-focused foundations as the funder type"), task type ("when contract analysis crosses jurisdictions"), content type ("when work names anchor figures from the project portfolio"), or domain ("when work touches MRV architecture or FPIC depth"). One axis per trigger; if a trigger combines audience + task ("when writing proposals to climate funders"), it should be split — that's two triggers on two items, not one trigger on one.
+
+2. **The condition phrasing.** Plain "when X" or "if X." Names the situation, not the agent's judgment about the situation. Wrong: "when you think the audience needs X" — that reintroduces the runtime judgment the classification was designed to remove. Right: "when work crosses into Germany / Germanic cultural context" — names the situation, not the agent's reading of it.
+
+3. **Right-side specificity.** Concrete enough that two reasonable readers would agree on whether it applies. "When work touches methodology" is too thin. "When work touches project methodology, MRV architecture, FPIC depth, or community-ownership claims" gives the runtime agent a checklist.
+
+**Discipline rules:**
+
+- One axis per trigger. Split combined triggers across multiple items.
+- Triggers reference the work, not the agent's judgment ("when work involves X," not "when you need X").
+- Ambiguous-sounding triggers should err toward loading: "When in doubt, load it." The cost of loading an unneeded item is small compared to the cost of skipping a needed one.
+
+**Worked examples** (drawn from the classification's first deployment):
+
+```
+- addendum: cultural/A_cultural_germany
+  load_when: "Work crosses into Germany / Germanic cultural context"
+
+- module: S2_methodology
+  load_when: "Work touches project methodology, MRV architecture, FPIC depth, or community-ownership-as-constraint claims"
+
+- addendum: sector/A_sector_carbon_controversies
+  load_when: "Work involves adversarial sector questions or audience-specific scripts for carbon-market-credibility engagement"
+```
+
+Each names a diagnostic axis, uses plain "when X" phrasing, and is specific enough to be checkable.
 
 ---
 
@@ -422,7 +492,9 @@ Both markers are build artifacts removed before delivery.
 
 ## Token Budget Management
 
-**The budget per agent is 10% of the target model's context window** (e.g., 20K tokens for a 200K-context model). Addenda do not count. This limit scales as models gain larger context windows.
+**The budget per agent is 10% of the target model's context window** (e.g., 20K tokens for a 200K-context model). The budget counts items that are `always_load` (they're in context every time, regardless of container — module or addendum). Items that are `conditional` do not count against the budget; they're loaded only when their `load_when:` trigger fires.
+
+This is a change from earlier skill versions, which excluded all addenda from the budget. The change reflects the load-discipline classification: budget is determined by what's *always* in context, not by container type.
 
 ### The Budget Is Room, Not a Ceiling
 
