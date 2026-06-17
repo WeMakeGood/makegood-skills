@@ -39,10 +39,11 @@ Each migration has: a name, a from-version, a to-version, what triggers it, and 
 |------|-----|----------------|---------|
 | 1.4.x | 1.5.0 | `agent-manifest-load-discipline` | Agent manifests use tier-grouped `modules:` (foundation/shared/specialized) and separate `addenda:` |
 | 1.5.x | 1.6.0 | `agent-include-and-bundles` | Agent files use `always_load:` / `conditional:` YAML frontmatter blocks |
+| 1.6.x | 1.7.0 | `guardrails-versioning` | Library has `modules/foundation/F0_agent_behavioral_standards.md` but no `guardrails.lock` at the root (hand-owned guardrails, not yet a versioned dependency) |
 
 When a new migration ships, add a row above. Migrations below this point are the actual migration content.
 
-**Libraries on pre-1.5 versions** run both migrations in sequence: first `agent-manifest-load-discipline` (1.4.x → 1.5.0), then `agent-include-and-bundles` (1.5.x → 1.6.0). The bootstrap detects both signals and presents the migration plan as a single user-facing operation — internally it's two migrations applied in order, which preserves the append-only architecture.
+**Libraries on pre-1.5 versions** run all applicable migrations in sequence: `agent-manifest-load-discipline` (1.4.x → 1.5.0), then `agent-include-and-bundles` (1.5.x → 1.6.0), then `guardrails-versioning` (1.6.x → 1.7.0). The bootstrap detects each signal and presents the migration plan as a single user-facing operation — internally it's separate migrations applied in order, which preserves the append-only architecture.
 
 ---
 
@@ -328,6 +329,73 @@ Backup: <OUTPUT_PATH>/_pre_migration_backup/
 
 ---
 
+## Migration: guardrails-versioning (1.6.x → 1.7.0)
+
+**Trigger (either):**
+- **(a) Not yet converted:** the library has `modules/foundation/F0_agent_behavioral_standards.md` but no `guardrails.lock` at its root — guardrails are hand-owned copies, not a versioned dependency. Run the full migration (M3.1–M3.7).
+- **(b) Converted but tooling stale:** the library already has a `guardrails.lock` and vendored guardrails, but its build-state records a script/skill version behind the running skill (or its on-disk `scripts/build-deploy-bundles.py --version` is behind). Only the vendored script needs refreshing. Run the **script-refresh-only path**: skip M3.1–M3.3 and M3.5 (the lock and vendored modules are already correct), run **M3.4** (refresh the script + update build-state versions), then **M3.6** (rebuild bundles) and **M3.7** (log). This is a legitimate migration whose only effect is bringing the version-locked script current.
+
+**What this migration does:** For case (a), converts the library from owning hand-copied F0/S0 modules to consuming them as a pinned, vendored dependency from `makegood-guardrails` — introduces `guardrails.lock`, refreshes the build script, and re-vendors F0/S0 at the version the library already effectively runs, so it is **zero-behavior-change**. For case (b), refreshes only the version-locked build script. In neither case does the migration change which guardrail *version* the agents run; adopting a newer version (e.g. for a new process gate) is a separate, deliberate `--update-guardrails` afterward.
+
+This migration has one interactive judgment in case (a) (matching the library's current F0/S0 to an upstream version); the rest is mechanical, and case (b) is fully mechanical.
+
+### Why this migration is required
+
+Before 1.7, every library carried its own hand-copied F0/S0. Across many libraries these copies drifted — the same guardrail existed in incompatible versions with no record of which library ran which, and no way to propagate a fix without editing every copy by hand. The versioned-dependency model makes the guardrail version an explicit, recorded fact per library (`guardrails.lock`) and makes adopting a change a deliberate, auditable bump rather than a silent hand-edit. See ARCHITECTURE.md, "Guardrails as a Versioned Dependency."
+
+### Steps
+
+**M3.1: Back up the current guardrail modules.**
+
+Copy `modules/foundation/F0_agent_behavioral_standards.md` and `modules/shared/S0_natural_prose_standards.md` (and any other present guardrail modules) into `<OUTPUT_PATH>/_pre_migration_backup/`. This is the recovery point — the migration overwrites these files with vendored copies.
+
+**M3.2: Match the library's current guardrails to an upstream version. (Interactive — this is the judgment step.)**
+
+For F0 and S0 separately:
+- Compare the library's current module body (frontmatter and banners aside) against the tagged versions in `makegood-guardrails`. The simplest check: for each candidate tag, fetch the upstream module and diff its body against the library's.
+- **If the body matches a tagged version exactly,** that is the version to pin — vendoring it back is a no-op on behavior. Proceed.
+- **If the body matches no tag** (the library hand-edited its F0/S0), STOP and surface to the user: show the diff against the closest upstream version and present the fork — (a) pin the closest version and accept that the hand edits are dropped (the upstream version supersedes them), or (b) the hand edits are deliberate and should be carried upstream into `makegood-guardrails` as a new version before migrating. Do not guess. Local edits to a guardrail are exactly the kind of divergence this system exists to make visible, not silently overwrite.
+
+Record the matched version per module in `build-state.md`.
+
+**M3.3: Write `guardrails.lock`.**
+
+Copy `templates/guardrails.lock` into `<OUTPUT_PATH>/guardrails.lock`. Set `declared:` F0 and S0 to the versions matched in M3.2 (not necessarily the skill's defaults — the point is to preserve current behavior). Leave the `resolved:` shas as `null`; the next step fills them.
+
+**M3.4: Refresh the version-locked build script.**
+
+The build script is a skill-versioned artifact: each library vendors a copy, and that copy can fall behind the skill the same way artifact shapes can. **Any migration refreshes the vendored script as part of its work** — this is a general migration responsibility, not specific to this migration.
+
+Copy `templates/build-deploy-bundles.py` into `<OUTPUT_PATH>/scripts/`, overwriting the existing one. Confirm the new version: `<OUTPUT_PATH>/scripts/build-deploy-bundles.py --version`. Then update build-state's **Vendored build-deploy-bundles.py version** and **Built with skill version** lines to the current values. (For the 1.6 → 1.7 script specifically: it adds `--resolve-guardrails`, `--update-guardrails`, and guardrail drift detection in `--check`; the bundle-build behavior is unchanged.)
+
+**M3.5: Resolve and re-vendor.**
+
+Run `cd <OUTPUT_PATH> && scripts/build-deploy-bundles.py --resolve-guardrails`. This fetches the matched versions, overwrites `modules/foundation/F0...` and `modules/shared/S0...` with the vendored copies (now carrying the GENERATED banner), and fills the `resolved:` shas in the lock. Needs network access to `makegood-guardrails`.
+
+Verify: the vendored files carry the banner, and — because M3.2 matched the current version — the body below the banner is identical to the backed-up original (confirm with a diff against `_pre_migration_backup/`, ignoring the banner line). A non-trivial body diff here means the version match in M3.2 was wrong; stop and recheck.
+
+**M3.6: Rebuild bundles.**
+
+Run `scripts/build-deploy-bundles.py`. The only change to the bundles versus pre-migration is the banner comment and the `version:` frontmatter line in the F0/S0 sections — no behavioral content changes. Confirm `--check` reports guardrails matching the locked versions and no bundle drift.
+
+**M3.7: Log the migration.**
+
+Add to `process-log.md`:
+
+```
+### [YYYY-MM-DD] — Migration: guardrails-versioning (1.6.x → 1.7.0)
+
+Converted hand-owned F0/S0 to versioned dependency from makegood-guardrails.
+Pinned: F0 @ [version], S0 @ [version] (matched to library's current content — zero behavior change).
+guardrails.lock written; build script updated to resolving version; modules re-vendored; bundles rebuilt.
+Hand-edit resolution (if any): [none | describe the fork taken in M3.2].
+Backup: <OUTPUT_PATH>/_pre_migration_backup/
+```
+
+If the user wants to additionally adopt a newer guardrail version (e.g. the latest F0 with a new process gate), that is a post-migration step: `scripts/build-deploy-bundles.py --update-guardrails F0=<newer>`, then rebuild. Keep it distinct from the migration in the log — migration = adopt the *system*; update = adopt a *version*.
+
+---
+
 ## After Migration
 
 Run `python scripts/count_tokens.py <OUTPUT_PATH>/modules <OUTPUT_PATH>/agents` to confirm:
@@ -341,6 +409,7 @@ If any check reports issues, return to the relevant migration step and correct.
 
 **Update build-state.md:**
 - Note that migration ran on [date], applied [list of migrations].
+- Set **Built with skill version** and **Vendored build-deploy-bundles.py version** to the current values (confirm the script version with `scripts/build-deploy-bundles.py --version`). These are what the bootstrap reads to detect a future tooling drift.
 - Reset "Current Phase" to whatever phase the user invoked migration from.
 
 **Hand back to the bootstrap.** The bootstrap resumes from where it paused before migration.
@@ -355,5 +424,7 @@ When a new format change ships in a future skill version:
 2. Add a `## Migration: [name] ([from] → [to])` section below, structured the same way as existing migrations: trigger, why required, steps, validation, log entry.
 3. Add the trigger pattern to the bootstrap's directory scan (TEMPLATES.md, "Session Bootstrap" → migration signals).
 4. Update the validation script(s) to detect the old format and refuse with a pointer to PHASE_M_MIGRATION.md.
+
+**If the skill version bump changes the build script**, bump `SCRIPT_VERSION` in `templates/build-deploy-bundles.py` to match, and ensure the migration re-vendors the script and updates build-state's version lines (as M3.4 does generally). The script is a version-locked artifact: a library can be fully current on artifact *shapes* yet carry a stale script. That is itself a migration trigger — see the bootstrap's "build-state records a skill or script version behind the running skill" signal. A migration whose only effect is refreshing the script is legitimate; not every migration changes artifact shapes.
 
 The migration set grows over time. Older migrations are not rewritten — a library upgrading across multiple versions runs each applicable migration in sequence.

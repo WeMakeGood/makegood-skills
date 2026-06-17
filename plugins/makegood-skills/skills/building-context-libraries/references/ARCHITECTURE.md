@@ -136,7 +136,7 @@ The first two patterns equip the agent to handle situations the author didn't an
 
 ## Shape Reference: F0 as a Worked Example
 
-`templates/guardrails/F0_agent_behavioral_standards.md` is a working module — every library copies it verbatim into Foundation. It is also a worked example of mixed-shape content for a reasoning-context-primary module. Reference it when uncertain what shape a section should take.
+`templates/guardrails/F0_agent_behavioral_standards.md` is a working module — every library vendors it into Foundation from `makegood-guardrails` at a pinned version (see "Guardrails as a Versioned Dependency"). The skill's copy is a reference for this worked example, not the seed. It is a worked example of mixed-shape content for a reasoning-context-primary module. Reference it when uncertain what shape a section should take.
 
 F0 illustrates three shapes coexisting in one module:
 
@@ -583,7 +583,7 @@ Lowercase with underscores. Descriptive but concise.
 
 ## Standard Guardrail Modules
 
-Every context library includes two standard guardrail modules, copied from `templates/guardrails/` during Design:
+Every context library includes two standard guardrail modules, vendored from `makegood-guardrails` during the Phase-4 deployment step (pinned via `guardrails.lock`; see "Guardrails as a Versioned Dependency" below):
 
 ### F0_agent_behavioral_standards (Foundation)
 
@@ -611,6 +611,23 @@ Every context library includes two standard guardrail modules, copied from `temp
 | Content creation | Required | Required |
 | Internal documentation | Required | Skip |
 | Research/analysis | Required | Skip (unless published) |
+
+### Guardrails as a Versioned Dependency
+
+F0 and S0 are not authored or owned inside each library. They are owned by a separate repository, `makegood-guardrails`, which publishes them as independently semver-tagged modules (`f0-vX.Y.Z`, `s0-vX.Y.Z`). A library consumes them as a pinned dependency rather than holding a hand-edited copy. This exists because hand-copied guardrails across many libraries drift into incompatible versions with no record of which library runs which and no way to propagate a fix without editing every copy.
+
+The mechanism, all handled by `build-deploy-bundles.py`:
+
+- **`guardrails.lock`** at the library root records two facts: `declared` (the version the library accepts) and `resolved` (the version actually fetched, with its commit sha and the vendored path). Bundles are built from the vendored file the lock points at. The lock is committed — it is the library's record of which guardrail versions its agents run.
+- **`--resolve-guardrails`** fetches the declared versions from `makegood-guardrails` and writes them into the library's `modules/`, each with a `<!-- GENERATED ... -->` banner marking it as vendored, not hand-authored. This is a network step.
+- **`--update-guardrails F0=<version>`** is the deliberate upgrade: it bumps `declared` and re-resolves, producing a reviewable diff and a commit in the library's own repo. Adopting a new guardrail version (e.g. a new process gate) is always this explicit act — never automatic.
+- **`--check`** reports (report-only, never auto-fixes) when a vendored guardrail has been hand-edited away from its locked version. It respects libraries in repos the team no longer owns: it surfaces drift but takes no action.
+
+**Pinned by default.** A library does not move to a new guardrail version until someone runs `--update-guardrails`. This keeps a library stable through an engagement while another library adopts a change on its own schedule.
+
+**Offline after resolve.** Resolution touches the network; the bundle build does not. Once F0/S0 are vendored, the library rebuilds fully offline. The network dependency exists only at build and migration time, not at library-use time.
+
+The skill's `templates/guardrails/` copies of F0/S0 are reference material for the worked-example shape lesson and offline inspection — they are explicitly *not* the seed. Libraries vendor from `makegood-guardrails`, not from the skill.
 
 ---
 

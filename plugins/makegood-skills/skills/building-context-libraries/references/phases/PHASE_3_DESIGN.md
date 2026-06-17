@@ -109,9 +109,11 @@ Audience reasoning belongs *inside* existing modules as sections, not as a separ
 
 ### Standard Guardrails
 
-Copy these from `templates/guardrails/` into the library:
-- `F0_agent_behavioral_standards.md` → loaded by ALL agents
-- `S0_natural_prose_standards.md` → loaded by external-facing agents
+Every library includes two standard guardrail modules:
+- `F0_agent_behavioral_standards` → loaded by ALL agents
+- `S0_natural_prose_standards` → loaded by external-facing agents
+
+These are not authored in the library. They are vendored from `makegood-guardrails` at a pinned version during the Phase-4 deployment step (`guardrails.lock` + `--resolve-guardrails`); do not hand-copy them here in Design. Classify them in the Load-Discipline table below as you would any always-load module — F0 for every agent, S0 for any agent that writes anything. See ARCHITECTURE.md, "Guardrails as a Versioned Dependency."
 
 ---
 

@@ -507,15 +507,19 @@ After writing each agent file, verify:
 
 ### Build the Deployment Bundles
 
-After all agent files are written. Each step produces an artifact; verify the artifact exists on disk before advancing to the next step. **Do not batch these as "I'll do all five and then check" — the GATE catches that, but the cost is a roundtrip.**
+After all agent files are written. Each step produces an artifact; verify the artifact exists on disk before advancing to the next step. **Do not batch these as "I'll do all of these and then check" — the GATE catches that, but the cost is a roundtrip.**
 
-1. **Copy `templates/build-deploy-bundles.py` into `<OUTPUT_PATH>/scripts/`.** Verify: `ls <OUTPUT_PATH>/scripts/build-deploy-bundles.py` returns the path. The script resolves `@`-include directives in agent files and writes self-contained bundles to `deploy/agents/`. Suitable for runtimes that don't process `@` natively (Claude.ai project upload, Cowork, generic API integrations).
-2. **Add `deploy/` to the library's `.gitignore`.** Verify: `grep '^deploy/' <OUTPUT_PATH>/.gitignore` returns the line. If the library has no `.gitignore`, create one with `deploy/` as the first entry. Bundles are regeneration artifacts; the agent files in `agents/` are the source of truth.
-3. **Run the script: `cd <OUTPUT_PATH> && scripts/build-deploy-bundles.py`.** Verify: the script reports `built deploy/agents/<name>.md` for each agent and exits with status 0. Verify additionally: `ls <OUTPUT_PATH>/deploy/agents/*.md` returns one bundle per agent file.
-4. **Optionally build the all-inclusive variant: `scripts/build-deploy-bundles.py --all-inclusive`.** Verify: `ls <OUTPUT_PATH>/deploy/agents/*.all-inclusive.md` returns one variant bundle per agent. Skip this step unless the user has identified a runtime that needs it; defer with a note in the GATE rather than building speculatively. (See ARCHITECTURE.md, "The All-Inclusive Bundle Variant.")
-5. **Copy `templates/library-README.md` into `<OUTPUT_PATH>/README.md`** (or merge into existing README). Verify: `cat <OUTPUT_PATH>/README.md` shows the deployment-doc content. The README explains the bundle approach for library consumers.
+1. **Copy `templates/build-deploy-bundles.py` into `<OUTPUT_PATH>/scripts/`.** Verify: `ls <OUTPUT_PATH>/scripts/build-deploy-bundles.py` returns the path. The script resolves `@`-include directives in agent files and writes self-contained bundles to `deploy/agents/`, and resolves the library's pinned guardrail modules (next step). Suitable for runtimes that don't process `@` natively (Claude.ai project upload, Cowork, generic API integrations).
+2. **Vendor the guardrail modules (F0/S0) from `makegood-guardrails`.** F0/S0 are not copied from the skill — they are a pinned versioned dependency the library vendors into its own `modules/`. (See ARCHITECTURE.md, "Guardrails as a Versioned Dependency.")
+   - Copy `templates/guardrails.lock` into `<OUTPUT_PATH>/guardrails.lock`. Verify: `cat <OUTPUT_PATH>/guardrails.lock` shows the declared versions. Adjust the `declared:` versions first if this library should pin something other than the skill defaults.
+   - Run `cd <OUTPUT_PATH> && scripts/build-deploy-bundles.py --resolve-guardrails`. Verify: the script reports vendoring F0 and S0, and `guardrails.lock`'s `resolved:` block now carries non-null shas. Verify the vendored files exist and carry the GENERATED banner: `head -1 <OUTPUT_PATH>/modules/foundation/F0_agent_behavioral_standards.md` shows `<!-- GENERATED — vendored from makegood-guardrails`.
+   - **This step needs network access to `makegood-guardrails`.** If it cannot reach the repo, stop and surface that — do not proceed to the bundle build, which would produce a library whose agents reference F0/S0 files that do not exist. (The bundle build itself, once modules are vendored, is fully offline.)
+3. **Add `deploy/` to the library's `.gitignore`.** Verify: `grep '^deploy/' <OUTPUT_PATH>/.gitignore` returns the line. If the library has no `.gitignore`, create one with `deploy/` as the first entry. Bundles are regeneration artifacts; the agent files in `agents/` are the source of truth. (Do **not** gitignore the vendored `modules/` guardrail files or `guardrails.lock` — those are committed; the lock is the library's record of which guardrail versions it runs.)
+4. **Run the script: `cd <OUTPUT_PATH> && scripts/build-deploy-bundles.py`.** Verify: the script reports `built deploy/agents/<name>.md` for each agent and exits with status 0. Verify additionally: `ls <OUTPUT_PATH>/deploy/agents/*.md` returns one bundle per agent file.
+5. **Optionally build the all-inclusive variant: `scripts/build-deploy-bundles.py --all-inclusive`.** Verify: `ls <OUTPUT_PATH>/deploy/agents/*.all-inclusive.md` returns one variant bundle per agent. Skip this step unless the user has identified a runtime that needs it; defer with a note in the GATE rather than building speculatively. (See ARCHITECTURE.md, "The All-Inclusive Bundle Variant.")
+6. **Copy `templates/library-README.md` into `<OUTPUT_PATH>/README.md`** (or merge into existing README). Verify: `cat <OUTPUT_PATH>/README.md` shows the deployment-doc content. The README explains the bundle approach for library consumers.
 
-If any `@`-directive fails to resolve in step 3, the script reports the missing target — fix the agent file or the target's path before continuing. Do not proceed to the GATE with unresolved directives.
+If guardrail resolution fails in step 2, the script reports the cause (unreachable repo, missing tag) — resolve it before continuing; the bundle build depends on the vendored modules existing. If any `@`-directive fails to resolve in step 4, the script reports the missing target — fix the agent file or the target's path before continuing. Do not proceed to the GATE with unresolved directives.
 </phase_build_agents>
 
 ---
@@ -581,11 +585,16 @@ If the bundle drift check reports DRIFT, run `scripts/build-deploy-bundles.py` (
 - [ ] Token budget assessed (always-load items only) — neither starved nor bloated
 - [ ] Standard guardrails loaded (F0 for all; S0 for any agent that writes anything)
 
+**For guardrails (versioned dependency):**
+- [ ] `guardrails.lock` present at the library root, `declared:` versions set
+- [ ] `--resolve-guardrails` run: F0/S0 vendored into `modules/` with the GENERATED banner, `resolved:` shas non-null
+- [ ] `guardrails.lock` and the vendored `modules/` guardrail files are committed (NOT gitignored)
+
 **For deployment bundles:**
 - [ ] `scripts/build-deploy-bundles.py` copied into `<OUTPUT_PATH>/scripts/`
 - [ ] `deploy/` added to the library's `.gitignore`
 - [ ] Standard bundle built successfully for every agent (`deploy/agents/<name>.md`)
-- [ ] `--check` passes (bundles match source agent files; no drift)
+- [ ] `--check` passes (bundles match source agent files; guardrails match locked versions; no drift)
 - [ ] Library README explains the bundle approach for consumers
 
 **Library-wide:**
@@ -606,6 +615,7 @@ Write to the build state. Each line names a file that must exist on disk or a sc
 - "Addenda built: [count] / [total]" — count from `ls <OUTPUT_PATH>/addenda/**/*.md`
 - "Agent definitions written: [count] / [total]" — count from `ls <OUTPUT_PATH>/agents/*.md`
 - "Build script vendored: [yes — path: `<OUTPUT_PATH>/scripts/build-deploy-bundles.py`]" — confirm by reading the file's first line (the script's docstring)
+- "Guardrails resolved: [F0 @ version, S0 @ version]" — confirm by reading `guardrails.lock`'s resolved block (shas non-null) and that `head -1` of each vendored guardrail module shows the GENERATED banner
 - "Library README written: [yes — path: `<OUTPUT_PATH>/README.md`]" — confirm the file exists and contains the deployment-doc content
 - "deploy/ in .gitignore: [yes]" — confirm by grepping the library's `.gitignore` for `deploy/`
 - "Standard bundles built: [count] / [agent count]" — confirm by `ls <OUTPUT_PATH>/deploy/agents/*.md` (excluding `*.all-inclusive.md`)
@@ -650,9 +660,12 @@ The build is complete. The context library is at `<OUTPUT_PATH>/` and ready for 
 ├── build-state.md
 ├── process-log.md
 ├── proposal.md
+├── guardrails.lock              (pinned F0/S0 versions — the library's record)
 ├── modules/
 │   ├── foundation/
+│   │   └── F0_...md              (vendored from makegood-guardrails; GENERATED banner)
 │   ├── shared/
+│   │   └── S0_...md              (vendored from makegood-guardrails; GENERATED banner)
 │   └── specialized/
 ├── addenda/
 ├── agents/                      (source agent files with @-directives)

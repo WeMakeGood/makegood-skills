@@ -1,10 +1,15 @@
+<!-- REFERENCE COPY — not a seed. Libraries vendor S0 from makegood-guardrails
+at a pinned version via guardrails.lock + --resolve-guardrails, not from here.
+Do not edit this to change library behavior; edit upstream in makegood-guardrails.
+Refresh from upstream when this reference should reflect new content. -->
 ---
-module_id: S#
+module_id: S0
 module_name: Natural Prose Standards
 tier: shared
 purpose: "Define writing standards for external-facing content"
-used_by: [marketing, communications, content creation agents]
-last_updated: YYYY-MM-DD
+version: 1.0.0
+used_by: [Content & Communications, Thought Leadership, LeadersPath, Client Engagement]
+last_updated: 2026-03-10
 ---
 
 # Natural Prose Standards

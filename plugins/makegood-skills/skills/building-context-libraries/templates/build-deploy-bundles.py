@@ -32,8 +32,28 @@ from __future__ import annotations
 
 import argparse
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
+
+# PyYAML is required only for the guardrail subcommands (--resolve-guardrails,
+# --update-guardrails, and guardrail drift in --check). The default bundle
+# build does not need it, so the import is deferred: a missing PyYAML must not
+# break the offline bundle build.
+try:
+    import yaml
+except ImportError:  # pragma: no cover
+    yaml = None
+
+
+def _require_yaml() -> None:
+    if yaml is None:
+        raise RuntimeError(
+            "PyYAML is required for guardrail commands but is not installed. "
+            "Install it with: pip install pyyaml"
+        )
 
 # ---------------------------------------------------------------------------
 # @ directive matcher
@@ -43,6 +63,12 @@ from pathlib import Path
 # lines that consist solely of an @-directive are expanded; @ embedded in
 # prose is left alone.
 # ---------------------------------------------------------------------------
+
+# Script version. This script is a skill-versioned artifact: it is vendored
+# into each library, and the library's build-state records this version. A
+# migration that ships a newer script re-vendors it and updates that record.
+# Bump this in lockstep with the skill version whenever the script changes.
+SCRIPT_VERSION = "1.7.0"
 
 INCLUDE_PATTERN = re.compile(r"^\s*@(\S+)\s*$")
 
@@ -282,12 +308,206 @@ def check_agent_all_inclusive(
 
 
 # ---------------------------------------------------------------------------
+# Guardrails versioning
+#
+# F0/S0 behavioral guardrail modules are owned by the makegood-guardrails repo
+# and consumed here as a pinned, vendored dependency. guardrails.lock records
+# the declared version (intent) and the resolved version (what was fetched and
+# written into modules/). The vendored files carry a generated-file banner and
+# are what the bundle build expands — so the default build stays fully local
+# and offline. Resolution (network) is a separate, deliberate step.
+# ---------------------------------------------------------------------------
+
+LOCK_NAME = "guardrails.lock"
+
+# Banner prepended to a vendored guardrail module. The body below it is the
+# verbatim upstream module; --check re-fetches and compares the body (banner
+# stripped) to detect hand-edits.
+BANNER_PREFIX = "<!-- GENERATED — vendored from makegood-guardrails"
+BANNER_RE = re.compile(r"^<!-- GENERATED — vendored from makegood-guardrails[^\n]*-->\n", re.M)
+
+
+def load_lock(repo_root: Path) -> dict:
+    _require_yaml()
+    lock_path = repo_root / LOCK_NAME
+    if not lock_path.exists():
+        raise RuntimeError(
+            f"{LOCK_NAME} not found in {repo_root}. This library has not been "
+            "converted to consume versioned guardrails."
+        )
+    return yaml.safe_load(lock_path.read_text())
+
+
+def write_lock(repo_root: Path, lock: dict) -> None:
+    """Write the lock back, preserving the leading comment block verbatim and
+    re-serializing the data below it."""
+    lock_path = repo_root / LOCK_NAME
+    existing = lock_path.read_text()
+    comment_lines = []
+    for line in existing.splitlines(keepends=True):
+        if line.lstrip().startswith("#") or not line.strip():
+            comment_lines.append(line)
+        else:
+            break
+    body = yaml.safe_dump(lock, sort_keys=False, default_flow_style=False)
+    lock_path.write_text("".join(comment_lines) + body)
+
+
+def banner_for(tag: str, sha: str) -> str:
+    return (
+        f"{BANNER_PREFIX}@{tag} (sha {sha}). "
+        "Do not edit here; edit upstream in makegood-guardrails and re-lock. -->\n"
+    )
+
+
+def strip_banner(text: str) -> str:
+    return BANNER_RE.sub("", text, count=1)
+
+
+def fetch_module(source: str, tag: str, module_filename: str) -> tuple[str, str]:
+    """Shallow-clone the makegood-guardrails repo at `tag`, read
+    modules/<module_filename>, return (body_text, resolved_sha). Network step.
+    Raises RuntimeError on any git failure so the caller can report cleanly."""
+    tmp = tempfile.mkdtemp(prefix="guardrails-")
+    try:
+        result = subprocess.run(
+            ["git", "clone", "--depth", "1", "--branch", tag, source, tmp],
+            capture_output=True, text=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"git clone of {source}@{tag} failed: {result.stderr.strip()}"
+            )
+        sha_result = subprocess.run(
+            ["git", "-C", tmp, "rev-parse", "HEAD"],
+            capture_output=True, text=True,
+        )
+        sha = sha_result.stdout.strip() if sha_result.returncode == 0 else "unknown"
+        module_path = Path(tmp) / "modules" / module_filename
+        if not module_path.exists():
+            raise RuntimeError(
+                f"module modules/{module_filename} not found in "
+                f"{source}@{tag}"
+            )
+        return module_path.read_text(), sha
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def resolve_guardrails(repo_root: Path) -> int:
+    """Fetch each declared guardrail version, vendor it into the path named in
+    the lock's resolved block (with banner), and write the resolved block back
+    (version, tag, sha). Network step. Idempotent for pinned versions."""
+    lock = load_lock(repo_root)
+    source = lock["source"]
+    declared = lock["declared"]
+    resolved = lock.setdefault("resolved", {})
+
+    for key, version in declared.items():
+        prefix = key.lower()  # F0 -> f0
+        tag = f"{prefix}-v{version}"
+        entry = resolved.get(key)
+        if not entry or "vendored" not in entry:
+            raise RuntimeError(
+                f"lock resolved.{key}.vendored missing — cannot determine "
+                f"where to vendor {key}. Set it in {LOCK_NAME}."
+            )
+        vendored_rel = entry["vendored"]
+        module_filename = Path(vendored_rel).name
+
+        print(f"  resolving {key} {version} (tag {tag})...")
+        body, sha = fetch_module(source, tag, module_filename)
+
+        dest = repo_root / vendored_rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(banner_for(tag, sha) + body)
+
+        resolved[key] = {
+            "version": version,
+            "tag": tag,
+            "sha": sha,
+            "vendored": vendored_rel,
+        }
+        print(f"    vendored -> {vendored_rel}")
+
+    write_lock(repo_root, lock)
+    print(f"  {LOCK_NAME} updated.")
+    return 0
+
+
+def update_guardrails(repo_root: Path, bumps: list[str]) -> int:
+    """Bump declared versions (e.g. F0=1.3.0), then re-resolve. The deliberate
+    upgrade action; produces a reviewable diff to the lock and vendored files."""
+    lock = load_lock(repo_root)
+    declared = lock["declared"]
+    for bump in bumps:
+        if "=" not in bump:
+            raise RuntimeError(f"bad --update-guardrails arg '{bump}', expected KEY=VERSION")
+        key, version = bump.split("=", 1)
+        key = key.strip()
+        version = version.strip()
+        if key not in declared:
+            raise RuntimeError(
+                f"'{key}' is not a declared guardrail in {LOCK_NAME} "
+                f"(have: {', '.join(declared)})"
+            )
+        print(f"  declaring {key} -> {version} (was {declared[key]})")
+        declared[key] = version
+    write_lock(repo_root, lock)
+    return resolve_guardrails(repo_root)
+
+
+def check_guardrails(repo_root: Path) -> list[str]:
+    """Report-only. Compare each vendored guardrail file's body (banner
+    stripped) against the version recorded in the lock's resolved block, by
+    re-fetching from upstream. Returns a list of human-readable drift messages;
+    empty list means in sync. Never modifies anything."""
+    messages: list[str] = []
+    try:
+        lock = load_lock(repo_root)
+    except RuntimeError as exc:
+        return [str(exc)]
+    source = lock["source"]
+    resolved = lock.get("resolved", {})
+
+    for key, entry in resolved.items():
+        vendored_rel = entry.get("vendored")
+        tag = entry.get("tag")
+        if not vendored_rel or not tag:
+            messages.append(f"{key}: lock resolved block incomplete")
+            continue
+        dest = repo_root / vendored_rel
+        if not dest.exists():
+            messages.append(f"{key}: vendored file missing at {vendored_rel}")
+            continue
+        try:
+            upstream_body, _ = fetch_module(source, tag, Path(vendored_rel).name)
+        except RuntimeError as exc:
+            messages.append(f"{key}: could not verify against upstream ({exc})")
+            continue
+        local_body = strip_banner(dest.read_text())
+        if local_body != upstream_body:
+            messages.append(
+                f"{key}: vendored {vendored_rel} differs from {tag} upstream "
+                "— it was hand-edited, or the lock points at the wrong tag. "
+                "Re-run --resolve-guardrails to restore."
+            )
+    return messages
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"build-deploy-bundles.py {SCRIPT_VERSION}",
+        help="Print the script version (a skill-versioned artifact) and exit.",
+    )
     parser.add_argument(
         "--check",
         action="store_true",
@@ -305,11 +525,43 @@ def main() -> int:
         "conditional addendum alongside required-reading content. Use for "
         "runtimes where work-time fetch of conditional addenda is unreliable.",
     )
+    parser.add_argument(
+        "--resolve-guardrails",
+        action="store_true",
+        help="Fetch the guardrail versions declared in guardrails.lock from "
+        "makegood-guardrails and vendor them into modules/ (with a generated "
+        "banner), then write the resolved block. Network step; separate from "
+        "the offline bundle build.",
+    )
+    parser.add_argument(
+        "--update-guardrails",
+        nargs="+",
+        metavar="KEY=VERSION",
+        help="Bump declared guardrail version(s) (e.g. F0=1.3.0) then "
+        "re-resolve. The deliberate upgrade action — produces a reviewable "
+        "diff to guardrails.lock and the vendored module.",
+    )
     args = parser.parse_args()
 
     repo_root = Path.cwd()
     agents_dir = repo_root / "agents"
     deploy_dir = repo_root / "deploy" / "agents"
+
+    # Guardrail subcommands run independently of the bundle build (they touch
+    # the network; the bundle build does not).
+    if args.update_guardrails:
+        try:
+            return update_guardrails(repo_root, args.update_guardrails)
+        except RuntimeError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 2
+
+    if args.resolve_guardrails:
+        try:
+            return resolve_guardrails(repo_root)
+        except RuntimeError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 2
 
     if not agents_dir.is_dir():
         print(
@@ -333,6 +585,18 @@ def main() -> int:
         return 0
 
     if args.check:
+        # Report guardrail drift first (report-only — never fails the run, so
+        # libraries in repos we no longer own can be checked without implying
+        # an action we can't take). Skipped silently if no lock is present.
+        if (repo_root / LOCK_NAME).exists():
+            g_messages = check_guardrails(repo_root)
+            if g_messages:
+                print("  guardrails:")
+                for msg in g_messages:
+                    print(f"    [DRIFT] {msg}")
+            else:
+                print("  [ok] guardrails match locked versions")
+
         drift = []
         for agent_path in agent_paths:
             if args.all_inclusive:

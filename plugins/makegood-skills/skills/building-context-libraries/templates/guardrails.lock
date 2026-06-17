@@ -1,0 +1,33 @@
+# guardrails.lock — pins the behavioral guardrail modules (F0, S0) this library
+# uses. Governs ALL agents in this library. Managed by
+# scripts/build-deploy-bundles.py --resolve-guardrails / --update-guardrails.
+#
+# Do NOT hand-edit the `resolved:` block — it records exactly what was fetched
+# and vendored, and bundles are built from the vendored files it points at.
+# To change versions, run: build-deploy-bundles.py --update-guardrails F0=<ver>
+#
+# `declared` is intent (what this library accepts). `resolved` is actuality
+# (what was fetched). For a pinned library the two match.
+#
+# TEMPLATE: copied into a new library's root during Phase 4, then populated by
+# --resolve-guardrails (which fills the resolved shas). The declared versions
+# below are the skill's defaults at the time of build; adjust before resolving
+# if a library should pin different versions.
+
+source: https://github.com/WeMakeGood/makegood-guardrails
+
+declared:
+  F0: 1.3.0
+  S0: 1.0.0
+
+resolved:
+  F0:
+    version: 1.3.0
+    tag: f0-v1.3.0
+    sha: null
+    vendored: modules/foundation/F0_agent_behavioral_standards.md
+  S0:
+    version: 1.0.0
+    tag: s0-v1.0.0
+    sha: null
+    vendored: modules/shared/S0_natural_prose_standards.md

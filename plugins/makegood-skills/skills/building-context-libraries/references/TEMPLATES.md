@@ -63,6 +63,15 @@ Create at `<OUTPUT_PATH>/build-state.md` during Phase 1 (Setup).
 
 ---
 
+## Skill & Tooling Version
+
+Records which skill version produced this library's artifacts and which version of the vendored build script it carries. The bootstrap compares these against the running skill to detect migrations — including tooling refreshes that have no artifact-shape signal of their own.
+
+**Built with skill version:** [e.g. 1.7.0 — set at Phase 1, updated by any migration that runs]
+**Vendored build-deploy-bundles.py version:** [e.g. 1.7.0 — the script is a skill-versioned artifact; a migration that ships a new script version re-vendors it and updates this line]
+
+---
+
 ## Current Phase
 
 **Phase:** [1-Setup | 2-Comprehend | 3-Design | 4-Build]
@@ -88,6 +97,8 @@ Create at `<OUTPUT_PATH>/build-state.md` during Phase 1 (Setup).
 - Agent files in `<OUTPUT_PATH>/agents/` whose frontmatter uses `modules:` with `foundation:` / `shared:` / `specialized:` subkeys, or has a top-level `addenda:` list (pre-1.5 tier-grouped format)
 - Agent files whose frontmatter has `always_load:` and/or `conditional:` YAML blocks (1.5 manifest format — needs migration to 1.6's `@`-include + table shape)
 - Agent files missing a `## Required Reading` section with `@`-include directives (any pre-1.6 format)
+- A `modules/foundation/F0_agent_behavioral_standards.md` present with NO `guardrails.lock` at the library root (pre-1.7 hand-owned guardrails — needs migration to the versioned-dependency system)
+- build-state records a **Built with skill version** or **Vendored build-deploy-bundles.py version** behind the running skill — OR build-state has no Skill & Tooling Version block at all (pre-1.7 build-state). The library's vendored build script is stale even if its artifact shapes are current; a migration refreshes it. (Confirm the on-disk script version with `<OUTPUT_PATH>/scripts/build-deploy-bundles.py --version` if build-state's record is absent or suspect.)
 - Any other format mismatch between artifacts on disk and the current skill version's expected shapes
 
 A library with migration signals is not necessarily a redo — it may be a maintenance session on a library built with an earlier skill version. Migration is a separate flow from redo (see PHASE_M_MIGRATION.md).
@@ -95,7 +106,7 @@ A library with migration signals is not necessarily a redo — it may be a maint
 **B. Ask the user.** Frame the question around what you found:
 
 - If you found redo signals: "I noticed [signal]. Is this a redo session after a rolled-back build? [yes/no]"
-- If you found migration signals: "I noticed agent files using a pre-1.6 format ([list signals]). This library was built with an earlier skill version. Should we migrate before continuing? Pre-1.5 libraries run two migrations in sequence (tier-grouped → YAML manifest → `@`-include + table); 1.5 libraries run one migration. [migrate/proceed/redo]"
+- If you found migration signals: "I noticed [list signals], indicating this library was built with an earlier skill version. Should we migrate before continuing? Each applicable migration runs in sequence: pre-1.5 tier-grouped → 1.5 YAML manifest → 1.6 `@`-include + table → 1.7 versioned guardrails (`guardrails.lock`). A library missing only `guardrails.lock` runs just the 1.7 guardrails-versioning migration. [migrate/proceed/redo]"
 - If you found neither: "Is this a redo session after a rolled-back build? [yes/no]"
 
 If the user chooses **migrate**: follow the migration protocol in [references/phases/PHASE_M_MIGRATION.md](../phases/PHASE_M_MIGRATION.md) before continuing the bootstrap below. Migration is a one-time transformation that brings the library's artifacts to the current skill version. The bootstrap resumes after migration.
@@ -164,8 +175,8 @@ One line per module. Status only. Substantive reasoning belongs in process-log, 
 
 | Module | Status | Sources Re-Read | Tokens |
 |--------|--------|-----------------|--------|
-| F0_agent_behavioral_standards | complete | (template — verbatim) | [est] |
-| S0_natural_prose_standards | complete | (template — verbatim) | [est] |
+| F0_agent_behavioral_standards | complete | (vendored from makegood-guardrails @ locked version) | [est] |
+| S0_natural_prose_standards | complete | (vendored from makegood-guardrails @ locked version) | [est] |
 | F1_organizational_identity | complete | identity.md, history.md | [est] |
 | [Module ID] | pending / complete | [files] | [est] |
 

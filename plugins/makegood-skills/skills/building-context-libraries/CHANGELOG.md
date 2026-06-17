@@ -4,6 +4,23 @@ All notable changes to this skill are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this skill follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] — 2026-06-16
+
+### Added
+- **Guardrails (F0/S0) are now a pinned versioned dependency, not hand-copied files.** F0_agent_behavioral_standards and S0_natural_prose_standards are owned by a separate repository, [makegood-guardrails](https://github.com/WeMakeGood/makegood-guardrails), which publishes them as independently semver-tagged modules. A library declares the versions it uses in a `guardrails.lock` at its root and vendors them into `modules/`. This removes the drift that hand-copied guardrails accumulate across many libraries, makes each library's guardrail version an explicit recorded fact, and makes adopting a guardrail change (e.g. a new process gate) a deliberate, auditable bump rather than a silent edit. See ARCHITECTURE.md, "Guardrails as a Versioned Dependency."
+- **`build-deploy-bundles.py` gains guardrail resolution.** `--resolve-guardrails` fetches the declared versions and vendors them into `modules/` with a `GENERATED` banner; `--update-guardrails KEY=VERSION` is the deliberate upgrade (bump declared + re-resolve); `--check` additionally reports (report-only) when a vendored guardrail has been hand-edited away from its locked version. The default bundle build is unchanged and stays fully offline — resolution is a separate network step.
+- **`templates/guardrails.lock`** (new template). Copied into a new library's root during Phase 4; pins the F0/S0 versions to vendor.
+- **Phase M migration `guardrails-versioning` (1.6.x → 1.7.0).** Converts an existing hand-owned-guardrails library to the versioned-dependency system. Zero-behavior-change: it matches the library's current F0/S0 to an upstream version and pins that. One interactive judgment — when a library's guardrails were hand-edited and match no upstream version, the migration stops and surfaces the fork rather than silently overwriting. Bootstrap detects the signal (F0 present, no `guardrails.lock`) and offers the migration. The migration has a second path (case b) for libraries already on the system whose vendored build script is stale — it refreshes only the script.
+- **The build script is now a version-locked artifact.** `build-deploy-bundles.py` carries a `SCRIPT_VERSION` (reported by `--version`) tied to the skill version. A library's `build-state.md` records both the skill version it was built with and the vendored script version (new "Skill & Tooling Version" block). This closes a drift class the rest of the system otherwise left open: a library can be fully current on artifact *shapes* yet carry a stale build script. The bootstrap now treats a recorded-version-behind (or a missing version block) as a migration signal, and migrations refresh the vendored script as a general responsibility — so the skill keeps each library's tooling current rather than the library refreshing itself.
+
+### Changed
+- **Phase 4 build sequence** now vendors guardrails (copy `guardrails.lock`, run `--resolve-guardrails`) before building bundles. The build fails loudly if the guardrails repo is unreachable rather than producing a library whose agents reference missing F0/S0.
+- **`templates/guardrails/F0` and `S0` are now reference-only**, not the seed — kept for the worked-example shape lesson and offline inspection, clearly labeled. Libraries vendor from makegood-guardrails. (This also corrects a `module_id: F#` typo that the old seed would have propagated into new libraries.)
+
+### Dependencies
+- The guardrail subcommands of `build-deploy-bundles.py` require **PyYAML**. The import is deferred and guarded — the default bundle build (and `--all-inclusive`) still run with no external dependencies; only `--resolve-guardrails` / `--update-guardrails` / guardrail drift in `--check` need it, and they fail with an install hint if it's absent.
+- Builds and the 1.7 migration require **network access** to the makegood-guardrails repo. Resolution is the only networked step; a built library rebuilds bundles fully offline thereafter.
+
 ## [1.6.0] — 2026-05-07
 
 ### Added
