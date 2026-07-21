@@ -598,10 +598,10 @@ Every context library includes two standard guardrail modules, vendored from `ma
 ### S0_natural_prose_standards (Shared)
 
 **External-facing agents load this module.** Covers:
-- Banned AI-detectable vocabulary
-- Banned syntactic patterns
-- Required writing behaviors
-- Practitioner voice gate
+- Practitioner voice gate (routes to a loaded voice profile first — the profile is the voice, S0 is the floor)
+- Earned-claims and lead-with-the-point gates
+- Medium's-shape gate (chat formatting stays out of prose deliverables)
+- The Revision Backstop — the current-generation prose-signature list, spliced in from the separately versioned `s0-backstop` artifact (maintained by measurement, not recollection; see makegood-guardrails' `HARVEST_PLAN.md`)
 
 ### When to Load Each
 
@@ -614,14 +614,16 @@ Every context library includes two standard guardrail modules, vendored from `ma
 
 ### Guardrails as a Versioned Dependency
 
-F0 and S0 are not authored or owned inside each library. They are owned by a separate repository, `makegood-guardrails`, which publishes them as independently semver-tagged modules (`f0-vX.Y.Z`, `s0-vX.Y.Z`). A library consumes them as a pinned dependency rather than holding a hand-edited copy. This exists because hand-copied guardrails across many libraries drift into incompatible versions with no record of which library runs which and no way to propagate a fix without editing every copy.
+F0 and S0 are not authored or owned inside each library. They are owned by a separate repository, `makegood-guardrails`, which publishes them as independently semver-tagged artifacts (`f0-vX.Y.Z`, `s0-vX.Y.Z`, `s0-backstop-vX.Y.Z`). A library consumes them as a pinned dependency rather than holding a hand-edited copy. This exists because hand-copied guardrails across many libraries drift into incompatible versions with no record of which library runs which and no way to propagate a fix without editing every copy.
+
+**S0 is composed at resolve time (S0 ≥ 2.0.0).** The S0 core holds the durable gates; the `s0-backstop` artifact holds the volatile current-generation prose-signature list, versioned on its own cadence because it tracks the model landscape rather than the prose philosophy. At resolve time the backstop body is spliced into the vendored S0 between `BACKSTOP:BEGIN/END` markers — the lock records both versions (`S0` and `S0_BACKSTOP`), and agents still receive a single S0 file. Libraries pinned to S0 1.x resolve unchanged through the legacy single-fetch path.
 
 The mechanism, all handled by `build-deploy-bundles.py`:
 
 - **`guardrails.lock`** at the library root records two facts: `declared` (the version the library accepts) and `resolved` (the version actually fetched, with its commit sha and the vendored path). Bundles are built from the vendored file the lock points at. The lock is committed — it is the library's record of which guardrail versions its agents run.
 - **`--resolve-guardrails`** fetches the declared versions from `makegood-guardrails` and writes them into the library's `modules/`, each with a `<!-- GENERATED ... -->` banner marking it as vendored, not hand-authored. This is a network step.
 - **`--update-guardrails F0=<version>`** is the deliberate upgrade: it bumps `declared` and re-resolves, producing a reviewable diff and a commit in the library's own repo. Adopting a new guardrail version (e.g. a new process gate) is always this explicit act — never automatic.
-- **`--check`** reports (report-only, never auto-fixes) when a vendored guardrail has been hand-edited away from its locked version. It respects libraries in repos the team no longer owns: it surfaces drift but takes no action.
+- **`--check`** reports (report-only, never auto-fixes) two things: `[DRIFT]` when a vendored guardrail has been hand-edited away from its locked version (for a composed S0, the comparison re-composes core + backstop at their locked tags), and `[NEWER]` when upstream has a newer tagged version than the library declares — so stale libraries surface themselves without adoption ever becoming automatic. It respects libraries in repos the team no longer owns: it surfaces findings but takes no action.
 
 **Pinned by default.** A library does not move to a new guardrail version until someone runs `--update-guardrails`. This keeps a library stable through an engagement while another library adopts a change on its own schedule.
 

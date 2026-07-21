@@ -1,6 +1,7 @@
-# guardrails.lock — pins the behavioral guardrail modules (F0, S0) this library
-# uses. Governs ALL agents in this library. Managed by
-# scripts/build-deploy-bundles.py --resolve-guardrails / --update-guardrails.
+# guardrails.lock — pins the behavioral guardrail artifacts (F0, S0, and S0's
+# spliced backstop) this library uses. Governs ALL agents in this library.
+# Managed by scripts/build-deploy-bundles.py --resolve-guardrails /
+# --update-guardrails.
 #
 # Do NOT hand-edit the `resolved:` block — it records exactly what was fetched
 # and vendored, and bundles are built from the vendored files it points at.
@@ -8,6 +9,12 @@
 #
 # `declared` is intent (what this library accepts). `resolved` is actuality
 # (what was fetched). For a pinned library the two match.
+#
+# S0_BACKSTOP is the current-generation prose-signature list, versioned
+# separately from the S0 core (it tracks the model landscape, not the prose
+# philosophy). It has no vendored file of its own — it is spliced into the
+# vendored S0 between BACKSTOP markers at resolve time, so agents receive a
+# single S0 file. Requires S0 >= 2.0.0.
 #
 # TEMPLATE: copied into a new library's root during Phase 4, then populated by
 # --resolve-guardrails (which fills the resolved shas). The declared versions
@@ -17,17 +24,23 @@
 source: https://github.com/WeMakeGood/makegood-guardrails
 
 declared:
-  F0: 1.3.0
-  S0: 1.0.0
+  F0: 2.0.0
+  S0: 2.0.1
+  S0_BACKSTOP: 1.1.0
 
 resolved:
   F0:
-    version: 1.3.0
-    tag: f0-v1.3.0
+    version: 2.0.0
+    tag: f0-v2.0.0
     sha: null
     vendored: modules/foundation/F0_agent_behavioral_standards.md
   S0:
-    version: 1.0.0
-    tag: s0-v1.0.0
+    version: 2.0.1
+    tag: s0-v2.0.1
     sha: null
     vendored: modules/shared/S0_natural_prose_standards.md
+  S0_BACKSTOP:
+    version: 1.1.0
+    tag: s0-backstop-v1.1.0
+    sha: null
+    spliced_into: modules/shared/S0_natural_prose_standards.md

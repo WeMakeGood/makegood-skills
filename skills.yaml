@@ -15,7 +15,7 @@ skills:
 
   - name: building-context-libraries
     repo: WeMakeGood/building-context-libraries
-    tag: v1.7.0
+    tag: v1.8.1
 
   - name: creating-organization-dossiers
     repo: WeMakeGood/creating-organization-dossiers

@@ -40,6 +40,7 @@ Each migration has: a name, a from-version, a to-version, what triggers it, and 
 | 1.4.x | 1.5.0 | `agent-manifest-load-discipline` | Agent manifests use tier-grouped `modules:` (foundation/shared/specialized) and separate `addenda:` |
 | 1.5.x | 1.6.0 | `agent-include-and-bundles` | Agent files use `always_load:` / `conditional:` YAML frontmatter blocks |
 | 1.6.x | 1.7.0 | `guardrails-versioning` | Library has `modules/foundation/F0_agent_behavioral_standards.md` but no `guardrails.lock` at the root (hand-owned guardrails, not yet a versioned dependency) |
+| 1.7.x | 1.8.0 | `s0-backstop-splice` | Build-state records a skill/script version behind 1.8.0 (the generic tooling-stale signal — no artifact-shape change; the 1.8 script adds S0-backstop splice support and the `--check` upstream-newer notice) |
 
 When a new migration ships, add a row above. Migrations below this point are the actual migration content.
 
@@ -393,6 +394,59 @@ Backup: <OUTPUT_PATH>/_pre_migration_backup/
 ```
 
 If the user wants to additionally adopt a newer guardrail version (e.g. the latest F0 with a new process gate), that is a post-migration step: `scripts/build-deploy-bundles.py --update-guardrails F0=<newer>`, then rebuild. Keep it distinct from the migration in the log — migration = adopt the *system*; update = adopt a *version*.
+
+---
+
+## Migration: s0-backstop-splice (1.7.x → 1.8.0)
+
+**Trigger:** the generic tooling-stale signal — build-state records a skill or script version behind 1.8.0, or the on-disk `scripts/build-deploy-bundles.py --version` reports < 1.8.0. There is no artifact-shape change in this migration: a 1.7 library's lock, vendored modules, agents, and bundles are all valid under 1.8 tooling.
+
+**What this migration does:** refreshes the version-locked build script (script-refresh path, per M3.4's general responsibility). The 1.8.0 script adds:
+
+- **S0-backstop splice support.** S0 2.0.0 upstream splits into a durable core (gates) and an independently versioned `s0-backstop` artifact (the current-generation prose-signature list, maintained by harvest — see the makegood-guardrails repo's `HARVEST_PLAN.md`). The lock gains an `S0_BACKSTOP` key; at resolve time the backstop body is spliced into the vendored S0 between `BACKSTOP:BEGIN/END` markers, so agents still receive a single S0 file. Libraries pinned to S0 1.x resolve unchanged through the legacy path.
+- **`--check` upstream-newer notice.** Report-only `[NEWER]` lines when upstream has a newer tagged version than the library declares, so stale libraries surface themselves. Adoption stays deliberate.
+
+**The migration does not change guardrail versions.** Per the migration/update distinction (M3.7): migration = adopt the *system*; update = adopt a *version*.
+
+### Steps
+
+**M4.1: Refresh the version-locked build script.**
+
+As M3.4: copy `templates/build-deploy-bundles.py` into `<OUTPUT_PATH>/scripts/`, confirm with `--version` (expect 1.8.0), update build-state's **Vendored build-deploy-bundles.py version** and **Built with skill version** lines.
+
+**M4.2: Verify nothing changed.**
+
+Run `scripts/build-deploy-bundles.py --check`. Expected output for a library still pinned to F0 1.x / S0 1.x: guardrails match their locked versions, bundles in sync, plus `[NEWER]` notices for F0 2.0.0 / S0 2.0.1 — **the notices are informational, not drift**; they are the new script doing its job.
+
+**M4.3: Offer the guardrail adoption (interactive — STOP for the user's decision).**
+
+The natural post-migration step is adopting the 2026-07-15 guardrail releases, and it is a **behavioral change** requiring the user's explicit yes:
+
+- **F0 2.0.0** (major): Gates 3–5 gain arming conditions (they no longer fire on fixed-framing, low-consequence, or instance-scoped work); new "Where the Gates Run" section (gates execute in reasoning, outputs carry products not ceremony); Gate 1's verbatim refusal template becomes a phrased-as-needed requirement.
+- **S0 2.0.1** (major vs 1.x; 2.0.1 is the sector-neutrality wording patch): core/backstop split; the Practitioner Voice gate routes to a loaded voice profile first; new fourth gate "Write in the Medium's Shape."
+- **s0-backstop 1.0.0**: the current-generation tic list (provisional pending first harvest).
+
+If the user accepts:
+
+```
+cd <OUTPUT_PATH> && scripts/build-deploy-bundles.py --update-guardrails F0=2.0.0 S0=2.0.1 S0_BACKSTOP=1.0.0
+scripts/build-deploy-bundles.py            # rebuild bundles
+scripts/build-deploy-bundles.py --check    # confirm: guardrails ok, no drift, no NEWER
+```
+
+(`--update-guardrails` adds the `S0_BACKSTOP` declaration to the lock automatically — it is the one guardrail key a library legitimately adds after the fact.) If the user declines, the library stays pinned and fully functional; `--check` keeps reporting the `[NEWER]` notices as a standing reminder.
+
+**M4.4: Log the migration.**
+
+Add to `process-log.md`:
+
+```
+### [YYYY-MM-DD] — Migration: s0-backstop-splice (1.7.x → 1.8.0)
+
+Build script refreshed to 1.8.0 (S0-backstop splice support, --check upstream-newer notice).
+Guardrail versions unchanged by the migration.
+Post-migration guardrail update: [declined | adopted F0 2.0.0, S0 2.0.1, s0-backstop 1.0.0 — bundles rebuilt].
+```
 
 ---
 

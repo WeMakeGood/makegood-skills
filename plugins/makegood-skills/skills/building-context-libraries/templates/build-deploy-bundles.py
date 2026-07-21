@@ -68,7 +68,7 @@ def _require_yaml() -> None:
 # into each library, and the library's build-state records this version. A
 # migration that ships a newer script re-vendors it and updates that record.
 # Bump this in lockstep with the skill version whenever the script changes.
-SCRIPT_VERSION = "1.7.0"
+SCRIPT_VERSION = "1.8.0"
 
 INCLUDE_PATTERN = re.compile(r"^\s*@(\S+)\s*$")
 
@@ -364,6 +364,111 @@ def strip_banner(text: str) -> str:
     return BANNER_RE.sub("", text, count=1)
 
 
+# ---------------------------------------------------------------------------
+# S0 backstop splice
+#
+# S0 2.0.0+ splits into a durable core (gates) and a volatile backstop (the
+# current-generation prose-signature list), versioned independently upstream
+# as the s0-backstop artifact. The core carries BACKSTOP:BEGIN/END markers;
+# at resolve time the backstop is fetched at its own tag and its body
+# (frontmatter stripped — the frontmatter is build metadata) is spliced
+# between the markers, producing a single vendored S0 file. Consumers see one
+# S0; only this script knows it's composed. Lock key: S0_BACKSTOP.
+#
+# S0 1.x has no markers and no backstop — the legacy single-fetch path still
+# applies, so libraries pinned to s0-v1.0.0 resolve unchanged.
+# ---------------------------------------------------------------------------
+
+SPLICE_KEY = "S0_BACKSTOP"
+SPLICE_HOST_KEY = "S0"
+BACKSTOP_MODULE_FILENAME = "S0_backstop.md"
+BACKSTOP_BEGIN = "<!-- BACKSTOP:BEGIN -->"
+BACKSTOP_END = "<!-- BACKSTOP:END -->"
+FRONTMATTER_RE = re.compile(r"\A---\n.*?\n---\n", re.S)
+SEMVER_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
+
+
+def tag_for(key: str, version: str) -> str:
+    """Lock key -> upstream tag: F0 -> f0-vX.Y.Z, S0_BACKSTOP -> s0-backstop-vX.Y.Z."""
+    return f"{key.lower().replace('_', '-')}-v{version}"
+
+
+def strip_frontmatter(text: str) -> str:
+    return FRONTMATTER_RE.sub("", text, count=1)
+
+
+def splice_backstop(host_text: str, backstop_body: str, tag: str, sha: str) -> str:
+    """Replace everything between the BACKSTOP markers in the S0 core with the
+    backstop body plus a provenance comment. The markers themselves are kept,
+    so a later re-resolve splices into a fresh upstream core, never into an
+    already-spliced file."""
+    begin = host_text.find(BACKSTOP_BEGIN)
+    end = host_text.find(BACKSTOP_END)
+    if begin == -1 or end == -1 or end < begin:
+        raise RuntimeError(
+            "S0 core is missing its BACKSTOP:BEGIN/END markers — cannot splice "
+            f"the {SPLICE_KEY} artifact. S0 2.0.0+ is required."
+        )
+    head = host_text[: begin + len(BACKSTOP_BEGIN)]
+    tail = host_text[end:]
+    provenance = (
+        f"<!-- Spliced from s0-backstop@{tag} (sha {sha}). Do not hand-edit "
+        "between these markers; edit upstream in makegood-guardrails and re-lock. -->"
+    )
+    return (
+        head + "\n" + provenance + "\n\n"
+        + backstop_body.strip("\n") + "\n\n" + tail
+    )
+
+
+def compose_s0_body(
+    source: str, s0_tag: str, backstop_tag: str, module_filename: str
+) -> tuple[str, str, str]:
+    """Fetch the S0 core and the backstop at their respective tags and return
+    (spliced_body, s0_sha, backstop_sha). Network step."""
+    core_body, s0_sha = fetch_module(source, s0_tag, module_filename)
+    if BACKSTOP_BEGIN not in core_body:
+        raise RuntimeError(
+            f"S0 at {s0_tag} has no BACKSTOP markers but {SPLICE_KEY} is "
+            "declared in the lock. Pin S0 to 2.0.0 or later, or remove the "
+            f"{SPLICE_KEY} declaration."
+        )
+    raw_backstop, b_sha = fetch_module(source, backstop_tag, BACKSTOP_MODULE_FILENAME)
+    body = splice_backstop(
+        core_body, strip_frontmatter(raw_backstop), backstop_tag, b_sha
+    )
+    return body, s0_sha, b_sha
+
+
+def latest_upstream_versions(source: str, keys) -> dict[str, str]:
+    """Query upstream tags (git ls-remote — no clone) and return the highest
+    semver per lock key. Used by --check's report-only upstream-newer notice."""
+    result = subprocess.run(
+        ["git", "ls-remote", "--tags", source], capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"git ls-remote {source} failed: {result.stderr.strip()}"
+        )
+    prefixes = {key: f"{key.lower().replace('_', '-')}-v" for key in keys}
+    latest: dict[str, tuple[int, int, int]] = {}
+    for line in result.stdout.splitlines():
+        parts = line.split("\t")
+        if len(parts) != 2 or not parts[1].startswith("refs/tags/"):
+            continue
+        name = parts[1][len("refs/tags/"):]
+        if name.endswith("^{}"):
+            name = name[: -len("^{}")]
+        for key, prefix in prefixes.items():
+            if name.startswith(prefix):
+                match = SEMVER_RE.match(name[len(prefix):])
+                if match:
+                    version = tuple(int(x) for x in match.groups())
+                    if key not in latest or version > latest[key]:
+                        latest[key] = version
+    return {k: ".".join(str(x) for x in v) for k, v in latest.items()}
+
+
 def fetch_module(source: str, tag: str, module_filename: str) -> tuple[str, str]:
     """Shallow-clone the makegood-guardrails repo at `tag`, read
     modules/<module_filename>, return (body_text, resolved_sha). Network step.
@@ -404,8 +509,9 @@ def resolve_guardrails(repo_root: Path) -> int:
     resolved = lock.setdefault("resolved", {})
 
     for key, version in declared.items():
-        prefix = key.lower()  # F0 -> f0
-        tag = f"{prefix}-v{version}"
+        if key == SPLICE_KEY:
+            continue  # resolved together with its host module below
+        tag = tag_for(key, version)
         entry = resolved.get(key)
         if not entry or "vendored" not in entry:
             raise RuntimeError(
@@ -416,7 +522,27 @@ def resolve_guardrails(repo_root: Path) -> int:
         module_filename = Path(vendored_rel).name
 
         print(f"  resolving {key} {version} (tag {tag})...")
-        body, sha = fetch_module(source, tag, module_filename)
+        if key == SPLICE_HOST_KEY and SPLICE_KEY in declared:
+            backstop_version = declared[SPLICE_KEY]
+            backstop_tag = tag_for(SPLICE_KEY, backstop_version)
+            print(f"    splicing {SPLICE_KEY} {backstop_version} (tag {backstop_tag})...")
+            body, sha, backstop_sha = compose_s0_body(
+                source, tag, backstop_tag, module_filename
+            )
+            resolved[SPLICE_KEY] = {
+                "version": backstop_version,
+                "tag": backstop_tag,
+                "sha": backstop_sha,
+                "spliced_into": vendored_rel,
+            }
+        else:
+            body, sha = fetch_module(source, tag, module_filename)
+            if key == SPLICE_HOST_KEY and BACKSTOP_BEGIN in body:
+                raise RuntimeError(
+                    f"S0 {version} carries BACKSTOP splice markers but "
+                    f"{SPLICE_KEY} is not declared in {LOCK_NAME}. Add it "
+                    f"(e.g. --update-guardrails {SPLICE_KEY}=1.0.0) and re-resolve."
+                )
 
         dest = repo_root / vendored_rel
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -447,51 +573,107 @@ def update_guardrails(repo_root: Path, bumps: list[str]) -> int:
         key = key.strip()
         version = version.strip()
         if key not in declared:
-            raise RuntimeError(
-                f"'{key}' is not a declared guardrail in {LOCK_NAME} "
-                f"(have: {', '.join(declared)})"
-            )
-        print(f"  declaring {key} -> {version} (was {declared[key]})")
+            if key == SPLICE_KEY:
+                # The backstop is the one guardrail a library legitimately
+                # adds after the fact (adopting the S0 2.0.0 split).
+                print(f"  adding new declared guardrail {key} = {version}")
+            else:
+                raise RuntimeError(
+                    f"'{key}' is not a declared guardrail in {LOCK_NAME} "
+                    f"(have: {', '.join(declared)})"
+                )
+        else:
+            print(f"  declaring {key} -> {version} (was {declared[key]})")
         declared[key] = version
     write_lock(repo_root, lock)
     return resolve_guardrails(repo_root)
 
 
-def check_guardrails(repo_root: Path) -> list[str]:
-    """Report-only. Compare each vendored guardrail file's body (banner
-    stripped) against the version recorded in the lock's resolved block, by
-    re-fetching from upstream. Returns a list of human-readable drift messages;
-    empty list means in sync. Never modifies anything."""
-    messages: list[str] = []
+def check_guardrails(repo_root: Path) -> list[tuple[str, str]]:
+    """Report-only. Two checks, neither of which modifies anything or fails
+    the run:
+
+    1. Drift — compare each vendored guardrail file's body (banner stripped)
+       against the version recorded in the lock's resolved block, by
+       re-fetching from upstream. For S0 with a spliced backstop, the expected
+       body is re-composed (core + backstop at their locked tags).
+    2. Upstream-newer — report when upstream has a newer tagged version than
+       the library declares, so stale libraries surface themselves. Adoption
+       stays deliberate (--update-guardrails); this is a notice, not an action.
+
+    Returns (level, message) tuples; level is DRIFT, NEWER, or WARN.
+    Empty list means in sync and current."""
+    messages: list[tuple[str, str]] = []
     try:
         lock = load_lock(repo_root)
     except RuntimeError as exc:
-        return [str(exc)]
+        return [("WARN", str(exc))]
     source = lock["source"]
+    declared = lock.get("declared", {})
     resolved = lock.get("resolved", {})
 
     for key, entry in resolved.items():
+        if key == SPLICE_KEY:
+            continue  # verified as part of its host module's composed body
         vendored_rel = entry.get("vendored")
         tag = entry.get("tag")
         if not vendored_rel or not tag:
-            messages.append(f"{key}: lock resolved block incomplete")
+            messages.append(("DRIFT", f"{key}: lock resolved block incomplete"))
             continue
         dest = repo_root / vendored_rel
         if not dest.exists():
-            messages.append(f"{key}: vendored file missing at {vendored_rel}")
+            messages.append(
+                ("DRIFT", f"{key}: vendored file missing at {vendored_rel}")
+            )
             continue
         try:
-            upstream_body, _ = fetch_module(source, tag, Path(vendored_rel).name)
+            if key == SPLICE_HOST_KEY and SPLICE_KEY in resolved:
+                backstop_tag = resolved[SPLICE_KEY].get("tag")
+                if not backstop_tag:
+                    messages.append(
+                        ("DRIFT", f"{SPLICE_KEY}: lock resolved block incomplete")
+                    )
+                    continue
+                upstream_body, _, _ = compose_s0_body(
+                    source, tag, backstop_tag, Path(vendored_rel).name
+                )
+            else:
+                upstream_body, _ = fetch_module(
+                    source, tag, Path(vendored_rel).name
+                )
         except RuntimeError as exc:
-            messages.append(f"{key}: could not verify against upstream ({exc})")
+            messages.append(
+                ("WARN", f"{key}: could not verify against upstream ({exc})")
+            )
             continue
         local_body = strip_banner(dest.read_text())
         if local_body != upstream_body:
-            messages.append(
+            messages.append((
+                "DRIFT",
                 f"{key}: vendored {vendored_rel} differs from {tag} upstream "
                 "— it was hand-edited, or the lock points at the wrong tag. "
-                "Re-run --resolve-guardrails to restore."
-            )
+                "Re-run --resolve-guardrails to restore.",
+            ))
+
+    # Upstream-newer notice (one ls-remote for all keys; no clone).
+    try:
+        latest = latest_upstream_versions(source, declared.keys())
+        for key, declared_version in declared.items():
+            match = SEMVER_RE.match(str(declared_version))
+            if not match or key not in latest:
+                continue
+            declared_tuple = tuple(int(x) for x in match.groups())
+            latest_tuple = tuple(int(x) for x in latest[key].split("."))
+            if latest_tuple > declared_tuple:
+                messages.append((
+                    "NEWER",
+                    f"{key}: {latest[key]} available upstream (declared: "
+                    f"{declared_version}) — adopt with --update-guardrails "
+                    f"{key}={latest[key]}",
+                ))
+    except RuntimeError as exc:
+        messages.append(("WARN", f"could not query upstream tags ({exc})"))
+
     return messages
 
 
@@ -592,9 +774,9 @@ def main() -> int:
             g_messages = check_guardrails(repo_root)
             if g_messages:
                 print("  guardrails:")
-                for msg in g_messages:
-                    print(f"    [DRIFT] {msg}")
-            else:
+                for level, msg in g_messages:
+                    print(f"    [{level}] {msg}")
+            if not any(level == "DRIFT" for level, _ in g_messages):
                 print("  [ok] guardrails match locked versions")
 
         drift = []

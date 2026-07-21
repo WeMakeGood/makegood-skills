@@ -4,6 +4,29 @@ All notable changes to this skill are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this skill follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.1] — 2026-07-20
+
+### Changed
+- **Seed default bumped to `S0_BACKSTOP: 1.1.0`.** `templates/guardrails.lock` now seeds new libraries at the first harvest-measured backstop (upstream `s0-backstop-v1.1.0`, 2026-07-20 Opus 4.8 + Sonnet 5 pass), and `templates/guardrails/S0_backstop.md` reference copy refreshed to the 1.1.0 compiled-artifact body. No tooling change — `build-deploy-bundles.py` is unchanged (still `SCRIPT_VERSION` 1.8.0), so no migration is required; existing libraries adopt the new backstop the normal way, `--update-guardrails S0_BACKSTOP=1.1.0`. F0 (2.0.0) and S0 core (2.0.1) seed defaults are unchanged.
+
+### Driven by
+The first real harvest replacing recollection with measurement — the point of the whole system. Upstream: makegood-guardrails s0-backstop-v1.1.0.
+
+## [1.8.0] — 2026-07-15
+
+### Added
+- **S0-backstop splice support in `build-deploy-bundles.py`.** S0 2.0.0 upstream splits into a durable core (gates) and the independently versioned `s0-backstop` artifact — the current-generation prose-signature list, maintained by measurement rather than recollection (see makegood-guardrails' `HARVEST_PLAN.md` for the harvest protocol). The lock gains an `S0_BACKSTOP` key; `--resolve-guardrails` fetches core and backstop at their respective tags and splices the backstop body (frontmatter stripped) into the vendored S0 between `BACKSTOP:BEGIN/END` markers. Agents still receive a single S0 file; only the tooling knows it's composed. Libraries pinned to S0 1.x resolve unchanged through the legacy path. `--update-guardrails S0_BACKSTOP=<ver>` may *add* the key to a lock that lacks it (the one guardrail a library legitimately adds after the fact); `--check` verifies a composed S0 by re-composing core + backstop at their locked tags.
+- **`--check` upstream-newer notice.** One `git ls-remote` (no clone) compares each declared guardrail version against the highest semver tag upstream and prints report-only `[NEWER]` lines with the exact `--update-guardrails` command to adopt. Stale libraries surface themselves; adoption stays deliberate — the notice never fails the run and nothing auto-updates.
+- **Migration `s0-backstop-splice` (1.7.x → 1.8.0)** in PHASE_M_MIGRATION.md. Script-refresh only (no artifact-shape change); triggered by the generic tooling-stale signal. Includes an interactive post-migration offer to adopt F0 2.0.0 / S0 2.0.1 / s0-backstop 1.0.0, kept distinct from the migration per the migration-vs-update principle.
+
+### Changed
+- **`templates/guardrails.lock`** seeds new libraries at F0 2.0.0 / S0 2.0.1 / S0_BACKSTOP 1.0.0.
+- **`templates/guardrails/` reference copies refreshed** to F0 2.0.0 and S0 2.0.1, plus a new `S0_backstop.md` reference copy.
+- **`SCRIPT_VERSION` → 1.8.0.**
+
+### Driven by
+The 2026-07-15 guardrails audit: S0's backstop list was authored from recollection of what AI prose sounds like — stale by construction (training-cutoff staleness plus a model's partial blindness to its own generation's tics). Splitting the volatile list from the durable gates gives harvest-measured updates a versioned artifact to land in, distributed through the existing lock pipeline. Upstream releases: makegood-guardrails f0-v2.0.0, s0-v2.0.1, s0-backstop-v1.0.0.
+
 ## [1.7.0] — 2026-06-16
 
 ### Added
