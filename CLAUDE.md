@@ -1,6 +1,6 @@
 # Make Good Skills — Aggregator Plugin
 
-This repo is the **aggregator plugin** for Make Good's Claude Code skills. It bundles all 18 per-skill repos into a single installable plugin so users can run `/plugin install makegood-skills@makegood-skills` and get everything at once.
+This repo is the **aggregator plugin** for Make Good's Claude Code skills. It bundles all 19 per-skill repos into a single installable plugin so users can run `/plugin install makegood-skills@makegood-skills` and get everything at once.
 
 ## Source of truth
 
@@ -26,7 +26,7 @@ makegood-skills/
 │       └── skills/                   # Vendored from per-skill repos by sync_skills.py
 │           ├── auditing-skills/
 │           ├── building-context-libraries/
-│           └── ... (18 skill folders total)
+│           └── ... (19 skill folders total)
 ├── scripts/
 │   └── sync_skills.py                # Pulls vendored content from GitHub releases
 ├── skills.yaml                       # Manifest: name, repo, tag for each skill

@@ -12,7 +12,7 @@
     {
       "name": "makegood-skills",
       "source": "./plugins/makegood-skills",
-      "description": "All 18 Make Good skills bundled as one installable plugin. Includes writing tools (drafting articles, case studies, social campaigns), research tools (interviews, organization dossiers, YouTube channels), client-work tools (project dossiers, meeting reports, DOCX edit processing), web design (websites, Divi variables), and AI development tools (creating skills, auditing skills, building context libraries, voice profiles, writing standards, video scripts, article series).",
+      "description": "All 19 Make Good skills bundled as one installable plugin. Includes writing tools (drafting articles, case studies, social campaigns), research tools (interviews, organization dossiers, YouTube channels), client-work tools (project dossiers, meeting reports, transcript cleanup, DOCX edit processing), web design (websites, Divi variables), and AI development tools (creating skills, auditing skills, building context libraries, voice profiles, writing standards, video scripts, article series).",
       "category": "make-good",
       "tags": ["make-good", "writing", "research", "context", "ai", "client-work"]
     }
