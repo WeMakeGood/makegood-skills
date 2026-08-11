@@ -15,11 +15,11 @@ skills:
 
   - name: building-context-libraries
     repo: WeMakeGood/building-context-libraries
-    tag: v1.8.1
+    tag: v1.10.0
 
   - name: cleaning-transcripts
     repo: WeMakeGood/cleaning-transcripts
-    tag: v1.1.0
+    tag: v1.2.0
 
   - name: creating-organization-dossiers
     repo: WeMakeGood/creating-organization-dossiers

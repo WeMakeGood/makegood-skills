@@ -97,7 +97,8 @@ Records which skill version produced this library's artifacts and which version 
 - Agent files in `<OUTPUT_PATH>/agents/` whose frontmatter uses `modules:` with `foundation:` / `shared:` / `specialized:` subkeys, or has a top-level `addenda:` list (pre-1.5 tier-grouped format)
 - Agent files whose frontmatter has `always_load:` and/or `conditional:` YAML blocks (1.5 manifest format — needs migration to 1.6's `@`-include + table shape)
 - Agent files missing a `## Required Reading` section with `@`-include directives (any pre-1.6 format)
-- A `modules/foundation/F0_agent_behavioral_standards.md` present with NO `guardrails.lock` at the library root (pre-1.7 hand-owned guardrails — needs migration to the versioned-dependency system)
+- A hand-owned behavioral-standards module in `modules/foundation/` (`F0_agent_behavioral_standards.md` pre-rename, `G1_` after) with NO `guardrails.lock` at the library root (pre-1.7 hand-owned guardrails — needs migration to the versioned-dependency system)
+- `guardrails.lock` declaring `F0`, `S0`, or `S0_BACKSTOP` keys, or `F0_`/`S0_`-prefixed files under `modules/` (pre-1.10 guardrail naming — the upstream modules are now `G1`/`G2`; the old tags still resolve, so this is silent rather than broken)
 - build-state records a **Built with skill version** or **Vendored build-deploy-bundles.py version** behind the running skill — OR build-state has no Skill & Tooling Version block at all (pre-1.7 build-state). The library's vendored build script is stale even if its artifact shapes are current; a migration refreshes it. (Confirm the on-disk script version with `<OUTPUT_PATH>/scripts/build-deploy-bundles.py --version` if build-state's record is absent or suspect.)
 - Any other format mismatch between artifacts on disk and the current skill version's expected shapes
 
@@ -175,8 +176,8 @@ One line per module. Status only. Substantive reasoning belongs in process-log, 
 
 | Module | Status | Sources Re-Read | Tokens |
 |--------|--------|-----------------|--------|
-| F0_agent_behavioral_standards | complete | (vendored from makegood-guardrails @ locked version) | [est] |
-| S0_natural_prose_standards | complete | (vendored from makegood-guardrails @ locked version) | [est] |
+| G1_agent_behavioral_standards | complete | (vendored from makegood-guardrails @ locked version) | [est] |
+| G2_natural_prose_standards | complete | (vendored from makegood-guardrails @ locked version) | [est] |
 | F1_organizational_identity | complete | identity.md, history.md | [est] |
 | [Module ID] | pending / complete | [files] | [est] |
 
@@ -346,11 +347,12 @@ Each section was committed to a Section Plan (Phase 4, Step 5) before being writ
 - The shape (reasoning context | decision framework | prescriptive rule | cross-reference | reach-beyond signal)
 - The owned content the section needs (with use-shape from the proposal's Ownership and Use-Shape table)
 - The source patterns the section encodes
-- The extracted reasoning from any quote or named-individual content (not the quote, not the name)
+- For reported speech or named individuals: the extracted reasoning (not the speaker framing, not the name)
+- For the organization's own terms: the language preserved verbatim, inside instruction shape
 
 Verify after writing: each section reflects what the plan committed to. If a section drifts to a different shape, the upstream plan was wrong — redo the plan, do not edit the prose.
 
-For shape reference: F0 in templates/guardrails/ is a worked example of mixed-shape content. See ARCHITECTURE.md, "Shape Reference: F0 as a Worked Example."
+For shape reference: G1 in templates/guardrails/ is a worked example of mixed-shape content. See ARCHITECTURE.md, "Shape Reference: G1 as a Worked Example."
 
 HIGH-STAKES content (legal names, EINs, addresses, titles, dates, financials): copy EXACTLY from sources.
 
@@ -542,10 +544,10 @@ You are [the organization]'s [domain] practitioner. [2-3 sentences: what you do,
 
 ## Required Reading
 
-@modules/foundation/F0_agent_behavioral_standards.md
+@modules/foundation/G1_agent_behavioral_standards.md
 @modules/foundation/F1_[name].md
 @modules/foundation/F2_[name].md
-@modules/shared/S0_natural_prose_standards.md
+@modules/shared/G2_natural_prose_standards.md
 @modules/shared/S1_[name].md
 @modules/specialized/D1_[name].md
 @addenda/reference/A0_organizational_reference.md
@@ -586,8 +588,8 @@ Token Budget:
 Item Rationale:
 | Item | Classification | Why This Classification |
 |------|----------------|-------------------------|
-| F0_agent_behavioral_standards | always_load (Required Reading) | Hard rule (see SKILL.md) |
-| S0_natural_prose_standards | always_load (Required Reading) | Hard rule (see SKILL.md) |
+| G1_agent_behavioral_standards | always_load (Required Reading) | Hard rule (see SKILL.md) |
+| G2_natural_prose_standards | always_load (Required Reading) | Hard rule (see SKILL.md) |
 | [ID] | always_load (Required Reading) | [Why this governs every output for this agent] |
 | [ID] | conditional (table) | [Why this applies only in specific contexts] |
 
@@ -603,7 +605,7 @@ Build Notes:
 - **`## Conditional Loads` is a single table with one row per file.** Wildcards (`A_funder_*`) get expanded into individual rows, each with its own plain-language `load_when:` trigger. The triggers must meet the Trigger Discipline — one axis, plain "when X" phrasing, right-side specificity (see ARCHITECTURE.md, "Trigger Discipline").
 - **The escalation block uses an organization-specific role name.** Phase 3 Design commits the role-name choice for the library (`Engagement Principal`, `Engagement Lead`, `Project Sponsor`, `User`, etc.). The build agent uses the same name across all agent files for the library.
 - **No "Your Context" descriptive section.** The previous template described what each module gave the agent; module purpose comes through each module's own `## Purpose` section at expansion time. The descriptive section duplicated content that surfaces when the module loads.
-- **F0 and S0 are hard-rule Required Reading.** F0_agent_behavioral_standards has an `@`-directive in Required Reading whenever it appears in the agent's set; S0_natural_prose_standards has an `@`-directive in Required Reading whenever it appears (i.e., for any agent that writes anything for any audience). No exceptions.
+- **G1 and G2 are hard-rule Required Reading.** G1_agent_behavioral_standards has an `@`-directive in Required Reading whenever it appears in the agent's set; G2_natural_prose_standards has an `@`-directive in Required Reading whenever it appears (i.e., for any agent that writes anything for any audience). No exceptions.
 
 ---
 
@@ -705,19 +707,34 @@ The bracketed placeholders are intentional — examples that name concrete conte
 
 Every row where Used By is non-empty must have a use-shape. A row without a use-shape is incomplete.
 
+**No row instructs Build to replace one of the organization's terms with a different phrase.** The table assigns where content lives; it does not rewrite vocabulary. A term proposed for replacement leaves the table and becomes an explicit question at the Phase 3 STOP — see the Terminology section below.
+
+## Terminology
+
+Terms the sources use repeatedly for the organization, its roles, and its methods. These carry into modules verbatim by default; Build's `Language to preserve` field draws on them.
+
+| Term | Evidenced in | Decision |
+|------|--------------|----------|
+| [term as the sources say it] | [source count or names, from the signal log] | Carry through |
+| [term the user chose to drop or replace] | [sources] | [What replaces it, and the user's stated reason] |
+
+Populated from the signal log's recurring-vocabulary entries. **"Carry through" is the default and needs no justification** — repetition across sources is what makes a term the organization's, whatever its origin. A term picked up from a client, a founder's previous field, or a sector's shorthand is the organization's once the organization uses it.
+
+Any other decision is the user's, made at the Phase 3 STOP, with their reason recorded here. Build reads this table; a term marked "Carry through" is not a candidate for paraphrase, and a term the user chose to drop stays out.
+
 ## Load-Discipline Classification
 
 For each (item, agent) pair where the item is in the agent's set, classify as `always_load` (governs every output that agent produces) or `conditional` (applies only in specific task/audience contexts). See ARCHITECTURE.md, "Load Discipline" for the classification rule.
 
 **Hard rules:**
 
-- `F0_agent_behavioral_standards` is `always_load` whenever it appears in any agent's set.
-- `S0_natural_prose_standards` is `always_load` whenever it appears in any agent's set.
+- `G1_agent_behavioral_standards` is `always_load` whenever it appears in any agent's set.
+- `G2_natural_prose_standards` is `always_load` whenever it appears in any agent's set.
 
 | Item | Container | Agent | Classification | `load_when:` (if conditional) |
 |------|-----------|-------|----------------|-------------------------------|
-| F0_agent_behavioral_standards | module | [Agent A] | always_load | — |
-| S0_natural_prose_standards | module | [Agent A] | always_load | — |
+| G1_agent_behavioral_standards | module | [Agent A] | always_load | — |
+| G2_natural_prose_standards | module | [Agent A] | always_load | — |
 | F1_[name] | module | [Agent A] | always_load | — |
 | S2_[name] | module | [Agent A] | always_load | — |
 | S2_[name] | module | [Agent B] | conditional | "[Plain-language trigger]" |
@@ -730,7 +747,7 @@ Every (item, agent) pair where the item is in the agent's set must appear with a
 
 | Agent | Role | Always-Loaded Items | Conditional Items (count) | Total tokens (always_load only) | Budget % |
 |-------|------|---------------------|---------------------------|-------------------------------|----------|
-| [Name] | [What it does] | F0, F1, S0, S1, D1, ref/A0 | [n] | [X]K | [X]% |
+| [Name] | [What it does] | G1, F1, G2, S1, D1, ref/A0 | [n] | [X]K | [X]% |
 
 ## Gaps and Limitations
 
@@ -752,12 +769,13 @@ Recommended module build order:
 ---
 
 PHASE 4 RULES (embedded for compaction defense):
-- Read ARCHITECTURE.md before writing any module — including "The Runtime Agent's Perspective" and "Shape Reference: F0 as a Worked Example."
+- Read ARCHITECTURE.md before writing any module — including "The Runtime Agent's Perspective" and "Shape Reference: G1 as a Worked Example."
 - Modules are read by a runtime agent that has no awareness of sources, the build, or the library. Sentences that only make sense inside the build are contamination.
 - Per-module protocol (PHASE_4_BUILD.md) has 7 steps. The Substantive Source Surface (Step 4) and Section Plan (Step 5) are planning artifacts the agent commits to BEFORE writing prose. Do not skip them.
 - Re-read sources in the same turn you write each module.
 - Use the Ownership and Use-Shape table above. Every section that needs owned content uses the committed shape — cross-reference, subset, invocation by name, or reach-beyond. Restatement is not one of the shapes.
-- Quotes and named individuals from sources do not appear in modules. Extract the reasoning before generating, in the Section Plan. Quote-extraction is the default path.
+- Use the Terminology table above. Terms marked "Carry through" appear in modules as the organization says them.
+- Reported speech and named individuals do not appear in modules. Extract the reasoning before generating, in the Section Plan. The organization's own terminology is preserved verbatim inside instruction shape when the plan commits to it.
 - Modules tell the agent when to reach beyond themselves — load addenda, invoke skills, or ask the user.
 - Token budget is room for useful content, not a ceiling.
 - When a module fails self-check or user review, follow the failure-recovery protocol (PHASE_4_BUILD.md). Diagnose the upstream planning gap; do not regenerate prose from scratch.

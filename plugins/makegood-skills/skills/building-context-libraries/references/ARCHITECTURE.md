@@ -59,6 +59,12 @@ Metaprompting equips the agent to think like someone from the organization. It i
 
 4. **Reaching beyond modules** — The agent should recognize when it needs something modules don't provide: specific data (load an addendum), a capability (invoke a skill), or human judgment (ask the user). Modules that try to contain everything produce agents that never ask for help.
 
+5. **Naming and illustration** — What the organization calls a thing, in the words it uses, and the concrete instance that makes an abstract principle legible. This content is carried in the organization's own language rather than paraphrased. An agent that knows the organization calls a role "the fixer" can use the term; an agent handed a description of the role can only approximate it.
+
+**Why this is a distinct kind.** The other four carry reasoning the agent applies. This one carries the organization's idiom — the terms it uses for itself, its recurring frames, the illustration it reaches for when explaining. Paraphrasing it produces a description of a vocabulary rather than the vocabulary, and an agent cannot speak in a vocabulary it was only told about.
+
+**Scope.** Naming and illustration is a small fraction of any module. It does not license narrative, anecdote, or reportage — a preserved phrase appears *inside* instruction shape, not as a story about who said it. Named individuals stay out (see SKILL.md's rule): a runtime agent has no referent for a person, and proper nouns anchor prose rather than varying it.
+
 **The prescriptive-rule trap:** The default when writing modules is to convert every organizational pattern into "If X, do Y" rules. This feels like transformation because it's no longer raw content — but it produces agents that can only handle situations you enumerated. The better transformation is to capture *why* the organization does what it does, so the agent can reason about new situations the same way the organization would.
 
 ### Writing for LLM Consumption
@@ -134,21 +140,21 @@ The first two patterns equip the agent to handle situations the author didn't an
 
 ---
 
-## Shape Reference: F0 as a Worked Example
+## Shape Reference: G1 as a Worked Example
 
-`templates/guardrails/F0_agent_behavioral_standards.md` is a working module — every library vendors it into Foundation from `makegood-guardrails` at a pinned version (see "Guardrails as a Versioned Dependency"). The skill's copy is a reference for this worked example, not the seed. It is a worked example of mixed-shape content for a reasoning-context-primary module. Reference it when uncertain what shape a section should take.
+`templates/guardrails/G1_agent_behavioral_standards.md` is a working module — every library vendors it into Foundation from `makegood-guardrails` at a pinned version (see "Guardrails as a Versioned Dependency"). The skill's copy is a reference for this worked example, not the seed. It is a worked example of mixed-shape content for a reasoning-context-primary module. Reference it when uncertain what shape a section should take.
 
-F0 illustrates three shapes coexisting in one module:
+G1 illustrates three shapes coexisting in one module:
 
-**Process gates as upstream-operation prescriptive rules.** F0's five process gates ("Source Before Statement," "Mark the Move," "Reframe Before Committing," "Second-Order Check," "Generalization Check") are prescriptive — they tell the agent what to do in a defined sequence. They earn the prescriptive shape because violation produces specific, recognizable failures (unsourced claims, conflated epistemic statuses, unconsidered framings). When a module has genuine constraints whose violation causes real harm, prescriptive shape is correct. Note that even the gates are not "if X, do Y" rules for runtime decisions — they are upstream operations the agent performs *before* generating substantive output.
+**Process gates as upstream-operation prescriptive rules.** G1's five process gates ("Source Before Statement," "Mark the Move," "Reframe Before Committing," "Second-Order Check," "Generalization Check") are prescriptive — they tell the agent what to do in a defined sequence. They earn the prescriptive shape because violation produces specific, recognizable failures (unsourced claims, conflated epistemic statuses, unconsidered framings). When a module has genuine constraints whose violation causes real harm, prescriptive shape is correct. Note that even the gates are not "if X, do Y" rules for runtime decisions — they are upstream operations the agent performs *before* generating substantive output.
 
-**HIGH-STAKES Content section as decision framework.** F0's HIGH-STAKES section names two conditions that must both be true ("an error would cause significant harm that is difficult or impossible to undo, and accuracy depends on organizational specifics that require verified sourcing"), and three things required when both are met (cite source, reproduce exact details, flag for verification). The agent makes the determination of whether content is HIGH-STAKES; the module gives it the factors to weigh. This is decision-framework shape — naming factors rather than enumerating cases.
+**HIGH-STAKES Content section as decision framework.** G1's HIGH-STAKES section names two conditions that must both be true ("an error would cause significant harm that is difficult or impossible to undo, and accuracy depends on organizational specifics that require verified sourcing"), and three things required when both are met (cite source, reproduce exact details, flag for verification). The agent makes the determination of whether content is HIGH-STAKES; the module gives it the factors to weigh. This is decision-framework shape — naming factors rather than enumerating cases.
 
-**Uncertainty section as pure reasoning context.** F0's Uncertainty section reads: "Confidence calibration is not a formatting requirement — it's an epistemic one. The language used to convey a claim should accurately reflect how much the agent actually knows about it..." There are no rules and no factors. It is the reasoning the organization wants the agent to internalize, written as instruction to the agent ("the practical discipline is to notice the actual epistemic status of each claim before stating it"). This is reasoning-context shape — the most common shape for identity, philosophy, and values modules.
+**Uncertainty section as pure reasoning context.** G1's Uncertainty section reads: "Confidence calibration is not a formatting requirement — it's an epistemic one. The language used to convey a claim should accurately reflect how much the agent actually knows about it..." There are no rules and no factors. It is the reasoning the organization wants the agent to internalize, written as instruction to the agent ("the practical discipline is to notice the actual epistemic status of each claim before stating it"). This is reasoning-context shape — the most common shape for identity, philosophy, and values modules.
 
-**What F0 is not:** F0 is not third-person prose about the organization. It does not say "the organization values accurate sourcing." It says "Before generating any substantive claim, complete this sequence." Reasoning-context shape is *instruction* — second-person or imperative — that gives the agent the organization's way of thinking.
+**What G1 is not:** G1 is not third-person prose about the organization. It does not say "the organization values accurate sourcing." It says "Before generating any substantive claim, complete this sequence." Reasoning-context shape is *instruction* — second-person or imperative — that gives the agent the organization's way of thinking.
 
-When writing a module whose primary content is values, identity, or philosophy, the default shape is reasoning context. Decision frameworks appear when the agent will face a recurring choice the organization has thought through. Prescriptive rules appear rarely, only for genuine constraints. The mix in F0 is roughly: 40% prescriptive (the process gates, which are upstream operations not runtime rules), 20% decision framework (HIGH-STAKES), 40% reasoning context (Uncertainty, Error Correction, Professional Challenge, Analytical Depth Requirements).
+When writing a module whose primary content is values, identity, or philosophy, the default shape is reasoning context. Decision frameworks appear when the agent will face a recurring choice the organization has thought through. Prescriptive rules appear rarely, only for genuine constraints. The mix in G1 is roughly: 40% prescriptive (the process gates, which are upstream operations not runtime rules), 20% decision framework (HIGH-STAKES), 40% reasoning context (Uncertainty, Error Correction, Professional Challenge, Analytical Depth Requirements).
 
 ---
 
@@ -168,7 +174,7 @@ Modules contain synthesized organizational knowledge — not source material. Tr
 - Signals for when to reach beyond modules — load addenda, invoke skills, or ask the user
 
 **Do NOT include:**
-- Verbatim quotes (synthesize the meaning instead)
+- Reported speech — "the team mentioned that," "they noted," quotes framed as things people said. Extract the reasoning the quote evidences and state it as instruction. (Preserving the organization's *terms* inside that instruction is a different move — see "Language the organization owns," below.)
 - Client names or specific testimonials
 - Step-by-step procedures (capture the reasoning and principles; the agent or a skill handles execution)
 - Historical context unless it explains current reasoning
@@ -195,6 +201,7 @@ Transcripts are the messiest source type. Machine transcription adds errors. Con
 - Principles and values expressed
 - Processes and approaches described
 - Organizational positions and stances
+- **Distinctive terminology and self-characterization** — what the organization calls itself, its roles, its methods; recurring frames it returns to; the concrete illustration it reaches for when explaining. Keep these in the organization's words. This is the one category where the phrasing *is* the content: a term paraphrased is a term lost, and an agent handed a description of a vocabulary cannot speak in it.
 
 **Example transformation:**
 
@@ -213,14 +220,26 @@ Client engagement principle: adapt approach to client's current AI maturity leve
 - Never open with jargon or comprehensive architecture — meet them where they are
 ```
 
-**NOT this (wrong — preserves conversational structure):**
+**NOT this (wrong — reported speech):**
 ```
 The team mentioned that they "really try to meet clients where they are" and
 believe in not "overwhelming them with technical jargon." They noted that
 "quick wins" are prioritized for clients "just starting out with AI."
 ```
 
-The wrong example is useless to an LLM agent — it's just transcription with quotation marks. The correct example provides actionable guidance.
+**Also NOT this (wrong — flattened):**
+```
+Client engagement principle: calibrate the engagement approach to the client's
+current level of AI maturity. For clients at an early stage, prioritize
+achievable initial outcomes and reduce technical complexity in early
+communications.
+```
+
+**What separates the three.** The reported-speech version fails because of its *framing* — "the team mentioned," "they noted." A runtime agent has no team to refer to and no conversation to have been present at. Reported speech is the defect, not the quotation marks.
+
+The flattened version fails differently, and more quietly: it says the same thing in nobody's words. "Meet them where they are" and "quick wins" are how this organization talks; "calibrate the engagement approach" and "achievable initial outcomes" are how a model talks. An agent given the second cannot produce the first.
+
+The correct version keeps both phrases and drops the framing. **The organization's terms appear inside instruction shape** — no attribution, no speaker, no reportage. That is what preserved language looks like: not a quote in a module, but the module written in the vocabulary the organization actually uses.
 
 ### Converting Time Spans to Dates
 
@@ -244,7 +263,7 @@ When you can't determine the exact date, calculate from the source document's da
 
 ### Transforming Quotes, Case Studies, and Process Documents
 
-**Quotes** are evidence — they inform what goes in modules, but aren't copied directly. Extract the practice the quote proves exists.
+**Quotes** are evidence of a practice — extract the practice the quote proves exists, and drop the speaker framing. Where the quote also carries the organization's own term for something, that term is preserved verbatim inside the instruction (see "What to extract").
 
 **Case studies** contain methodology patterns. Extract the pattern ("We used X approach for Y situation"), leave out client names, specific metrics, testimonials, and timeline details.
 
@@ -348,7 +367,7 @@ Each item an agent might load is classified as **`always_load`** (loaded into th
 
 | | Module | Addendum |
 |---|---|---|
-| **`always_load`** | Foundation modules in most agents (F0, F1, F2, F3); shared modules whose content governs every output (e.g., S0 for any external-facing agent); specialized modules whose content governs every output for that agent's role (e.g., D2 for an external-communications agent) | Reference addenda containing universal organizational data the agent's judgment about needing is unreliable (e.g., A0 organizational reference for any agent that names the organization) |
+| **`always_load`** | Foundation modules in most agents (G1, F1, F2, F3); shared modules whose content governs every output (e.g., G2 for any external-facing agent); specialized modules whose content governs every output for that agent's role (e.g., D2 for an external-communications agent) | Reference addenda containing universal organizational data the agent's judgment about needing is unreliable (e.g., A0 organizational reference for any agent that names the organization) |
 | **`conditional`** | Shared modules that apply only in specific task or audience contexts | Most addenda — funder-specific, region-specific, project-specific, peer-specific, sector-specific |
 
 ### The Classification Rule
@@ -359,17 +378,17 @@ An item is **`conditional`** when its content applies only in specific task or a
 
 **The classification is per-agent.** The same module may be `always_load` for one agent and `conditional` for another. Methodology content is `always_load` for an agent that writes proposals (every proposal is methodology-anchored); the same content is `conditional` for an agent doing prospect research (only some prospects need methodology depth). The question to ask, per agent: *does this govern every output this specific agent produces?*
 
-### F0 and S0 Are a Hard Rule
+### G1 and G2 Are a Hard Rule
 
-`F0_agent_behavioral_standards` is `always_load` whenever it appears in an agent's set. No exceptions.
+`G1_agent_behavioral_standards` is `always_load` whenever it appears in an agent's set. No exceptions.
 
-`S0_natural_prose_standards` is `always_load` whenever it appears in an agent's set (i.e., for any agent that writes anything for any audience). No exceptions.
+`G2_natural_prose_standards` is `always_load` whenever it appears in an agent's set (i.e., for any agent that writes anything for any audience). No exceptions.
 
 Both rules exist because the failure mode they prevent (agent's runtime judgment about whether to apply behavioral guardrails or prose discipline) was the originating failure that produced this classification system. The hard rule is enforced at three layers: Phase 3 GATE (Design refuses to advance), Phase 4 self-check (Build flags violations), and `scripts/count_tokens.py` (script refuses to compute a budget).
 
 ### Why This Classification Replaces Tiered Manifests
 
-Earlier versions of the agent-definition template grouped modules by tier (foundation/shared/specialized) and listed addenda separately as reach-beyond. The visual structure suggested two categories of load decision: modules were the agent's context, addenda were things to reach for. In runtime behavior, this distinction collapsed. Agents made their own load-time judgments — sometimes deciding S0 didn't apply for "quick" tasks, then producing output that violated S0's prose standards. Sometimes deciding A0's legal-entity data wasn't needed, then generating from inference instead of from the loaded reference.
+Earlier versions of the agent-definition template grouped modules by tier (foundation/shared/specialized) and listed addenda separately as reach-beyond. The visual structure suggested two categories of load decision: modules were the agent's context, addenda were things to reach for. In runtime behavior, this distinction collapsed. Agents made their own load-time judgments — sometimes deciding G2 didn't apply for "quick" tasks, then producing output that violated G2's prose standards. Sometimes deciding A0's legal-entity data wasn't needed, then generating from inference instead of from the loaded reference.
 
 The pattern: when the manifest leaves to the agent's judgment whether a piece of context governs output, the agent will sometimes get that judgment wrong — confidently. Items that govern output universally must be loaded universally; items that apply only in specific situations are loaded with explicit triggers.
 
@@ -418,7 +437,7 @@ Classification decides *whether* an item is always-load. Delivery is the separat
 
 Always-load items must be in the agent's system prompt from turn one. Not loaded on instruction. Not fetched when the agent decides to read them. Not retrieved by the runtime when the agent's request matches a file. **In the system prompt, before the first turn.**
 
-This rule exists because the failure mode the classification was designed to remove — the agent's runtime judgment about whether to load — re-enters whenever delivery depends on the agent or runtime making a load decision. The originating failure (an agent skipping S0 because it judged the immediate task didn't need prose discipline) was a classification failure. The same failure mode in delivery: an agent ignoring instructions to load files, or batching the loads as tool calls, or partially loading them, or having them retrieved unreliably by RAG. Same agent, same wrong-judgment risk, different layer.
+This rule exists because the failure mode the classification was designed to remove — the agent's runtime judgment about whether to load — re-enters whenever delivery depends on the agent or runtime making a load decision. The originating failure (an agent skipping G2 because it judged the immediate task didn't need prose discipline) was a classification failure. The same failure mode in delivery: an agent ignoring instructions to load files, or batching the loads as tool calls, or partially loading them, or having them retrieved unreliably by RAG. Same agent, same wrong-judgment risk, different layer.
 
 ### Two Delivery Mechanisms
 
@@ -585,7 +604,7 @@ Lowercase with underscores. Descriptive but concise.
 
 Every context library includes two standard guardrail modules, vendored from `makegood-guardrails` during the Phase-4 deployment step (pinned via `guardrails.lock`; see "Guardrails as a Versioned Dependency" below):
 
-### F0_agent_behavioral_standards (Foundation)
+### G1_agent_behavioral_standards (Foundation)
 
 **All agents load this module.** Process gates for:
 - Source-before-statement
@@ -595,17 +614,17 @@ Every context library includes two standard guardrail modules, vendored from `ma
 - HIGH-STAKES condition test
 - Professional challenge
 
-### S0_natural_prose_standards (Shared)
+### G2_natural_prose_standards (Shared)
 
 **External-facing agents load this module.** Covers:
-- Practitioner voice gate (routes to a loaded voice profile first — the profile is the voice, S0 is the floor)
+- Practitioner voice gate (routes to a loaded voice profile first — the profile is the voice, G2 is the floor)
 - Earned-claims and lead-with-the-point gates
 - Medium's-shape gate (chat formatting stays out of prose deliverables)
-- The Revision Backstop — the current-generation prose-signature list, spliced in from the separately versioned `s0-backstop` artifact (maintained by measurement, not recollection; see makegood-guardrails' `HARVEST_PLAN.md`)
+- The Revision Backstop — the current-generation prose-signature list, spliced in from the separately versioned `g2-backstop` artifact (maintained by measurement, not recollection; see makegood-guardrails' `HARVEST_PLAN.md`)
 
 ### When to Load Each
 
-| Agent Type | F0_agent_behavioral_standards | S0_natural_prose_standards |
+| Agent Type | G1_agent_behavioral_standards | G2_natural_prose_standards |
 |------------|------------------------------|---------------------------|
 | Marketing/communications | Required | Required |
 | Content creation | Required | Required |
@@ -614,22 +633,22 @@ Every context library includes two standard guardrail modules, vendored from `ma
 
 ### Guardrails as a Versioned Dependency
 
-F0 and S0 are not authored or owned inside each library. They are owned by a separate repository, `makegood-guardrails`, which publishes them as independently semver-tagged artifacts (`f0-vX.Y.Z`, `s0-vX.Y.Z`, `s0-backstop-vX.Y.Z`). A library consumes them as a pinned dependency rather than holding a hand-edited copy. This exists because hand-copied guardrails across many libraries drift into incompatible versions with no record of which library runs which and no way to propagate a fix without editing every copy.
+G1 and G2 are not authored or owned inside each library. They are owned by a separate repository, `makegood-guardrails`, which publishes them as independently semver-tagged artifacts (`g1-vX.Y.Z`, `g2-vX.Y.Z`, `g2-backstop-vX.Y.Z`). A library consumes them as a pinned dependency rather than holding a hand-edited copy. This exists because hand-copied guardrails across many libraries drift into incompatible versions with no record of which library runs which and no way to propagate a fix without editing every copy.
 
-**S0 is composed at resolve time (S0 ≥ 2.0.0).** The S0 core holds the durable gates; the `s0-backstop` artifact holds the volatile current-generation prose-signature list, versioned on its own cadence because it tracks the model landscape rather than the prose philosophy. At resolve time the backstop body is spliced into the vendored S0 between `BACKSTOP:BEGIN/END` markers — the lock records both versions (`S0` and `S0_BACKSTOP`), and agents still receive a single S0 file. Libraries pinned to S0 1.x resolve unchanged through the legacy single-fetch path.
+**G2 is composed at resolve time (G2 ≥ 2.0.0).** The G2 core holds the durable gates; the `g2-backstop` artifact holds the volatile current-generation prose-signature list, versioned on its own cadence because it tracks the model landscape rather than the prose philosophy. At resolve time the backstop body is spliced into the vendored G2 between `BACKSTOP:BEGIN/END` markers — the lock records both versions (`G2` and `G2_BACKSTOP`), and agents still receive a single G2 file. Libraries pinned to G2 1.x resolve unchanged through the legacy single-fetch path.
 
 The mechanism, all handled by `build-deploy-bundles.py`:
 
 - **`guardrails.lock`** at the library root records two facts: `declared` (the version the library accepts) and `resolved` (the version actually fetched, with its commit sha and the vendored path). Bundles are built from the vendored file the lock points at. The lock is committed — it is the library's record of which guardrail versions its agents run.
 - **`--resolve-guardrails`** fetches the declared versions from `makegood-guardrails` and writes them into the library's `modules/`, each with a `<!-- GENERATED ... -->` banner marking it as vendored, not hand-authored. This is a network step.
-- **`--update-guardrails F0=<version>`** is the deliberate upgrade: it bumps `declared` and re-resolves, producing a reviewable diff and a commit in the library's own repo. Adopting a new guardrail version (e.g. a new process gate) is always this explicit act — never automatic.
-- **`--check`** reports (report-only, never auto-fixes) two things: `[DRIFT]` when a vendored guardrail has been hand-edited away from its locked version (for a composed S0, the comparison re-composes core + backstop at their locked tags), and `[NEWER]` when upstream has a newer tagged version than the library declares — so stale libraries surface themselves without adoption ever becoming automatic. It respects libraries in repos the team no longer owns: it surfaces findings but takes no action.
+- **`--update-guardrails G1=<version>`** is the deliberate upgrade: it bumps `declared` and re-resolves, producing a reviewable diff and a commit in the library's own repo. Adopting a new guardrail version (e.g. a new process gate) is always this explicit act — never automatic.
+- **`--check`** reports (report-only, never auto-fixes) two things: `[DRIFT]` when a vendored guardrail has been hand-edited away from its locked version (for a composed G2, the comparison re-composes core + backstop at their locked tags), and `[NEWER]` when upstream has a newer tagged version than the library declares — so stale libraries surface themselves without adoption ever becoming automatic. It respects libraries in repos the team no longer owns: it surfaces findings but takes no action.
 
 **Pinned by default.** A library does not move to a new guardrail version until someone runs `--update-guardrails`. This keeps a library stable through an engagement while another library adopts a change on its own schedule.
 
-**Offline after resolve.** Resolution touches the network; the bundle build does not. Once F0/S0 are vendored, the library rebuilds fully offline. The network dependency exists only at build and migration time, not at library-use time.
+**Offline after resolve.** Resolution touches the network; the bundle build does not. Once G1/G2 are vendored, the library rebuilds fully offline. The network dependency exists only at build and migration time, not at library-use time.
 
-The skill's `templates/guardrails/` copies of F0/S0 are reference material for the worked-example shape lesson and offline inspection — they are explicitly *not* the seed. Libraries vendor from `makegood-guardrails`, not from the skill.
+The skill's `templates/guardrails/` copies of G1/G2 are reference material for the worked-example shape lesson and offline inspection — they are explicitly *not* the seed. Libraries vendor from `makegood-guardrails`, not from the skill.
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: cleaning-transcripts
-description: Cleans raw dictation and meeting transcripts into readable paragraph form while preserving the speaker's original wording, order, and meaning. Fixes transcription errors, removes fillers (um, ah, you know), and merges fragmented speaker blocks. Flags uncertain corrections for review rather than guessing silently. Use when user says clean up this transcript, fix transcription errors, remove ums and ahs, tidy up this dictation, or format this transcript into paragraphs. Activates when transcript content is present via pasted text, inline content, attached file, or uploaded document, even when accompanied by additional context files. NOT for extracting summaries, meeting minutes, action items, or restructuring into a new format — this skill preserves the original text.
+description: Cleans raw dictation and meeting transcripts into readable paragraph form while preserving the speaker's original wording, order, and meaning. Fixes transcription errors, removes fillers (um, ah, you know), and merges fragmented speaker blocks — rejoining sentences the recorder severed mid-thought in solo dictation, while protecting speaker turns in multi-speaker recordings. Flags uncertain corrections for review rather than guessing silently. Use when user says clean up this transcript, fix transcription errors, remove ums and ahs, tidy up this dictation, clean up my voice notes, or format this transcript into paragraphs. Accepts a single-speaker or multi-speaker hint when the user gives one. Activates when transcript content is present via pasted text, inline content, attached file, or uploaded document, even when accompanied by additional context files. NOT for extracting summaries, meeting minutes, action items, or restructuring into a new format — this skill preserves the original text.
 ---
 
 # Cleaning Transcripts
@@ -33,8 +33,8 @@ Produces a clean, readable version of a raw transcript that the speaker would re
 
 Given a raw transcript:
 
-1. Read the entire transcript before changing anything.
-2. Clean it: remove fillers, join fragmented blocks into paragraphs, repair transcription errors — classifying each repair as you go (Phase 2).
+1. Read the entire transcript before changing anything, and determine whether it is single-speaker or multi-speaker (Phase 1).
+2. Clean it: remove fillers, join fragmented blocks into paragraphs, repair transcription errors — classifying each repair as you go (Phase 2). In single-speaker mode, also rejoin sentences the recorder severed at block breaks.
 3. Deliver the cleaned transcript (see Output Rules).
 4. Report uncertain corrections in your response for the user to confirm.
 
@@ -69,7 +69,17 @@ While reading, note:
 - Who is speaking, and where the turns change — so merges stay inside a single speaker's turn.
 - Passages that are garbled beyond confident repair, so you can flag rather than fabricate.
 
-**GATE:** Before proceeding, write this line in your thinking — not in your response to the user: "I have read the full transcript and noted the recurring proper nouns, the speakers present, and any unrecoverable passages." Do not begin editing until you have written it.
+**Determine the mode before editing: single-speaker or multi-speaker.** This decides whether block breaks carry information, and it changes what you are allowed to merge.
+
+The two modes exist because dictation recorders segment on pauses, not on turns. A solo recording arrives labeled as though it were a conversation, and its labels mark where the speaker drew breath — frequently mid-sentence, sometimes mid-word.
+
+1. **If the user said which it is, or passed `single-speaker`, use that.** An explicit statement always wins over your reading of the file.
+2. **Otherwise infer it.** Single-speaker indicators: one label across the whole transcript; or one dominant label with a small number of orphan blocks that continue the previous sentence rather than responding to it. Multi-speaker indicators: turns that answer each other, interjections, questions followed by replies, distinct vocabularies or subject matter by label.
+3. **If it is genuinely ambiguous, ask before editing.** Ambiguity means real back-and-forth under two or more labels, or a solo dictation where another voice appears to speak briefly. Do not guess — a wrong call in either direction damages the transcript. Asking is the rare path; detection resolves most transcripts.
+
+**A stray second label is not proof of a second speaker.** One or two blocks under a different label, carrying content that continues the dominant speaker's sentence, is a diarization artifact. Weigh what the content does, not what the label asserts.
+
+**GATE:** Before proceeding, write this line in your thinking — not in your response to the user: "I have read the full transcript, determined this is a [single-speaker / multi-speaker] recording on the basis of [evidence], and noted the recurring proper nouns and any unrecoverable passages." Do not begin editing until you have written it.
 </phase_read>
 
 <phase_clean>
@@ -92,19 +102,24 @@ Work through the transcript making three kinds of edits. **Classify each edit be
 - Anything where the repair changes the meaning of the sentence — for example, a mis-transcribed word that, corrected one way vs. another, says something different about what the speaker meant.
 - For these: insert your best-guess correction into the cleaned text so it reads naturally, and record each one for the Phase 4 report with your confidence and what the guess rests on.
 
-**Speaker attribution — when the transcript has more than one speaker:**
+**Single-speaker mode — block breaks carry no information:**
+- Rejoin sentences across block breaks. The recorder segments on pauses, so a break can fall anywhere, including mid-sentence and mid-word. A sentence severed at a break is a transcription artifact, and repairing it is a mechanical edit.
+- Treat labels as artifacts rather than turns. A stray second label whose content continues the previous sentence gets absorbed; note it in Phase 4 if the absorption was non-obvious.
+- Everything else still holds: the speaker's wording, order, and meaning remain fixed. Rejoining a severed sentence restores what they said. It never licenses merging two separate thoughts into one, and it never licenses smoothing the join — if the two halves do not meet cleanly, that is a gap to flag, not a seam to write across.
+
+**Speaker attribution — multi-speaker mode only:**
 - Merge blocks only within a single speaker's turn. Never join text across a speaker change: attributing one person's words to another is the most serious form of rewriting this skill can commit, and unlike a garbled word it leaves no trace for the reader to catch.
 - Preserve every speaker label and turn boundary as the transcription gives them, including short interjections ("Right." "Mm-hm.") — a turn that looks like noise is still evidence of who was in the room and when they spoke.
 - If a turn appears misattributed — the content clearly belongs to the previous speaker, or one person's sentence is split across two labels — treat it as an uncertain repair. Leave the labels as transcribed and flag it in Phase 4. Do not reassign the turn yourself; you are inferring from content what the diarization asserts directly.
 
 **Do not:**
-- Do not merge, drop, reorder, or reassign speaker turns.
+- Do not merge, drop, reorder, or reassign speaker turns in multi-speaker mode.
 - Do not delete content because it seems repetitive or tangential. Repetition the speaker chose stays.
 - Do not reorder points to "flow better."
 - Do not add transitions, framing, or connective sentences the speaker didn't say.
 - Do not upgrade vocabulary or tighten phrasing for style.
 
-**GATE:** Before proceeding, write this line in your thinking — not in your response to the user: "Every uncertain repair I made is recorded for the Phase 4 report, and no text was merged across a speaker change." Do not proceed until you have written it.
+**GATE:** Before proceeding, write this line in your thinking — not in your response to the user: "Every uncertain repair I made is recorded for the Phase 4 report, and — in multi-speaker mode — no text was merged across a speaker change." Do not proceed until you have written it.
 </phase_clean>
 
 <phase_verify>
@@ -116,11 +131,12 @@ Check:
 - **Order preserved:** Every point appears in the same sequence as the original.
 - **Nothing dropped:** No substantive content was removed under the guise of filler removal. (Filler words gone — yes. Whole thoughts gone — no.)
 - **Nothing added:** No sentence exists in the clean version that the speaker did not say in some form.
-- **Attribution intact:** Every speaker turn belongs to the speaker the transcription assigned it to, and no paragraph spans a speaker change.
+- **Attribution intact (multi-speaker):** Every speaker turn belongs to the speaker the transcription assigned it to, and no paragraph spans a speaker change.
+- **Sentences whole (single-speaker):** No sentence is still severed at a block break, and no two separate thoughts were joined into one while repairing them.
 - **Meaning intact:** Each repaired sentence still means what the original meant (or, for meaning-affecting uncertain repairs, is flagged).
 - **All uncertain repairs captured:** Every guess is in your Phase 4 list.
 
-**GATE:** Before delivering, write this line in your thinking — not in your response to the user: "Verified: order preserved, attribution intact, nothing substantive dropped or added, and all uncertain repairs are flagged." Do not deliver until you have written it.
+**GATE:** Before delivering, write this line in your thinking — not in your response to the user: "Verified: order preserved, nothing substantive dropped or added, all uncertain repairs flagged, and the mode-specific check (attribution intact, or sentences whole) passes." Do not deliver until you have written it.
 </phase_verify>
 
 <phase_deliver>
@@ -150,6 +166,8 @@ What DOESN'T work:
 - **Dropping "unimportant" specifics:** The specifics are usually the point. Named tools, numbers, and examples stay exactly as the speaker gave them (corrected for transcription, not removed).
 - **Reordering for flow:** The speaker's order is data. Keep it.
 - **Tidying up speaker turns:** Merging a short "Right." into the previous speaker's paragraph, or joining a sentence that spans a turn change, reads as harmless formatting. It puts words in someone's mouth, and the cleaned version gives no sign it happened.
+- **Treating a solo dictation's block breaks as turns:** Recorders segment on pauses, so a solo recording arrives labeled like a conversation with breaks falling mid-sentence. Applying the multi-speaker no-merge rule there leaves sentences severed at arbitrary points and hands the user a transcript they have to repair by hand. Determine the mode in Phase 1; the attribution rules exist to protect real turns, not recorder artifacts.
+- **Smoothing a rejoined sentence:** When two halves of a severed sentence do not meet cleanly, the fix is to flag the gap — not to write a connective that makes the seam disappear. A smoothed join is invented text wearing the speaker's voice.
 - **Putting correction flags inside the file:** The deliverable should read cleanly. Flags go in the chat response.
 </failed_attempts>
 

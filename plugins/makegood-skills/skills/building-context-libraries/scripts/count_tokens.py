@@ -76,7 +76,7 @@ def analyze_module(filepath: Path) -> dict:
         }
 
 
-HARD_RULE_ALWAYS_LOAD = {'F0_agent_behavioral_standards', 'S0_natural_prose_standards'}
+HARD_RULE_ALWAYS_LOAD = {'G1_agent_behavioral_standards', 'G2_natural_prose_standards'}
 
 
 def parse_required_reading(body: str) -> list[str]:
@@ -195,7 +195,7 @@ def analyze_agent(filepath: Path) -> dict:
                 'malformed': True,
             }
 
-        # F0/S0 hard-rule check: if either appears in the Conditional Loads table, refuse.
+        # G1/G2 hard-rule check: if either appears in the Conditional Loads table, refuse.
         conditional_paths = [path for path, _ in conditional_rows]
         violations = []
         for path in conditional_paths:
@@ -209,8 +209,8 @@ def analyze_agent(filepath: Path) -> dict:
                 'name': frontmatter.get('agent_name', filepath.stem),
                 'error': (
                     f"Hard-rule violation: {', '.join(violations)} appears in the "
-                    "Conditional Loads table. F0_agent_behavioral_standards and "
-                    "S0_natural_prose_standards must be in `## Required Reading` "
+                    "Conditional Loads table. G1_agent_behavioral_standards and "
+                    "G2_natural_prose_standards must be in `## Required Reading` "
                     "(as @-include directives) whenever they appear in an agent's set. "
                     "See SKILL.md, Critical Rules."
                 ),
@@ -345,7 +345,7 @@ def main():
 
                 # Calculate tokens from always_load items only.
                 # Item refs in 1.6 are repo-relative paths like
-                # `modules/foundation/F0_agent_behavioral_standards.md` — match by stem.
+                # `modules/foundation/G1_agent_behavioral_standards.md` — match by stem.
                 agent_tokens = 0
                 missing_items = []
                 for item_ref in agent['always_load']:

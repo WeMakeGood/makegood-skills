@@ -310,7 +310,7 @@ def check_agent_all_inclusive(
 # ---------------------------------------------------------------------------
 # Guardrails versioning
 #
-# F0/S0 behavioral guardrail modules are owned by the makegood-guardrails repo
+# G1/G2 behavioral guardrail modules are owned by the makegood-guardrails repo
 # and consumed here as a pinned, vendored dependency. guardrails.lock records
 # the declared version (intent) and the resolved version (what was fetched and
 # written into modules/). The vendored files carry a generated-file banner and
@@ -365,23 +365,23 @@ def strip_banner(text: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# S0 backstop splice
+# G2 backstop splice
 #
-# S0 2.0.0+ splits into a durable core (gates) and a volatile backstop (the
+# G2 (S0 before 3.0.0) splits into a durable core (gates) and a volatile backstop (the
 # current-generation prose-signature list), versioned independently upstream
 # as the s0-backstop artifact. The core carries BACKSTOP:BEGIN/END markers;
 # at resolve time the backstop is fetched at its own tag and its body
 # (frontmatter stripped — the frontmatter is build metadata) is spliced
-# between the markers, producing a single vendored S0 file. Consumers see one
-# S0; only this script knows it's composed. Lock key: S0_BACKSTOP.
+# between the markers, producing a single vendored G2 file. Consumers see one
+# G2; only this script knows it's composed. Lock key: G2_BACKSTOP.
 #
-# S0 1.x has no markers and no backstop — the legacy single-fetch path still
+# S0 1.x (pre-rename) has no markers and no backstop — the legacy single-fetch path still
 # applies, so libraries pinned to s0-v1.0.0 resolve unchanged.
 # ---------------------------------------------------------------------------
 
-SPLICE_KEY = "S0_BACKSTOP"
-SPLICE_HOST_KEY = "S0"
-BACKSTOP_MODULE_FILENAME = "S0_backstop.md"
+SPLICE_KEY = "G2_BACKSTOP"
+SPLICE_HOST_KEY = "G2"
+BACKSTOP_MODULE_FILENAME = "G2_backstop.md"
 BACKSTOP_BEGIN = "<!-- BACKSTOP:BEGIN -->"
 BACKSTOP_END = "<!-- BACKSTOP:END -->"
 FRONTMATTER_RE = re.compile(r"\A---\n.*?\n---\n", re.S)
@@ -389,7 +389,7 @@ SEMVER_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
 
 
 def tag_for(key: str, version: str) -> str:
-    """Lock key -> upstream tag: F0 -> f0-vX.Y.Z, S0_BACKSTOP -> s0-backstop-vX.Y.Z."""
+    """Lock key -> upstream tag: G1 -> g1-vX.Y.Z, G2_BACKSTOP -> g2-backstop-vX.Y.Z."""
     return f"{key.lower().replace('_', '-')}-v{version}"
 
 
@@ -398,7 +398,7 @@ def strip_frontmatter(text: str) -> str:
 
 
 def splice_backstop(host_text: str, backstop_body: str, tag: str, sha: str) -> str:
-    """Replace everything between the BACKSTOP markers in the S0 core with the
+    """Replace everything between the BACKSTOP markers in the G2 core with the
     backstop body plus a provenance comment. The markers themselves are kept,
     so a later re-resolve splices into a fresh upstream core, never into an
     already-spliced file."""
@@ -406,8 +406,8 @@ def splice_backstop(host_text: str, backstop_body: str, tag: str, sha: str) -> s
     end = host_text.find(BACKSTOP_END)
     if begin == -1 or end == -1 or end < begin:
         raise RuntimeError(
-            "S0 core is missing its BACKSTOP:BEGIN/END markers — cannot splice "
-            f"the {SPLICE_KEY} artifact. S0 2.0.0+ is required."
+            "G2 core is missing its BACKSTOP:BEGIN/END markers — cannot splice "
+            f"the {SPLICE_KEY} artifact. G2 3.0.0+ (or S0 2.0.0+) is required."
         )
     head = host_text[: begin + len(BACKSTOP_BEGIN)]
     tail = host_text[end:]
@@ -422,15 +422,15 @@ def splice_backstop(host_text: str, backstop_body: str, tag: str, sha: str) -> s
 
 
 def compose_s0_body(
-    source: str, s0_tag: str, backstop_tag: str, module_filename: str
+    source: str, g2_tag: str, backstop_tag: str, module_filename: str
 ) -> tuple[str, str, str]:
-    """Fetch the S0 core and the backstop at their respective tags and return
+    """Fetch the G2 core and the backstop at their respective tags and return
     (spliced_body, s0_sha, backstop_sha). Network step."""
-    core_body, s0_sha = fetch_module(source, s0_tag, module_filename)
+    core_body, s0_sha = fetch_module(source, g2_tag, module_filename)
     if BACKSTOP_BEGIN not in core_body:
         raise RuntimeError(
-            f"S0 at {s0_tag} has no BACKSTOP markers but {SPLICE_KEY} is "
-            "declared in the lock. Pin S0 to 2.0.0 or later, or remove the "
+            f"G2 at {g2_tag} has no BACKSTOP markers but {SPLICE_KEY} is "
+            "declared in the lock. Pin G2 to 3.0.0 or later, or remove the "
             f"{SPLICE_KEY} declaration."
         )
     raw_backstop, b_sha = fetch_module(source, backstop_tag, BACKSTOP_MODULE_FILENAME)
@@ -508,6 +508,20 @@ def resolve_guardrails(repo_root: Path) -> int:
     declared = lock["declared"]
     resolved = lock.setdefault("resolved", {})
 
+    # Pre-rename keys still resolve: the f0-v* / s0-v* tags were deliberately
+    # kept so un-migrated libraries keep working. That means the rename is
+    # silent by default — a library pinned to F0 fetches successfully and never
+    # learns G1 exists. Say so once, here, rather than letting it go unnoticed.
+    stale = {"F0": "G1", "S0": "G2", "S0_BACKSTOP": "G2_BACKSTOP"}
+    found = [(k, v) for k, v in stale.items() if k in declared]
+    if found:
+        print("  notice: this lock uses pre-rename guardrail keys.")
+        for old, new in found:
+            print(f"    {old} -> {new}")
+        print("    These still resolve against the retained tags. To migrate, rename the")
+        print("    keys in guardrails.lock, set the new versions, and re-resolve; the")
+        print("    vendored filenames change with them.")
+
     for key, version in declared.items():
         if key == SPLICE_KEY:
             continue  # resolved together with its host module below
@@ -539,7 +553,7 @@ def resolve_guardrails(repo_root: Path) -> int:
             body, sha = fetch_module(source, tag, module_filename)
             if key == SPLICE_HOST_KEY and BACKSTOP_BEGIN in body:
                 raise RuntimeError(
-                    f"S0 {version} carries BACKSTOP splice markers but "
+                    f"G2 {version} carries BACKSTOP splice markers but "
                     f"{SPLICE_KEY} is not declared in {LOCK_NAME}. Add it "
                     f"(e.g. --update-guardrails {SPLICE_KEY}=1.0.0) and re-resolve."
                 )
@@ -562,7 +576,7 @@ def resolve_guardrails(repo_root: Path) -> int:
 
 
 def update_guardrails(repo_root: Path, bumps: list[str]) -> int:
-    """Bump declared versions (e.g. F0=1.3.0), then re-resolve. The deliberate
+    """Bump declared versions (e.g. G1=3.0.0), then re-resolve. The deliberate
     upgrade action; produces a reviewable diff to the lock and vendored files."""
     lock = load_lock(repo_root)
     declared = lock["declared"]
@@ -595,7 +609,7 @@ def check_guardrails(repo_root: Path) -> list[tuple[str, str]]:
 
     1. Drift — compare each vendored guardrail file's body (banner stripped)
        against the version recorded in the lock's resolved block, by
-       re-fetching from upstream. For S0 with a spliced backstop, the expected
+       re-fetching from upstream. For G2 with a spliced backstop, the expected
        body is re-composed (core + backstop at their locked tags).
     2. Upstream-newer — report when upstream has a newer tagged version than
        the library declares, so stale libraries surface themselves. Adoption
@@ -719,7 +733,7 @@ def main() -> int:
         "--update-guardrails",
         nargs="+",
         metavar="KEY=VERSION",
-        help="Bump declared guardrail version(s) (e.g. F0=1.3.0) then "
+        help="Bump declared guardrail version(s) (e.g. G1=3.0.0) then "
         "re-resolve. The deliberate upgrade action — produces a reviewable "
         "diff to guardrails.lock and the vendored module.",
     )
@@ -776,8 +790,15 @@ def main() -> int:
                 print("  guardrails:")
                 for level, msg in g_messages:
                     print(f"    [{level}] {msg}")
-            if not any(level == "DRIFT" for level, _ in g_messages):
+            # Only claim a clean guardrail check when one actually ran. A WARN
+            # can mean the check was skipped (missing PyYAML, unreachable
+            # source), and printing [ok] under it reports a pass for work that
+            # never happened.
+            blocked = any(level in ("DRIFT", "WARN") for level, _ in g_messages)
+            if not blocked:
                 print("  [ok] guardrails match locked versions")
+            elif not any(level == "DRIFT" for level, _ in g_messages):
+                print("  [--] guardrail check did not run (see warning above)")
 
         drift = []
         for agent_path in agent_paths:

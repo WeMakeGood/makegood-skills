@@ -7,7 +7,7 @@
 > - Re-read sources as needed. Memory blurs; sources don't.
 > - Buried-signal sources (transcripts, raw notes) are handled HERE — extract the organizational reasoning directly, don't rewrite them into clean documents first.
 > - **Comprehension outputs are pattern-pointers, not summaries.** A pattern-pointer names the pattern, points to its source, and describes the *shape* of the reasoning — not its content. Summary prose written here becomes the cached working memory the build agent reaches for instead of the sources during Build, and it crowds out source substance. The pointer should be useful as an index into the sources; it should NOT be useful as standalone material to generate from.
-> - **This phase has two passes with a mandatory session break between them.** Pass 1 is recognition (sources loaded, observational artifacts produced). Pass 2 is synthesis (sources mostly out of context, recognition artifacts loaded, lateral synthesis happens). The break is what allows Pass 2 to do the cognitive moves F0's Analytical Depth Requirements ask for — moves that are difficult or impossible from inside a saturated source context.
+> - **This phase has two passes with a mandatory session break between them.** Pass 1 is recognition (sources loaded, observational artifacts produced). Pass 2 is synthesis (sources mostly out of context, recognition artifacts loaded, lateral synthesis happens). The break is what allows Pass 2 to do the cognitive moves G1's Analytical Depth Requirements ask for — moves that are difficult or impossible from inside a saturated source context.
 
 ---
 
@@ -41,7 +41,7 @@ Recognition and synthesis are different cognitive operations. Recognition needs 
 Doing both at once on a large source set fails predictably:
 
 - **Synthesis collapses toward summary.** With sources saturating context, synthesis becomes "what the sources collectively said" rather than "what the underlying organizational reasoning is." Pattern-pointers come out generic.
-- **Lateral moves get crowded out.** F0's Analytical Depth Requirements (Reframe Before Committing, Cross-Domain Reasoning, Convergence as Signal) require stepping back. From inside saturated context, the sources' first framing is the dominant framing, cross-domain parallels rarely surface, and convergences register as surface similarities rather than deeper intersections.
+- **Lateral moves get crowded out.** G1's Analytical Depth Requirements (Reframe Before Committing, Cross-Domain Reasoning, Convergence as Signal) require stepping back. From inside saturated context, the sources' first framing is the dominant framing, cross-domain parallels rarely surface, and convergences register as surface similarities rather than deeper intersections.
 - **Outliers get averaged out.** The unusual signal in source #43 — the surprise, the conspicuous absence, the unexpected vocabulary — blends into the dominant signal across all sources. Findings reflect the average, not the surprises.
 
 The two-pass structure separates these concerns. Pass 1 captures observations at the moment of reading, when memory is sharp and signal is fresh. Pass 2 synthesizes from those observations with cognitive room to do the lateral work.
@@ -234,13 +234,13 @@ For each convergence:
 - State what the convergence reveals that neither source shows alone
 - Type: same-pattern-different-language | complementary-evidence | cross-domain
 
-Convergences are where F0's "Convergence as Signal" guidance lands in comprehension. When two sources reach the same point through different reasoning, the convergence reveals something about the organization that neither source surfaces alone. Pursue it rather than treating it as a footnote.
+Convergences are where G1's "Convergence as Signal" guidance lands in comprehension. When two sources reach the same point through different reasoning, the convergence reveals something about the organization that neither source surfaces alone. Pursue it rather than treating it as a footnote.
 
 ### Pass 2, Step 3: Cross-Domain Parallels
 
 Generate cross-domain parallels in `<OUTPUT_PATH>/_comprehension/cross-domain-parallels.md`. Use the cross-domain-parallels template.
 
-This is a new Phase 2 deliverable. F0's Cross-Domain Reasoning requirement applies to runtime agents but should also apply to the build's comprehension. Look for structural parallels between this organization's reasoning and patterns from other domains.
+This is a new Phase 2 deliverable. G1's Cross-Domain Reasoning requirement applies to runtime agents but should also apply to the build's comprehension. Look for structural parallels between this organization's reasoning and patterns from other domains.
 
 For each parallel:
 - Name the organizational pattern (with source pointer)

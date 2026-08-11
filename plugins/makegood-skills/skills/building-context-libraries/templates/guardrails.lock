@@ -5,7 +5,7 @@
 #
 # Do NOT hand-edit the `resolved:` block — it records exactly what was fetched
 # and vendored, and bundles are built from the vendored files it points at.
-# To change versions, run: build-deploy-bundles.py --update-guardrails F0=<ver>
+# To change versions, run: build-deploy-bundles.py --update-guardrails G1=<ver>
 #
 # `declared` is intent (what this library accepts). `resolved` is actuality
 # (what was fetched). For a pinned library the two match.
@@ -24,23 +24,23 @@
 source: https://github.com/WeMakeGood/makegood-guardrails
 
 declared:
-  F0: 2.0.0
-  S0: 2.0.1
-  S0_BACKSTOP: 1.1.0
+  G1: 3.0.0
+  G2: 3.0.0
+  G2_BACKSTOP: 2.0.0
 
 resolved:
-  F0:
+  G1:
+    version: 3.0.0
+    tag: g1-v3.0.0
+    sha: null
+    vendored: modules/foundation/G1_agent_behavioral_standards.md
+  G2:
+    version: 3.0.0
+    tag: g2-v3.0.0
+    sha: null
+    vendored: modules/shared/G2_natural_prose_standards.md
+  G2_BACKSTOP:
     version: 2.0.0
-    tag: f0-v2.0.0
+    tag: g2-backstop-v2.0.0
     sha: null
-    vendored: modules/foundation/F0_agent_behavioral_standards.md
-  S0:
-    version: 2.0.1
-    tag: s0-v2.0.1
-    sha: null
-    vendored: modules/shared/S0_natural_prose_standards.md
-  S0_BACKSTOP:
-    version: 1.1.0
-    tag: s0-backstop-v1.1.0
-    sha: null
-    spliced_into: modules/shared/S0_natural_prose_standards.md
+    spliced_into: modules/shared/G2_natural_prose_standards.md

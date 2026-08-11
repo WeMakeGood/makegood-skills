@@ -93,6 +93,16 @@ Build the table in two passes:
 
 For each of these pairs in the proposed structure, specify the use-shape explicitly. Do not leave it for Build to decide.
 
+**The table assigns where content lives. It does not rewrite the organization's vocabulary.**
+
+A rationale note may say which module owns a term and how using modules incorporate it. A note that instructs Build to *replace* a term with a different phrase is a flattening decision, and it takes effect one phase before the Build rules that would otherwise prevent it.
+
+The failure looks reasonable in the table. A note reading *"source uses [term] (client-originated) — modules should express this as [substitute], not anchor the colloquial term"* reads as tidying, and Build follows it precisely: the organization's word for itself never reaches a module, and no rule at Build is violated because the substitution was already authorized.
+
+**A term the sources use repeatedly is the organization's, whatever its origin.** Terms picked up from clients, from a founder's earlier career, from a sector's shorthand — repetition across sources is what makes a term the organization's own, not where it started. "Colloquial" and "client-originated" describe a term's history, not its status.
+
+If a term genuinely should not appear in modules — it is genuinely a one-speaker idiosyncrasy, or it carries a meaning the organization is actively moving away from — that is a real decision and it needs the user's sign-off at the Phase 3 STOP, named explicitly rather than buried in a rationale cell. Do not decide it silently on Build's behalf.
+
 ### Audience Reasoning Check
 
 **Which modules govern how the agent interacts with people or produces content for them?** Those modules need audience needs reasoning — a framework for how the agent thinks about the humans on the other end.
@@ -110,10 +120,10 @@ Audience reasoning belongs *inside* existing modules as sections, not as a separ
 ### Standard Guardrails
 
 Every library includes two standard guardrail modules:
-- `F0_agent_behavioral_standards` → loaded by ALL agents
-- `S0_natural_prose_standards` → loaded by external-facing agents
+- `G1_agent_behavioral_standards` → loaded by ALL agents
+- `G2_natural_prose_standards` → loaded by external-facing agents
 
-These are not authored in the library. They are vendored from `makegood-guardrails` at a pinned version during the Phase-4 deployment step (`guardrails.lock` + `--resolve-guardrails`); do not hand-copy them here in Design. Classify them in the Load-Discipline table below as you would any always-load module — F0 for every agent, S0 for any agent that writes anything. See ARCHITECTURE.md, "Guardrails as a Versioned Dependency."
+These are not authored in the library. They are vendored from `makegood-guardrails` at a pinned version during the Phase-4 deployment step (`guardrails.lock` + `--resolve-guardrails`); do not hand-copy them here in Design. Classify them in the Load-Discipline table below as you would any always-load module — G1 for every agent, G2 for any agent that writes anything. See ARCHITECTURE.md, "Guardrails as a Versioned Dependency."
 
 ---
 
@@ -137,8 +147,8 @@ For each agent, classify every available item (module or addendum) as `always_lo
 
 **Hard rules:**
 
-- `F0_agent_behavioral_standards` is `always_load` whenever it appears in any agent's set. Not a judgment call.
-- `S0_natural_prose_standards` is `always_load` whenever it appears in any agent's set. Not a judgment call.
+- `G1_agent_behavioral_standards` is `always_load` whenever it appears in any agent's set. Not a judgment call.
+- `G2_natural_prose_standards` is `always_load` whenever it appears in any agent's set. Not a judgment call.
 
 **Per-agent reasoning:** the same module may be `always_load` for one agent and `conditional` for another. Methodology content is `always_load` for an agent that writes proposals (every proposal is methodology-anchored); the same content is `conditional` for an agent doing prospect research (only some prospects need methodology depth). Ask, per agent: *does this govern every output this specific agent produces?*
 
@@ -148,9 +158,9 @@ Produce a sibling table to the Ownership and Use-Shape table — the **Load-Disc
 
 | Item | Container | Agent | Classification | `load_when:` (if conditional) |
 |------|-----------|-------|----------------|-------------------------------|
-| F0_agent_behavioral_standards | module | [Agent A] | always_load | — |
-| F0_agent_behavioral_standards | module | [Agent B] | always_load | — |
-| S0_natural_prose_standards | module | [Agent A] | always_load | — |
+| G1_agent_behavioral_standards | module | [Agent A] | always_load | — |
+| G1_agent_behavioral_standards | module | [Agent B] | always_load | — |
+| G2_natural_prose_standards | module | [Agent A] | always_load | — |
 | S2_methodology | module | [Agent A] | always_load | — |
 | S2_methodology | module | [Agent B] | conditional | "Work touches project methodology depth or community-ownership claims" |
 | A0_organizational_reference | addendum | [Agent A] | always_load | — |
@@ -265,7 +275,7 @@ For each agent:
 ```
 PHASE 4 RULES — Read ARCHITECTURE.md before writing any module, including:
 - "The Runtime Agent's Perspective" — what the runtime agent does and doesn't know
-- "Shape Reference: F0 as a Worked Example" — what mixed-shape content looks like
+- "Shape Reference: G1 as a Worked Example" — what mixed-shape content looks like
 - "Single Source of Truth" — the four use-shapes
 
 Per-module protocol (PHASE_4_BUILD.md) has 7 steps:
@@ -281,8 +291,8 @@ Steps 4 and 5 are planning artifacts the agent commits to BEFORE writing prose. 
 
 - Modules are read by a runtime agent that has no awareness of sources, the build, or the library.
 - Use the Ownership and Use-Shape table above. The table commits using modules to specific shapes; do not restate at write-time.
-- Use the Load-Discipline Classification table above when writing agent definitions. The table commits each (item, agent) pair to `always_load` or `conditional`; do not redecide at agent-write time. F0 and S0 are hard-rule `always_load` whenever they appear.
-- Quotes and named individuals from sources do not appear in modules. Extract reasoning before generating, in the Section Plan.
+- Use the Load-Discipline Classification table above when writing agent definitions. The table commits each (item, agent) pair to `always_load` or `conditional`; do not redecide at agent-write time. G1 and G2 are hard-rule `always_load` whenever they appear.
+- Reported speech and named individuals do not appear in modules. Extract reasoning before generating, in the Section Plan. The organization's own terminology is preserved verbatim when the plan commits to it.
 - [PROPOSED] marks inferences. [HIGH-STAKES] marks exact-copy content. Both removed before delivery.
 - Token budget is room for useful content, not a ceiling. Under-budget modules need more depth.
 - When a module fails self-check or user review, follow the failure-recovery protocol. Diagnose the upstream planning gap; do not regenerate prose from scratch.
@@ -302,17 +312,18 @@ Write to the build state:
 - "Alternative structure considered: [what, why rejected]"
 - "Ownership and use-shape table complete: [yes/no — every using module has a use-shape, none rely on restatement]"
 - "Load-Discipline Classification table complete: [yes/no — every (item, agent) pair has a classification; every conditional row has a load_when trigger]"
-- "F0 hard rule satisfied: [yes — F0 is always_load for every agent in whose set it appears / FAIL — list violations]"
-- "S0 hard rule satisfied: [yes — S0 is always_load for every agent in whose set it appears / FAIL — list violations]"
+- "G1 hard rule satisfied: [yes — G1 is always_load for every agent in whose set it appears / FAIL — list violations]"
+- "G2 hard rule satisfied: [yes — G2 is always_load for every agent in whose set it appears / FAIL — list violations]"
 - "Escalation role name chosen: [name, e.g. 'Engagement Principal']"
 - "Guardrail modules copied: [yes/no]"
 - "BLOCKING gaps resolved: [yes/list remaining]"
 
 **Hard rules — failing any of these fails the GATE:**
 
-- F0_agent_behavioral_standards must be `always_load` in every agent that has it in their set.
-- S0_natural_prose_standards must be `always_load` in every agent that has it in their set.
+- G1_agent_behavioral_standards must be `always_load` in every agent that has it in their set.
+- G2_natural_prose_standards must be `always_load` in every agent that has it in their set.
 - Every conditional item must have a `load_when:` trigger meeting the Trigger Discipline (one axis, plain "when X" phrasing, right-side specificity — see ARCHITECTURE.md).
+- No rationale cell in the Ownership and Use-Shape table instructs Build to replace one of the organization's terms with a different phrase. Assigning where a term lives is the table's job; rewriting the vocabulary is not. Any term proposed for replacement comes out of the table and goes to the user as an explicit question at STOP.
 
 If any of these fail, fix before proceeding to STOP.
 
@@ -334,9 +345,10 @@ If any of these fail, fix before proceeding to STOP.
 - Are the agent definitions right — roles, module assignments, budget utilization?
 - Is the Ownership and Use-Shape table correct? Specifically: any content assigned to the wrong owner, any using module that should take a different shape, any shared content area missing from the table?
 - Any modules missing, or modules proposed that aren't needed?
+- **Any terms that should not carry into the modules?** Present the recurring terms the sources use — from the signal log's recurring-vocabulary entries — and ask directly. The default is that these carry through verbatim: they are how the organization talks about itself, and modules written without them produce agents that can describe the vocabulary but not use it. Ask only about terms there is a specific reason to question, and name the reason. If the answer is that a term should be dropped or replaced, record it in the proposal as a stated decision with the user's reason attached.
 - Ready to proceed to Build?
 
-**Generalization check (per F0_agent_behavioral_standards):**
+**Generalization check (per G1_agent_behavioral_standards):**
 
 Before approval, work through these questions with the user:
 

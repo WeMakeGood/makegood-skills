@@ -1,14 +1,14 @@
 <!-- REFERENCE COPY — not a seed. Libraries vendor the s0-backstop artifact from
-makegood-guardrails at a pinned version (guardrails.lock S0_BACKSTOP key); at resolve
-time its body is spliced into the vendored S0 between BACKSTOP markers. Do not edit
+makegood-guardrails at a pinned version (guardrails.lock G2_BACKSTOP key); at resolve
+time its body is spliced into the vendored G2 between BACKSTOP markers. Do not edit
 this to change library behavior; edit upstream in makegood-guardrails. Refresh from
 upstream when this reference should reflect new content. -->
 ---
-artifact: s0-backstop
-artifact_name: S0 Revision Backstop — Current-Generation Prose Signature
-version: 1.1.0
-last_updated: 2026-07-20
-spliced_into: "S0_natural_prose_standards.md between BACKSTOP:BEGIN / BACKSTOP:END markers (body only; this frontmatter is build metadata and is not spliced)"
+artifact: g2-backstop
+artifact_name: G2 Revision Backstop — Current-Generation Prose Signature
+version: 2.0.0
+last_updated: 2026-08-10
+spliced_into: "G2_natural_prose_standards.md between BACKSTOP:BEGIN / BACKSTOP:END markers (body only; this frontmatter is build metadata and is not spliced)"
 provenance: >
   This module is a COMPILED ARTIFACT — bare thresholds and remedies only. Its body
   is spliced verbatim into the model's write-time context, so it carries no status
@@ -21,7 +21,7 @@ provenance: >
   the model's samples against the human ideal (the exemplar) and names what recurs
   as over-style. Density metrics do NOT gate admission — they are cross-harvest
   tracking + reporting only. Cap 25 entries / ~700 tokens — past the cap, change a
-  gate in S0 core, not the list. See BACKSTOP_TRACKER.md for status + harvest log.
+  gate in G2 core, not the list. See BACKSTOP_TRACKER.md for status + harvest log.
 ---
 
 **These entries are density thresholds, not bans.** Every pattern below is legitimate at a human writer's frequency; the machine signature is overuse. The signal lines describe the density at which the voice has slipped.

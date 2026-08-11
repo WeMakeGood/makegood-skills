@@ -1,9 +1,9 @@
 # Phase 4: Build
 
 > **CRITICAL RULES — Read these first:**
-> - **Read [references/ARCHITECTURE.md](../ARCHITECTURE.md) now.** Re-read in particular: "The Runtime Agent's Perspective" (modules are read by an agent that has no awareness of sources, the build, or the library), "Shape Reference: F0 as a Worked Example" (what mixed-shape content looks like), "Single Source of Truth" (the four use-shapes), and the reasoning-context hierarchy.
+> - **Read [references/ARCHITECTURE.md](../ARCHITECTURE.md) now.** Re-read in particular: "The Runtime Agent's Perspective" (modules are read by an agent that has no awareness of sources, the build, or the library), "Shape Reference: G1 as a Worked Example" (what mixed-shape content looks like), "Single Source of Truth" (the four use-shapes), and the reasoning-context hierarchy.
 > - **Read `proposal.md` now.** The proposal's Ownership and Use-Shape table commits using modules to specific shapes. Build executes the table; it does not redecide it.
-> - Modules provide organizational reasoning context — how the organization thinks. Sections are committed to a shape (reasoning context | decision framework | prescriptive rule | cross-reference | reach-beyond signal) in the Section Plan *before* writing. Drift between plan and prose means the plan was wrong; redo the plan, do not edit the prose.
+> - Modules provide organizational reasoning context — how the organization thinks. Sections are committed to a shape (reasoning context | decision framework | prescriptive rule | naming/illustration | cross-reference | reach-beyond signal) in the Section Plan *before* writing. Drift between plan and prose means the plan was wrong; redo the plan, do not edit the prose.
 > - Re-read sources in the SAME TURN you write each module. Source-index classifications (legacy, reference, etc.) are Setup triage labels, NOT Build-time reading permissions. If a source is assigned to this module, read it.
 > - **Token budget is room for useful content.** An under-budget module needs more depth, not congratulation.
 > - **If this is a redo session after a rolled-back build:** follow the redo-session protocol below before writing anything.
@@ -27,8 +27,11 @@ Write all modules, addenda, and agent definitions. One module at a time, each wi
 4. `<OUTPUT_PATH>/process-log.md` — decisions and corrections from earlier phases and previous Build sessions
 5. `<OUTPUT_PATH>/proposal.md` — module scopes, shared source ownership, build plan
 6. `<OUTPUT_PATH>/source-index.md` — the complete source inventory (you need this to locate source files for each module)
+7. `<OUTPUT_PATH>/_comprehension/signal-log.md` — recurring-vocabulary entries: the terms this organization uses for itself, evidenced across multiple sources. These feed the `Language to preserve` field in Step 4. Skip only if the file does not exist.
 
-Write to the build state: "Build session loaded: phase file, ARCHITECTURE.md, build-state, proposal, source-index"
+The signal log is loaded as an **index, not as material to write from**. Its recurring-vocabulary entries point at terms and the sources that evidence them; the source still has to be re-read in the same turn (Step 3) to see how a term is used. A signal-log entry is not a licence to state something the just-read source does not support.
+
+Write to the build state: "Build session loaded: phase file, ARCHITECTURE.md, build-state, proposal, source-index, signal-log"
 
 If you believe you already know the rules, you are likely post-compaction. Re-read anyway.
 
@@ -102,7 +105,7 @@ Confirm to the user:
 - Prior-attempt module/addendum/agent files moved: [list]
 - Prior-attempt plan files moved: [list]
 - Prior-attempt comprehension artifacts moved (if applicable): [list]
-- Working set for this attempt: `proposal.md` (if preserved), `source-index.md`, `process-log.md`, `build-state.md`, source files in `<SOURCE_PATH>/`, `templates/guardrails/` for F0 and S0, and any phase artifacts the rollback explicitly preserved
+- Working set for this attempt: `proposal.md` (if preserved), `source-index.md`, `process-log.md`, `build-state.md`, source files in `<SOURCE_PATH>/`, `templates/guardrails/` for G1 and G2, and any phase artifacts the rollback explicitly preserved
 - Failure-pattern names noted in build-state: [list]
 
 If the user wants to revise the proposal before re-attempting Build, the redo protocol pauses here. The proposal can be revised; once revised, Build resumes from the per-module protocol.
@@ -217,8 +220,13 @@ Format (3–7 entries, depending on module size):
 1. [Pattern]: [one phrase naming what the source reveals about how the org thinks]
    Source(s): [files where this pattern is evidenced]
    Source pointer: [where in the source — section, topic, or phrase]
-   Will appear in module as: [shape — reasoning context | decision framework | prescriptive rule | reach-beyond signal]
+   Will appear in module as: [shape — reasoning context | decision framework | prescriptive rule | naming/illustration | reach-beyond signal]
+   Language to preserve: [the organization's own words for this, quoted exactly from the source — or "none" if the source states it in no distinctive way]
 ```
+
+**On `Language to preserve`:** where the source names something in its own idiom — what it calls a role, a method, a recurring frame — that phrasing is committed here and carried into the prose verbatim. An agent handed a paraphrase of a vocabulary cannot speak in it. Check the proposal's Terminology table first: terms marked "Carry through" are settled and are not candidates for paraphrase, and a term the user chose to drop stays out. For anything not in that table, check the signal log's recurring-vocabulary entries — terms appearing across multiple sources are the organization's, not one speaker's.
+
+Quote exactly and keep it short — a term or a clause, not a passage. "None" is a legitimate and common answer: most patterns are reasoning the source states in no particular way, and inventing distinctiveness where the source has none is worse than paraphrasing.
 
 **Strict rules for the surface:**
 
@@ -251,11 +259,13 @@ For each section, write — in `<OUTPUT_PATH>/_scratch/[module-id]-plan.md` unde
 ```
 Section: [name]
 Reasoning captured: [one sentence]
-Shape: [reasoning context | decision framework | prescriptive rule | cross-reference | reach-beyond signal]
+Shape: [reasoning context | decision framework | prescriptive rule | naming/illustration | cross-reference | reach-beyond signal]
 Why this shape (not another): [one phrase — the alternative shape that was rejected and why]
 Source patterns this section encodes: [reference Step 4's surface entries by number]
 Owned content this section needs: [content area + use-shape from proposal's Ownership and Use-Shape table]
-Quote/individual handling: [for any source quote or named individual that informed this section: the EXTRACTED REASONING that will appear, with the explicit note that the quote/name will not]
+Quote/individual handling: [for any source quote or named individual that informed this section, one of two outcomes:
+  EXTRACT — the reasoning that will appear, with the explicit note that the speaker framing and any name will not; or
+  PRESERVE — the organization's term or phrase carried verbatim into the prose, with the shape it sits inside. Preserve applies to what the organization calls things, not to what a person said about them.]
 ```
 
 The "Why this shape" line surfaces the reasoning path alongside the conclusion. When self-check or user review identifies a shape failure, this line is what the failure-recovery protocol uses to diagnose whether the plan was wrong (the reasoning misjudged what the content is) or the prose drifted from a correct plan. Without it, diagnosis collapses to guesswork.
@@ -263,9 +273,9 @@ The "Why this shape" line surfaces the reasoning path alongside the conclusion. 
 **Strict rules for the plan:**
 
 - **Shape is committed to before writing.** If the plan says "reasoning context," writing the section as third-person prose about the organization means the prose drifted from the plan — redo the plan or redo the prose, but do not "edit toward" the right shape. (See the failure-recovery protocol below.)
-- **For shape reference, see ARCHITECTURE.md, "Shape Reference: F0 as a Worked Example."** F0 illustrates how reasoning context, decision framework, and prescriptive rule coexist in one module. When uncertain what shape a section should take, look at F0.
+- **For shape reference, see ARCHITECTURE.md, "Shape Reference: G1 as a Worked Example."** G1 illustrates how reasoning context, decision framework, and prescriptive rule coexist in one module. When uncertain what shape a section should take, look at G1.
 - **The Ownership and Use-Shape table is authoritative.** If a section needs content that another module owns, the plan names the use-shape from the proposal. Restatement is not a use-shape. If the proposal didn't specify a use-shape and the situation needs one, pause and update the proposal with the user.
-- **Quote and named-individual handling is mandatory whenever a source quote or named individual informed the section.** Write the extracted reasoning in the plan. The quote does not appear in the plan as text-to-include; the name does not appear in the plan as a person-to-attribute. Quote-extraction is the default path because the plan forces it before generation.
+- **Quote and named-individual handling is mandatory whenever a source quote or named individual informed the section.** Commit each to EXTRACT or PRESERVE in the plan. EXTRACT writes the reasoning and drops the speaker framing; a name never appears in the plan as a person-to-attribute. PRESERVE names the organization's term and the shape it will sit inside. Deciding in the plan is what makes either outcome deliberate rather than incidental.
 
 If a section's plan reveals that the section duplicates another module's content, doesn't have a clear shape, or depends on quotes/names you can't extract — that's a structural problem to fix in the plan, not in the prose.
 
@@ -278,7 +288,8 @@ Write each section *as the plan committed to it*. The plan named the shape, the 
 **While writing:**
 
 - The runtime frame from Step 1 governs every sentence. If a sentence only makes sense to someone in the build, it is contamination — even if the sentence contains accurate organizational reasoning. Rewrite without the build-perspective referent.
-- Source quotes and named individuals do not appear in the prose. The plan extracted the reasoning; the prose states the reasoning as instruction to the agent. If a quote or name surfaces in the prose, you are generating from the source rather than from the plan — return to the plan.
+- Reported speech and named individuals do not appear in the prose. The plan extracted the reasoning; the prose states it as instruction to the agent. If a speaker frame ("the team noted," "as one founder put it") or a name surfaces, you are generating from the source rather than from the plan — return to the plan.
+- Language marked PRESERVE in the plan appears verbatim, inside instruction shape. Unplanned verbatim is the failure, not verbatim itself: a phrase that surfaces because it was in front of you means the prose is drifting from the plan, the same as any other drift. A phrase the plan committed to means the plan is being executed.
 - Owned content uses the shape from the plan. Cross-reference, subset, invocation by name, or reach-beyond. Restatement is not a shape.
 - Reasoning context shape is *instruction to the agent*, not third-person description. "When evaluating X, weigh A more heavily than B because [reasoning]" is instruction. "The organization weighs A more heavily than B" is description and contaminates the module with explanatory shape.
 
@@ -306,7 +317,9 @@ After writing, verify against the Section Plan and the Substantive Source Surfac
 
 3. **Use-shape compliance:** For each section that incorporates owned content, does the prose use the shape committed to (cross-reference, subset, invocation, reach-beyond)? Restatement is a shape failure — the using module is restating canonical content instead of pointing to it.
 
-4. **Quote and name extraction:** Search the prose for direct quotes (look for quotation marks around extended source phrases), named individuals (people from the source who appear by name), and anecdote framing ("when [person] said," "the team noted that"). For each hit, return to the plan's extracted reasoning and rewrite the passage as instruction to the agent. If the plan didn't extract reasoning for that quote or name, the plan was incomplete — redo it.
+4. **Reported speech, names, and preserved language:** Search the prose for named individuals and anecdote framing ("when [person] said," "the team noted that"). Every hit is a failure — return to the plan's extracted reasoning and rewrite the passage as instruction.
+
+    Then search for verbatim source language and check it against the plan. A phrase marked PRESERVE is correct and stays. A phrase that appears without a plan entry is drift — either add it to the plan because it belongs, or remove it, but decide deliberately rather than leaving unplanned source language in the module. If the plan handled neither the reasoning nor the language for a quote that informed this section, the plan was incomplete — redo it.
 
 **Runtime-frame checks:**
 
@@ -330,9 +343,15 @@ After writing, verify against the Section Plan and the Substantive Source Surfac
 
 13. **Audience reasoning check:** If this module governs engagement, qualification, or content production — does it include reasoning about the humans on the other end? Not persona profiles or sector categories, but a needs-based framework: what do the people this agent interacts with or writes for actually need, and how do those needs interact and shift by context?
 
+14. **Prose check — run G2's practitioner-voice gate against this module's own text.** Read `templates/guardrails/G2_natural_prose_standards.md` if it is not already in context. Ask its first gate of the module you just wrote: who in this organization would write this if AI didn't exist, and would that person actually write these sentences? Then sweep the G2 revision backstop — machine-signature vocabulary and density thresholds — against the module text.
+
+    A module is prose an agent reads on every task. Prose that reads as machine-generated teaches the agent a machine register, and every output that agent produces inherits it. The library ships G2 to govern what runtime agents write; the same standard governs what the library is written in.
+
+    Two things this check does not mean. It does not license narrative or third-person description — shape discipline (check 1) still governs, and instruction shape is still correct. And it does not apply to language carried through from the sources: G2 governs prose written here, not the organization's own words. A preserved phrase is not a candidate for tightening.
+
 If checks 1–6 fail, the module has structural problems. Follow the failure-recovery protocol below — do not regenerate the module by re-running Step 6.
 
-If only checks 7–13 fail, line-level edits are appropriate.
+If only checks 7–14 fail, line-level edits are appropriate.
 
 ### Step 8: Update Build State and Process Log
 
@@ -374,7 +393,8 @@ Be specific. Not "the module didn't pass" — name the pattern:
 
 - Narrative prose: third-person description of the organization rather than instruction to the agent
 - Build-perspective contamination: sentences that only make sense inside the build
-- Quote or name contamination: source quotes or named individuals appearing in module text
+- Reported speech or name contamination: speaker framing or named individuals appearing in module text
+- Language flattening: the organization's own terms paraphrased into generic directive prose
 - Restated canonical content: the module describes content that another module owns
 - Missing source substance: the module captures generic patterns rather than what the sources specifically reveal
 - Wrong shape: a section the plan called reasoning context is written as decision framework, or a section that should be reasoning context is written as a flattened gate-set, or vice versa
@@ -491,14 +511,14 @@ For each agent (from the proposal):
 - If under 50%: flag as potentially underserved — review whether the agent needs richer modules or additional always-loaded content
 - If over 100%: identify what to trim — remove items not essential for this role, not compress existing items
 
-**Do not write custom guardrail sections in agent definitions.** Load the standard guardrail modules (F0 always; S0 always for any agent that writes anything) and add only domain-specific extensions if needed.
+**Do not write custom guardrail sections in agent definitions.** Load the standard guardrail modules (G1 always; G2 always for any agent that writes anything) and add only domain-specific extensions if needed.
 
 ### Hard-Rule Self-Check
 
 After writing each agent file, verify:
 
-- **F0_agent_behavioral_standards has an `@`-directive in `## Required Reading`** if it appears in this agent's set. If it's in the Conditional Loads table, the file is wrong — fix before continuing. (Hard rule. Not a judgment call.)
-- **S0_natural_prose_standards has an `@`-directive in `## Required Reading`** if it appears in this agent's set. If it's in the Conditional Loads table, the file is wrong — fix before continuing. (Hard rule. Not a judgment call.)
+- **G1_agent_behavioral_standards has an `@`-directive in `## Required Reading`** if it appears in this agent's set. If it's in the Conditional Loads table, the file is wrong — fix before continuing. (Hard rule. Not a judgment call.)
+- **G2_natural_prose_standards has an `@`-directive in `## Required Reading`** if it appears in this agent's set. If it's in the Conditional Loads table, the file is wrong — fix before continuing. (Hard rule. Not a judgment call.)
 - **Every Conditional Loads table row has a non-empty `Load when` cell** with a trigger that meets the Trigger Discipline (see ARCHITECTURE.md): one axis, plain "when X" phrasing, right-side specificity. If a trigger is missing or fails the discipline, fix before continuing.
 - **The classification matches the proposal's Load-Discipline Classification table** for this agent. Always-load items appear as `@`-directives; conditional items appear as table rows. If you disagreed with the proposal's classification while writing, surface that to the user — do not silently change it.
 - **No prose between `## Required Reading` and the first `@`-directive, and no prose interleaved with the directives.** Prose in this section turns content delivery into discretionary tool work — the architectural failure mode the shape is designed to remove.
@@ -510,10 +530,10 @@ After writing each agent file, verify:
 After all agent files are written. Each step produces an artifact; verify the artifact exists on disk before advancing to the next step. **Do not batch these as "I'll do all of these and then check" — the GATE catches that, but the cost is a roundtrip.**
 
 1. **Copy `templates/build-deploy-bundles.py` into `<OUTPUT_PATH>/scripts/`.** Verify: `ls <OUTPUT_PATH>/scripts/build-deploy-bundles.py` returns the path. The script resolves `@`-include directives in agent files and writes self-contained bundles to `deploy/agents/`, and resolves the library's pinned guardrail modules (next step). Suitable for runtimes that don't process `@` natively (Claude.ai project upload, Cowork, generic API integrations).
-2. **Vendor the guardrail modules (F0/S0) from `makegood-guardrails`.** F0/S0 are not copied from the skill — they are a pinned versioned dependency the library vendors into its own `modules/`. (See ARCHITECTURE.md, "Guardrails as a Versioned Dependency.")
+2. **Vendor the guardrail modules (G1/G2) from `makegood-guardrails`.** G1/G2 are not copied from the skill — they are a pinned versioned dependency the library vendors into its own `modules/`. (See ARCHITECTURE.md, "Guardrails as a Versioned Dependency.")
    - Copy `templates/guardrails.lock` into `<OUTPUT_PATH>/guardrails.lock`. Verify: `cat <OUTPUT_PATH>/guardrails.lock` shows the declared versions. Adjust the `declared:` versions first if this library should pin something other than the skill defaults.
-   - Run `cd <OUTPUT_PATH> && scripts/build-deploy-bundles.py --resolve-guardrails`. Verify: the script reports vendoring F0 and S0, and `guardrails.lock`'s `resolved:` block now carries non-null shas. Verify the vendored files exist and carry the GENERATED banner: `head -1 <OUTPUT_PATH>/modules/foundation/F0_agent_behavioral_standards.md` shows `<!-- GENERATED — vendored from makegood-guardrails`.
-   - **This step needs network access to `makegood-guardrails`.** If it cannot reach the repo, stop and surface that — do not proceed to the bundle build, which would produce a library whose agents reference F0/S0 files that do not exist. (The bundle build itself, once modules are vendored, is fully offline.)
+   - Run `cd <OUTPUT_PATH> && scripts/build-deploy-bundles.py --resolve-guardrails`. Verify: the script reports vendoring G1 and G2, and `guardrails.lock`'s `resolved:` block now carries non-null shas. Verify the vendored files exist and carry the GENERATED banner: `head -1 <OUTPUT_PATH>/modules/foundation/G1_agent_behavioral_standards.md` shows `<!-- GENERATED — vendored from makegood-guardrails`.
+   - **This step needs network access to `makegood-guardrails`.** If it cannot reach the repo, stop and surface that — do not proceed to the bundle build, which would produce a library whose agents reference G1/G2 files that do not exist. (The bundle build itself, once modules are vendored, is fully offline.)
 3. **Add `deploy/` to the library's `.gitignore`.** Verify: `grep '^deploy/' <OUTPUT_PATH>/.gitignore` returns the line. If the library has no `.gitignore`, create one with `deploy/` as the first entry. Bundles are regeneration artifacts; the agent files in `agents/` are the source of truth. (Do **not** gitignore the vendored `modules/` guardrail files or `guardrails.lock` — those are committed; the lock is the library's record of which guardrail versions it runs.)
 4. **Run the script: `cd <OUTPUT_PATH> && scripts/build-deploy-bundles.py`.** Verify: the script reports `built deploy/agents/<name>.md` for each agent and exits with status 0. Verify additionally: `ls <OUTPUT_PATH>/deploy/agents/*.md` returns one bundle per agent file.
 5. **Optionally build the all-inclusive variant: `scripts/build-deploy-bundles.py --all-inclusive`.** Verify: `ls <OUTPUT_PATH>/deploy/agents/*.all-inclusive.md` returns one variant bundle per agent. Skip this step unless the user has identified a runtime that needs it; defer with a note in the GATE rather than building speculatively. (See ARCHITECTURE.md, "The All-Inclusive Bundle Variant.")
@@ -555,7 +575,7 @@ If the bundle drift check reports DRIFT, run `scripts/build-deploy-bundles.py` (
 - [ ] Section shapes match what was committed in the Section Plan (no narrative-prose drift)
 - [ ] Substantive Source Surface entries are present in the module (not just facts)
 - [ ] Owned content from other modules uses the committed use-shape (cross-reference, subset, invocation, or reach-beyond — never restatement)
-- [ ] No quoted material from sources used as content; no named individuals attached to organizational reasoning
+- [ ] No reported speech or named individuals attached to organizational reasoning; preserved terminology matches the plan
 - [ ] No build-perspective contamination ("the source," "the library," "the build," named source files, document-provenance dates, "as documented in")
 - [ ] All facts trace to source files
 - [ ] No content duplicated across modules
@@ -577,17 +597,17 @@ If the bundle drift check reports DRIFT, run `scripts/build-deploy-bundles.py` (
 - [ ] Frontmatter is identity-only (no `always_load:` or `conditional:` YAML blocks)
 - [ ] `## Required Reading` contains only `@`-directives, no surrounding prose
 - [ ] `## Conditional Loads` is a table with one row per file, each with a `load_when:` trigger
-- [ ] F0 has an `@`-directive in Required Reading if present (hard rule)
-- [ ] S0 has an `@`-directive in Required Reading if present (hard rule)
+- [ ] G1 has an `@`-directive in Required Reading if present (hard rule)
+- [ ] G2 has an `@`-directive in Required Reading if present (hard rule)
 - [ ] Every Conditional Loads row has a non-empty `Load when` cell meeting Trigger Discipline
 - [ ] `## Ask the [Role]` block uses the library-wide role name from build-state and renders the agent-needs escalation triggers
 - [ ] No "Your Context" descriptive section duplicating the manifest
 - [ ] Token budget assessed (always-load items only) — neither starved nor bloated
-- [ ] Standard guardrails loaded (F0 for all; S0 for any agent that writes anything)
+- [ ] Standard guardrails loaded (G1 for all; G2 for any agent that writes anything)
 
 **For guardrails (versioned dependency):**
 - [ ] `guardrails.lock` present at the library root, `declared:` versions set
-- [ ] `--resolve-guardrails` run: F0/S0 vendored into `modules/` with the GENERATED banner, `resolved:` shas non-null
+- [ ] `--resolve-guardrails` run: G1/G2 vendored into `modules/` with the GENERATED banner, `resolved:` shas non-null
 - [ ] `guardrails.lock` and the vendored `modules/` guardrail files are committed (NOT gitignored)
 
 **For deployment bundles:**
@@ -615,7 +635,7 @@ Write to the build state. Each line names a file that must exist on disk or a sc
 - "Addenda built: [count] / [total]" — count from `ls <OUTPUT_PATH>/addenda/**/*.md`
 - "Agent definitions written: [count] / [total]" — count from `ls <OUTPUT_PATH>/agents/*.md`
 - "Build script vendored: [yes — path: `<OUTPUT_PATH>/scripts/build-deploy-bundles.py`]" — confirm by reading the file's first line (the script's docstring)
-- "Guardrails resolved: [F0 @ version, S0 @ version]" — confirm by reading `guardrails.lock`'s resolved block (shas non-null) and that `head -1` of each vendored guardrail module shows the GENERATED banner
+- "Guardrails resolved: [G1 @ version, G2 @ version]" — confirm by reading `guardrails.lock`'s resolved block (shas non-null) and that `head -1` of each vendored guardrail module shows the GENERATED banner
 - "Library README written: [yes — path: `<OUTPUT_PATH>/README.md`]" — confirm the file exists and contains the deployment-doc content
 - "deploy/ in .gitignore: [yes]" — confirm by grepping the library's `.gitignore` for `deploy/`
 - "Standard bundles built: [count] / [agent count]" — confirm by `ls <OUTPUT_PATH>/deploy/agents/*.md` (excluding `*.all-inclusive.md`)
@@ -660,7 +680,7 @@ The build is complete. The context library is at `<OUTPUT_PATH>/` and ready for 
 ├── build-state.md
 ├── process-log.md
 ├── proposal.md
-├── guardrails.lock              (pinned F0/S0 versions — the library's record)
+├── guardrails.lock              (pinned G1/G2 versions — the library's record)
 ├── modules/
 │   ├── foundation/
 │   │   └── F0_...md              (vendored from makegood-guardrails; GENERATED banner)

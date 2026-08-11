@@ -4,6 +4,55 @@ All notable changes to this skill are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this skill follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] — 2026-08-10
+
+### Changed
+- **Guardrail keys renamed: F0 → G1, S0 → G2, S0_BACKSTOP → G2_BACKSTOP.** The F/S prefixes were context-library tier markers that meant nothing in the guardrails repo and collided with libraries using F/S/D for their own modules. `build-deploy-bundles.py` constants, the lock template, the vendored reference copies, and all skill prose move to the new names. `tag_for()` needed no change — it derives tags from the lock key mechanically.
+- **Vendored paths keep their tier directories** (`modules/foundation/`, `modules/shared/`). Those are the *library's* namespace, not the guardrails repo's, and the rename does not touch them.
+
+### Fixed
+- **`--check` no longer reports `[ok] guardrails match locked versions` when the check did not run.** The guardrail check requires PyYAML; without it the run printed a `[WARN]` and then the `[ok]` line anyway, because the all-clear tested only for `DRIFT`. On a machine where `python3` resolves to a Homebrew interpreter without PyYAML — while the system interpreter has it — this reported a clean guardrail state that had never been verified. A skipped check now prints `[--] guardrail check did not run`.
+- **Migration detection strings no longer use post-rename filenames to detect pre-rename libraries.** The 1.10.0 rename sweep replaced `F0_agent_behavioral_standards.md` with `G1_` inside the 1.6→1.7 migration trigger and the guardrails-versioning case description — both of which exist to detect libraries built *before* the rename, which have `F0_` files. Those triggers could no longer fire.
+
+### Added
+- **`guardrail-g-namespace` migration (1.9.x → 1.10.0)** in `PHASE_M_MIGRATION.md`, with a bootstrap trigger for locks declaring `F0`/`S0`/`S0_BACKSTOP` keys. Optional in the strict sense — the retained tags keep old locks resolving — but a library that never migrates is pinned to the pre-rename line, since the old tags stop at F0 2.1.0 / S0 2.0.1.
+- **A migration notice for pre-rename locks.** The old `f0-v*` / `s0-v*` tags were deliberately retained so un-migrated libraries keep resolving — which means the rename is silent by default: a library pinned to F0 fetches successfully and never learns G1 exists. End-to-end testing confirmed this, contradicting the design note that predicted a loud failure. `--resolve-guardrails` now prints the old→new mapping once when it sees pre-rename keys, and stays quiet for migrated locks.
+
+## [1.9.1] — 2026-08-10
+
+### Changed
+- **The Ownership and Use-Shape table assigns where content lives; it does not rewrite the organization's vocabulary.** A rationale cell reading "source uses X (client-originated) — modules should express this as Y" reads as tidying, and Build follows it precisely: the organization's word never reaches a module, and no Build rule is violated because the substitution was authorized a phase earlier. Terminology substitution now fails the Phase 3 gate and goes to the user as an explicit question at STOP.
+- **"Client-originated" and "colloquial" describe a term's history, not its status.** Repetition across sources is what makes a term the organization's own — terms picked up from clients, a founder's earlier field, or a sector's shorthand are the organization's once it uses them.
+
+### Added
+- **A Terminology table in the proposal.** Recurring terms with the sources that evidence them, and a decision column defaulting to "Carry through." Populated from the signal log; read by Build's `Language to preserve` field. Any other decision is the user's, recorded with their reason.
+- **A STOP question surfacing recurring terms** for the user to rule on, asked only where there is a specific reason to question a term, with the reason named.
+- **New failure mode: Design-phase terminology substitution.** Recorded in `SKILL.md`'s failed-attempts.
+
+### Driven by
+The v1.9.0 test found the flattening instruction one phase upstream of the rules that were supposed to prevent it. In the Make Good library's proposal, an ownership-table note instructed Build to replace the organization's term for its own role with a generic phrase; the shipped module opens with that exact substitute. Build had not drifted — Design had decided, and Build executed correctly.
+
+## [1.9.0] — 2026-08-10
+
+### Changed
+- **Verbatim source language is permitted where a module names or illustrates.** `ARCHITECTURE.md`'s "Do NOT include" list opened with "Verbatim quotes (synthesize the meaning instead)," restated in nine further places. The rule was right about *reported speech* — "the team mentioned that," a name attached to organizational reasoning — and wrong about *phrasing*. Both failed under one prohibition, so the organization's own terms for itself were paraphrased away along with the speaker framing. Reported speech and named individuals remain prohibited, with their rationale now stated: a runtime agent has no referent for a person it was never introduced to, and proper nouns anchor prose to personalities rather than teaching a way of thinking.
+- **"What to extract" gains a fifth category: distinctive terminology and self-characterization.** The closed four-item list (facts, principles, processes, positions) had no slot for what an organization calls itself, so that language was discarded before any rule about quotes applied. This was the deeper cause; the quote ban was the visible one.
+- **The transcript-transformation worked example is now three-way.** It previously showed right-vs-reported-speech and concluded "it's just transcription with quotation marks," teaching that quotation marks are the defect. A flattened counter-example is now shown alongside, and the lesson is stated: reported speech fails on its framing, flattening fails by saying the same thing in nobody's words, and the correct version keeps the organization's terms inside instruction shape.
+- **`validate_library.py` duplication check is advisory and excludes quoted spans.** It exact-matched normalized five-word sentence prefixes and exited non-zero, so the same preserved term in two modules failed the build while a paraphrase of it passed silently. Single source of truth is enforced upstream by the proposal's Ownership and Use-Shape table; this check is a prompt to consult that table, not a gate.
+
+### Added
+- **Sixth section shape: naming/illustration.** A section carrying the organization's idiom had no shape to be committed to and would fail self-check 1. Added to the shape hierarchy in `ARCHITECTURE.md` and to all three enumerations in the Section Plan and Substantive Source Surface.
+- **`Language to preserve` field in the Substantive Source Surface.** Verbatim is now a planned commitment, parallel to shape — never a write-time impulse. Quote exactly, keep it short, and "none" is a common and legitimate answer.
+- **EXTRACT / PRESERVE branch in the Section Plan's quote handling.** The field had one outcome; it now has two, and the choice is made before prose exists.
+- **The signal log joins the Phase 4 session loading gate.** Phase 2 captured distinctive vocabulary verbatim (`COMPREHENSION_TEMPLATES.md`, "Distinctive vocabulary"; signal-log entries typed `recurring vocabulary`) and Build loaded no comprehension artifacts at all, so the terms were captured and never reached the builder. Loaded as an index, not as material to write from — the source is still re-read in the same turn.
+- **Self-check 14: run S0's practitioner-voice gate against the module's own prose.** The skill ships S0 — which tells runtime agents to write in a practitioner's vocabulary and sentence rhythms — and applied no prose standard to the modules it writes. A module is prose an agent reads on every task; prose that reads as machine-generated teaches a machine register that every downstream output inherits.
+- **New failure mode: language flattening.** Recorded in `SKILL.md`'s failed-attempts and the Phase 4 failure-mode list. The library previously had no vocabulary for "modules lost the organization's voice," so the failure could not be named, diagnosed, or routed.
+
+### Driven by
+A built library was measured against its own sources: 14 modules from 54 source files and ~129,000 tokens of organizational material contained **zero preserved human sentences**. Every blockquote was a cross-reference pointer. A source transcript that explicitly asked for a term to survive — *"I need to make sure we don't have an AI model that, when it's helping me edit, edits out the things I explicitly say"* — produced a module with that term paraphrased away.
+
+The token argument ran backwards from expectation: module prose used 46 words to state what the source stated in 16. Preserving language is cheaper than paraphrasing it, and the paraphrase is what carries no voice.
+
 ## [1.8.1] — 2026-07-20
 
 ### Changed

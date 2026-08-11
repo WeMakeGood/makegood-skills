@@ -532,7 +532,7 @@ The examples show: convergence names what connects (not the principle revealed);
 
 ### Cross-Domain Parallels Template
 
-Single file: `<OUTPUT_PATH>/_comprehension/cross-domain-parallels.md`. New in Phase 2 — promotes F0's Cross-Domain Reasoning requirement to a comprehension deliverable.
+Single file: `<OUTPUT_PATH>/_comprehension/cross-domain-parallels.md`. New in Phase 2 — promotes G1's Cross-Domain Reasoning requirement to a comprehension deliverable.
 
 ```markdown
 # Cross-Domain Parallels

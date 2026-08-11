@@ -39,10 +39,29 @@ Each migration has: a name, a from-version, a to-version, what triggers it, and 
 |------|-----|----------------|---------|
 | 1.4.x | 1.5.0 | `agent-manifest-load-discipline` | Agent manifests use tier-grouped `modules:` (foundation/shared/specialized) and separate `addenda:` |
 | 1.5.x | 1.6.0 | `agent-include-and-bundles` | Agent files use `always_load:` / `conditional:` YAML frontmatter blocks |
-| 1.6.x | 1.7.0 | `guardrails-versioning` | Library has `modules/foundation/F0_agent_behavioral_standards.md` but no `guardrails.lock` at the root (hand-owned guardrails, not yet a versioned dependency) |
-| 1.7.x | 1.8.0 | `s0-backstop-splice` | Build-state records a skill/script version behind 1.8.0 (the generic tooling-stale signal — no artifact-shape change; the 1.8 script adds S0-backstop splice support and the `--check` upstream-newer notice) |
+| 1.6.x | 1.7.0 | `guardrails-versioning` | Library has a hand-owned behavioral-standards module (`F0_` pre-rename, `G1_` after) in `modules/foundation/` but no `guardrails.lock` at the root (hand-owned guardrails, not yet a versioned dependency) |
+| 1.7.x | 1.8.0 | `g2-backstop-splice` | Build-state records a skill/script version behind 1.8.0 (the generic tooling-stale signal — no artifact-shape change; the 1.8 script adds G2-backstop splice support and the `--check` upstream-newer notice) |
+| 1.9.x | 1.10.0 | `guardrail-g-namespace` | `guardrails.lock` declares `F0`, `S0`, or `S0_BACKSTOP` keys, and/or `modules/foundation/F0_agent_behavioral_standards.md` / `modules/shared/S0_natural_prose_standards.md` exist |
 
 When a new migration ships, add a row above. Migrations below this point are the actual migration content.
+
+### `guardrail-g-namespace` (1.9.x → 1.10.0)
+
+The guardrail modules were renamed upstream: `F0` → `G1`, `S0` → `G2`, `S0_BACKSTOP` → `G2_BACKSTOP`. The `F`/`S` prefixes were context-library tier markers that meant nothing in the guardrails repo and collided with libraries using `F`/`S`/`D` for their own modules.
+
+**This migration is optional in the strict sense** — the upstream `f0-v*` and `s0-v*` tags were retained, so an un-migrated lock keeps resolving successfully. It resolves *silently*, though: nothing tells the library that newer versions exist under different keys, because the old tags stop at F0 2.1.0 and S0 2.0.1. A library that never migrates is pinned to the pre-rename line forever.
+
+**Steps:**
+
+1. In `guardrails.lock`, rename the keys in both `declared` and `resolved`: `F0` → `G1`, `S0` → `G2`, `S0_BACKSTOP` → `G2_BACKSTOP`. Set versions to `G1: 3.0.0`, `G2: 3.0.0`, `G2_BACKSTOP: 2.0.0` — content-identical to F0 2.1.0 / S0 2.0.1 / backstop 1.1.0, so this is zero-behavior-change.
+2. Update the `vendored:` and `spliced_into:` paths to the new filenames. **Keep the tier directories** — `modules/foundation/` and `modules/shared/` are the library's namespace, not the guardrails repo's, and the rename does not touch them.
+3. Rename the vendored module files on disk to match.
+4. Update every reference to the old identifiers across `modules/`, `agents/`, and `addenda/` — including `@`-include directives in Required Reading, which break silently if the path is wrong.
+5. Re-vendor the build script from the skill's `templates/build-deploy-bundles.py` (1.10.0+ knows the new constants; earlier versions look for `S0_backstop.md` upstream and fail).
+6. Run `--resolve-guardrails` and confirm the splice lands: the vendored G2 file should contain the backstop body between its `BACKSTOP:BEGIN/END` markers.
+7. Run `validate_library.py` and confirm it still passes.
+
+**Verification:** `--resolve-guardrails` prints a migration notice whenever it sees pre-rename keys. Its absence after migration is the signal that step 1 took.
 
 **Libraries on pre-1.5 versions** run all applicable migrations in sequence: `agent-manifest-load-discipline` (1.4.x → 1.5.0), then `agent-include-and-bundles` (1.5.x → 1.6.0), then `guardrails-versioning` (1.6.x → 1.7.0). The bootstrap detects each signal and presents the migration plan as a single user-facing operation — internally it's separate migrations applied in order, which preserves the append-only architecture.
 
@@ -99,8 +118,8 @@ For each agent file with the trigger pattern:
 **M1.2: Apply hard-rule classifications.**
 
 Without asking the user:
-- `F0_agent_behavioral_standards` → `always_load` (hard rule, no exceptions)
-- `S0_natural_prose_standards` → `always_load` if present in this agent's set (hard rule for any agent that writes anything)
+- `G1_agent_behavioral_standards` → `always_load` (hard rule, no exceptions)
+- `G2_natural_prose_standards` → `always_load` if present in this agent's set (hard rule for any agent that writes anything)
 
 **M1.3: Classify remaining items interactively.**
 
@@ -144,8 +163,8 @@ If a trigger fails the discipline, present the failure to the user and offer to 
 **M1.5: Verify hard rules.**
 
 Before writing the migrated manifest:
-- F0_agent_behavioral_standards in `always_load`? (Required if present in the agent's set.)
-- S0_natural_prose_standards in `always_load`? (Required if present in the agent's set.)
+- G1_agent_behavioral_standards in `always_load`? (Required if present in the agent's set.)
+- G2_natural_prose_standards in `always_load`? (Required if present in the agent's set.)
 - Every conditional item has a `load_when:` trigger?
 
 If any check fails, fix before writing.
@@ -160,7 +179,7 @@ agent_name: [unchanged]
 agent_domain: [unchanged]
 purpose: [unchanged]
 always_load:
-  - [classified items, in a sensible order — typically F0, F1+ foundation, S0, S1+ shared, D specialized, then always-loaded reference addenda]
+  - [classified items, in a sensible order — typically G1, F1+ foundation, G2, S1+ shared, D specialized, then always-loaded reference addenda]
 conditional:
   - module: [item name]
     load_when: "[trigger]"
@@ -181,7 +200,7 @@ In `<OUTPUT_PATH>/process-log.md`, add an entry:
 ### [YYYY-MM-DD] — Migration: agent-manifest-load-discipline (1.4.x → 1.5.0)
 
 Migrated agent files: [list]
-Hard-rule applications: [list of agents where F0/S0 was hard-rule placed in always_load]
+Hard-rule applications: [list of agents where G1/G2 was hard-rule placed in always_load]
 Classification decisions requiring judgment: [list of (agent, item, classification) tuples where the user diverged from the recommendation]
 Trigger refinements: [list of triggers refined for discipline]
 Backup: <OUTPUT_PATH>/_pre_migration_backup/
@@ -215,7 +234,7 @@ For each agent file with the trigger pattern:
 **M2.2: Resolve item identifiers to file paths.**
 
 For each item identifier:
-- Look up the file path. Modules: search `modules/foundation/`, `modules/shared/`, `modules/specialized/` for a file matching the identifier (e.g., `F0_agent_behavioral_standards` → `modules/foundation/F0_agent_behavioral_standards.md`).
+- Look up the file path. Modules: search `modules/foundation/`, `modules/shared/`, `modules/specialized/` for a file matching the identifier (e.g., `G1_agent_behavioral_standards` → `modules/foundation/G1_agent_behavioral_standards.md`).
 - Addenda: the identifier typically already includes the subdirectory (e.g., `funders/A_funder_climate` → `addenda/funders/A_funder_climate.md`).
 
 If any identifier doesn't resolve to a file, surface to the user before continuing — this signals a manifest inconsistency that predates the migration.
@@ -252,7 +271,7 @@ last_updated: [today's date]
 
 ## Required Reading
 
-@modules/foundation/F0_agent_behavioral_standards.md
+@modules/foundation/G1_agent_behavioral_standards.md
 @[resolved path for each always_load item, in the same order as the old YAML]
 ...
 
@@ -333,35 +352,35 @@ Backup: <OUTPUT_PATH>/_pre_migration_backup/
 ## Migration: guardrails-versioning (1.6.x → 1.7.0)
 
 **Trigger (either):**
-- **(a) Not yet converted:** the library has `modules/foundation/F0_agent_behavioral_standards.md` but no `guardrails.lock` at its root — guardrails are hand-owned copies, not a versioned dependency. Run the full migration (M3.1–M3.7).
+- **(a) Not yet converted:** the library has a hand-owned behavioral-standards module in `modules/foundation/` (`F0_agent_behavioral_standards.md` pre-rename, `G1_` after) but no `guardrails.lock` at its root — guardrails are hand-owned copies, not a versioned dependency. Run the full migration (M3.1–M3.7).
 - **(b) Converted but tooling stale:** the library already has a `guardrails.lock` and vendored guardrails, but its build-state records a script/skill version behind the running skill (or its on-disk `scripts/build-deploy-bundles.py --version` is behind). Only the vendored script needs refreshing. Run the **script-refresh-only path**: skip M3.1–M3.3 and M3.5 (the lock and vendored modules are already correct), run **M3.4** (refresh the script + update build-state versions), then **M3.6** (rebuild bundles) and **M3.7** (log). This is a legitimate migration whose only effect is bringing the version-locked script current.
 
-**What this migration does:** For case (a), converts the library from owning hand-copied F0/S0 modules to consuming them as a pinned, vendored dependency from `makegood-guardrails` — introduces `guardrails.lock`, refreshes the build script, and re-vendors F0/S0 at the version the library already effectively runs, so it is **zero-behavior-change**. For case (b), refreshes only the version-locked build script. In neither case does the migration change which guardrail *version* the agents run; adopting a newer version (e.g. for a new process gate) is a separate, deliberate `--update-guardrails` afterward.
+**What this migration does:** For case (a), converts the library from owning hand-copied G1/G2 modules to consuming them as a pinned, vendored dependency from `makegood-guardrails` — introduces `guardrails.lock`, refreshes the build script, and re-vendors G1/G2 at the version the library already effectively runs, so it is **zero-behavior-change**. For case (b), refreshes only the version-locked build script. In neither case does the migration change which guardrail *version* the agents run; adopting a newer version (e.g. for a new process gate) is a separate, deliberate `--update-guardrails` afterward.
 
-This migration has one interactive judgment in case (a) (matching the library's current F0/S0 to an upstream version); the rest is mechanical, and case (b) is fully mechanical.
+This migration has one interactive judgment in case (a) (matching the library's current G1/G2 to an upstream version); the rest is mechanical, and case (b) is fully mechanical.
 
 ### Why this migration is required
 
-Before 1.7, every library carried its own hand-copied F0/S0. Across many libraries these copies drifted — the same guardrail existed in incompatible versions with no record of which library ran which, and no way to propagate a fix without editing every copy by hand. The versioned-dependency model makes the guardrail version an explicit, recorded fact per library (`guardrails.lock`) and makes adopting a change a deliberate, auditable bump rather than a silent hand-edit. See ARCHITECTURE.md, "Guardrails as a Versioned Dependency."
+Before 1.7, every library carried its own hand-copied G1/G2. Across many libraries these copies drifted — the same guardrail existed in incompatible versions with no record of which library ran which, and no way to propagate a fix without editing every copy by hand. The versioned-dependency model makes the guardrail version an explicit, recorded fact per library (`guardrails.lock`) and makes adopting a change a deliberate, auditable bump rather than a silent hand-edit. See ARCHITECTURE.md, "Guardrails as a Versioned Dependency."
 
 ### Steps
 
 **M3.1: Back up the current guardrail modules.**
 
-Copy `modules/foundation/F0_agent_behavioral_standards.md` and `modules/shared/S0_natural_prose_standards.md` (and any other present guardrail modules) into `<OUTPUT_PATH>/_pre_migration_backup/`. This is the recovery point — the migration overwrites these files with vendored copies.
+Copy `modules/foundation/G1_agent_behavioral_standards.md` and `modules/shared/G2_natural_prose_standards.md` (and any other present guardrail modules) into `<OUTPUT_PATH>/_pre_migration_backup/`. This is the recovery point — the migration overwrites these files with vendored copies.
 
 **M3.2: Match the library's current guardrails to an upstream version. (Interactive — this is the judgment step.)**
 
-For F0 and S0 separately:
+For G1 and G2 separately:
 - Compare the library's current module body (frontmatter and banners aside) against the tagged versions in `makegood-guardrails`. The simplest check: for each candidate tag, fetch the upstream module and diff its body against the library's.
 - **If the body matches a tagged version exactly,** that is the version to pin — vendoring it back is a no-op on behavior. Proceed.
-- **If the body matches no tag** (the library hand-edited its F0/S0), STOP and surface to the user: show the diff against the closest upstream version and present the fork — (a) pin the closest version and accept that the hand edits are dropped (the upstream version supersedes them), or (b) the hand edits are deliberate and should be carried upstream into `makegood-guardrails` as a new version before migrating. Do not guess. Local edits to a guardrail are exactly the kind of divergence this system exists to make visible, not silently overwrite.
+- **If the body matches no tag** (the library hand-edited its G1/G2), STOP and surface to the user: show the diff against the closest upstream version and present the fork — (a) pin the closest version and accept that the hand edits are dropped (the upstream version supersedes them), or (b) the hand edits are deliberate and should be carried upstream into `makegood-guardrails` as a new version before migrating. Do not guess. Local edits to a guardrail are exactly the kind of divergence this system exists to make visible, not silently overwrite.
 
 Record the matched version per module in `build-state.md`.
 
 **M3.3: Write `guardrails.lock`.**
 
-Copy `templates/guardrails.lock` into `<OUTPUT_PATH>/guardrails.lock`. Set `declared:` F0 and S0 to the versions matched in M3.2 (not necessarily the skill's defaults — the point is to preserve current behavior). Leave the `resolved:` shas as `null`; the next step fills them.
+Copy `templates/guardrails.lock` into `<OUTPUT_PATH>/guardrails.lock`. Set `declared:` G1 and G2 to the versions matched in M3.2 (not necessarily the skill's defaults — the point is to preserve current behavior). Leave the `resolved:` shas as `null`; the next step fills them.
 
 **M3.4: Refresh the version-locked build script.**
 
@@ -371,13 +390,13 @@ Copy `templates/build-deploy-bundles.py` into `<OUTPUT_PATH>/scripts/`, overwrit
 
 **M3.5: Resolve and re-vendor.**
 
-Run `cd <OUTPUT_PATH> && scripts/build-deploy-bundles.py --resolve-guardrails`. This fetches the matched versions, overwrites `modules/foundation/F0...` and `modules/shared/S0...` with the vendored copies (now carrying the GENERATED banner), and fills the `resolved:` shas in the lock. Needs network access to `makegood-guardrails`.
+Run `cd <OUTPUT_PATH> && scripts/build-deploy-bundles.py --resolve-guardrails`. This fetches the matched versions, overwrites `modules/foundation/G1...` and `modules/shared/G2...` with the vendored copies (now carrying the GENERATED banner), and fills the `resolved:` shas in the lock. Needs network access to `makegood-guardrails`.
 
 Verify: the vendored files carry the banner, and — because M3.2 matched the current version — the body below the banner is identical to the backed-up original (confirm with a diff against `_pre_migration_backup/`, ignoring the banner line). A non-trivial body diff here means the version match in M3.2 was wrong; stop and recheck.
 
 **M3.6: Rebuild bundles.**
 
-Run `scripts/build-deploy-bundles.py`. The only change to the bundles versus pre-migration is the banner comment and the `version:` frontmatter line in the F0/S0 sections — no behavioral content changes. Confirm `--check` reports guardrails matching the locked versions and no bundle drift.
+Run `scripts/build-deploy-bundles.py`. The only change to the bundles versus pre-migration is the banner comment and the `version:` frontmatter line in the G1/G2 sections — no behavioral content changes. Confirm `--check` reports guardrails matching the locked versions and no bundle drift.
 
 **M3.7: Log the migration.**
 
@@ -386,24 +405,24 @@ Add to `process-log.md`:
 ```
 ### [YYYY-MM-DD] — Migration: guardrails-versioning (1.6.x → 1.7.0)
 
-Converted hand-owned F0/S0 to versioned dependency from makegood-guardrails.
-Pinned: F0 @ [version], S0 @ [version] (matched to library's current content — zero behavior change).
+Converted hand-owned G1/G2 to versioned dependency from makegood-guardrails.
+Pinned: G1 @ [version], G2 @ [version] (matched to library's current content — zero behavior change).
 guardrails.lock written; build script updated to resolving version; modules re-vendored; bundles rebuilt.
 Hand-edit resolution (if any): [none | describe the fork taken in M3.2].
 Backup: <OUTPUT_PATH>/_pre_migration_backup/
 ```
 
-If the user wants to additionally adopt a newer guardrail version (e.g. the latest F0 with a new process gate), that is a post-migration step: `scripts/build-deploy-bundles.py --update-guardrails F0=<newer>`, then rebuild. Keep it distinct from the migration in the log — migration = adopt the *system*; update = adopt a *version*.
+If the user wants to additionally adopt a newer guardrail version (e.g. the latest G1 with a new process gate), that is a post-migration step: `scripts/build-deploy-bundles.py --update-guardrails G1=<newer>`, then rebuild. Keep it distinct from the migration in the log — migration = adopt the *system*; update = adopt a *version*.
 
 ---
 
-## Migration: s0-backstop-splice (1.7.x → 1.8.0)
+## Migration: g2-backstop-splice (1.7.x → 1.8.0)
 
 **Trigger:** the generic tooling-stale signal — build-state records a skill or script version behind 1.8.0, or the on-disk `scripts/build-deploy-bundles.py --version` reports < 1.8.0. There is no artifact-shape change in this migration: a 1.7 library's lock, vendored modules, agents, and bundles are all valid under 1.8 tooling.
 
 **What this migration does:** refreshes the version-locked build script (script-refresh path, per M3.4's general responsibility). The 1.8.0 script adds:
 
-- **S0-backstop splice support.** S0 2.0.0 upstream splits into a durable core (gates) and an independently versioned `s0-backstop` artifact (the current-generation prose-signature list, maintained by harvest — see the makegood-guardrails repo's `HARVEST_PLAN.md`). The lock gains an `S0_BACKSTOP` key; at resolve time the backstop body is spliced into the vendored S0 between `BACKSTOP:BEGIN/END` markers, so agents still receive a single S0 file. Libraries pinned to S0 1.x resolve unchanged through the legacy path.
+- **G2-backstop splice support.** G2 2.0.0 upstream splits into a durable core (gates) and an independently versioned `g2-backstop` artifact (the current-generation prose-signature list, maintained by harvest — see the makegood-guardrails repo's `HARVEST_PLAN.md`). The lock gains an `G2_BACKSTOP` key; at resolve time the backstop body is spliced into the vendored G2 between `BACKSTOP:BEGIN/END` markers, so agents still receive a single G2 file. Libraries pinned to G2 1.x resolve unchanged through the legacy path.
 - **`--check` upstream-newer notice.** Report-only `[NEWER]` lines when upstream has a newer tagged version than the library declares, so stale libraries surface themselves. Adoption stays deliberate.
 
 **The migration does not change guardrail versions.** Per the migration/update distinction (M3.7): migration = adopt the *system*; update = adopt a *version*.
@@ -416,36 +435,36 @@ As M3.4: copy `templates/build-deploy-bundles.py` into `<OUTPUT_PATH>/scripts/`,
 
 **M4.2: Verify nothing changed.**
 
-Run `scripts/build-deploy-bundles.py --check`. Expected output for a library still pinned to F0 1.x / S0 1.x: guardrails match their locked versions, bundles in sync, plus `[NEWER]` notices for F0 2.0.0 / S0 2.0.1 — **the notices are informational, not drift**; they are the new script doing its job.
+Run `scripts/build-deploy-bundles.py --check`. Expected output for a library still pinned to G1 1.x / G2 1.x: guardrails match their locked versions, bundles in sync, plus `[NEWER]` notices for G1 2.0.0 / G2 2.0.1 — **the notices are informational, not drift**; they are the new script doing its job.
 
 **M4.3: Offer the guardrail adoption (interactive — STOP for the user's decision).**
 
 The natural post-migration step is adopting the 2026-07-15 guardrail releases, and it is a **behavioral change** requiring the user's explicit yes:
 
-- **F0 2.0.0** (major): Gates 3–5 gain arming conditions (they no longer fire on fixed-framing, low-consequence, or instance-scoped work); new "Where the Gates Run" section (gates execute in reasoning, outputs carry products not ceremony); Gate 1's verbatim refusal template becomes a phrased-as-needed requirement.
-- **S0 2.0.1** (major vs 1.x; 2.0.1 is the sector-neutrality wording patch): core/backstop split; the Practitioner Voice gate routes to a loaded voice profile first; new fourth gate "Write in the Medium's Shape."
-- **s0-backstop 1.0.0**: the current-generation tic list (provisional pending first harvest).
+- **G1 2.0.0** (major): Gates 3–5 gain arming conditions (they no longer fire on fixed-framing, low-consequence, or instance-scoped work); new "Where the Gates Run" section (gates execute in reasoning, outputs carry products not ceremony); Gate 1's verbatim refusal template becomes a phrased-as-needed requirement.
+- **G2 2.0.1** (major vs 1.x; 2.0.1 is the sector-neutrality wording patch): core/backstop split; the Practitioner Voice gate routes to a loaded voice profile first; new fourth gate "Write in the Medium's Shape."
+- **g2-backstop 1.0.0**: the current-generation tic list (provisional pending first harvest).
 
 If the user accepts:
 
 ```
-cd <OUTPUT_PATH> && scripts/build-deploy-bundles.py --update-guardrails F0=2.0.0 S0=2.0.1 S0_BACKSTOP=1.0.0
+cd <OUTPUT_PATH> && scripts/build-deploy-bundles.py --update-guardrails G1=2.0.0 G2=2.0.1 G2_BACKSTOP=1.0.0
 scripts/build-deploy-bundles.py            # rebuild bundles
 scripts/build-deploy-bundles.py --check    # confirm: guardrails ok, no drift, no NEWER
 ```
 
-(`--update-guardrails` adds the `S0_BACKSTOP` declaration to the lock automatically — it is the one guardrail key a library legitimately adds after the fact.) If the user declines, the library stays pinned and fully functional; `--check` keeps reporting the `[NEWER]` notices as a standing reminder.
+(`--update-guardrails` adds the `G2_BACKSTOP` declaration to the lock automatically — it is the one guardrail key a library legitimately adds after the fact.) If the user declines, the library stays pinned and fully functional; `--check` keeps reporting the `[NEWER]` notices as a standing reminder.
 
 **M4.4: Log the migration.**
 
 Add to `process-log.md`:
 
 ```
-### [YYYY-MM-DD] — Migration: s0-backstop-splice (1.7.x → 1.8.0)
+### [YYYY-MM-DD] — Migration: g2-backstop-splice (1.7.x → 1.8.0)
 
-Build script refreshed to 1.8.0 (S0-backstop splice support, --check upstream-newer notice).
+Build script refreshed to 1.8.0 (G2-backstop splice support, --check upstream-newer notice).
 Guardrail versions unchanged by the migration.
-Post-migration guardrail update: [declined | adopted F0 2.0.0, S0 2.0.1, s0-backstop 1.0.0 — bundles rebuilt].
+Post-migration guardrail update: [declined | adopted G1 2.0.0, G2 2.0.1, g2-backstop 1.0.0 — bundles rebuilt].
 ```
 
 ---
