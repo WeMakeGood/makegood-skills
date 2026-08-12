@@ -1,6 +1,6 @@
 # Make Good Skills
 
-A single Claude Code plugin bundling all 19 Make Good agent skills — writing, research, client work, web design, and AI development. Built by [Make Good](https://wemakegood.org).
+A single Claude Code plugin bundling all 20 Make Good agent skills — writing, research, client work, web design, and AI development. Built by [Make Good](https://wemakegood.org).
 
 Each skill is also available as a standalone repo at [github.com/WeMakeGood](https://github.com/WeMakeGood) for users who want to install individual skills via ZIP.
 
@@ -11,7 +11,7 @@ Each skill is also available as a standalone repo at [github.com/WeMakeGood](htt
 /plugin install makegood-skills@makegood-skills
 ```
 
-That's it — all 19 skills are now available in Claude Code.
+That's it — all 20 skills are now available in Claude Code.
 
 ## What's included
 
@@ -36,6 +36,7 @@ That's it — all 19 skills are now available in Claude Code.
 - **`writing-project-dossiers`** — Project scope documents via guided conversation
 - **`generating-meeting-reports`** — Structured meeting reports from transcripts
 - **`cleaning-transcripts`** — Clean dictation and meeting transcripts while preserving the speaker's own words
+- **`outlining-dictation`** — Turn a cleaned transcript into a nested outline of the speaker's own words, ready to cut and reorder
 - **`planning-social-campaigns`** — Campaign strategy, asset calendars, and content files
 
 ### Web Design

@@ -57,6 +57,10 @@ skills:
     repo: WeMakeGood/generating-writing-standards
     tag: v1.1.0
 
+  - name: outlining-dictation
+    repo: WeMakeGood/outlining-dictation
+    tag: v1.0.0
+
   - name: planning-social-campaigns
     repo: WeMakeGood/planning-social-campaigns
     tag: v1.0.1
