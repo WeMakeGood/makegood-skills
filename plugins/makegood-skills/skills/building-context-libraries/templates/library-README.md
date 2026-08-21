@@ -7,9 +7,10 @@ Context library for [organization]. Each agent file in `agents/` is a system-pro
 ```
 .
 ├── agents/                      Source agent files (with @-include directives)
+├── guardrails.lock              Pinned G1/G2 versions this library runs
 ├── modules/                     Reasoning context — how the organization thinks
-│   ├── foundation/              Universal organizational context (F-prefix)
-│   ├── shared/                  Cross-functional content (S-prefix)
+│   ├── foundation/              Universal organizational context (F-prefix; G1 lives here)
+│   ├── shared/                  Cross-functional content (S-prefix; G2 lives here)
 │   └── specialized/             Per-agent domain content (D-prefix)
 ├── addenda/                     Reference data (volatile facts, lookup tables)
 ├── scripts/

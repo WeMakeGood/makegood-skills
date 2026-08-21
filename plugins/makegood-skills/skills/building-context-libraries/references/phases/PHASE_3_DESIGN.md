@@ -17,7 +17,7 @@ Transform comprehension findings into a complete structural proposal: what modul
 
 ## Session Loading Gate
 
-**This phase starts a new session.** You have nothing in context from the previous session except what you load now.
+**This phase starts a new session (Session C).** You have nothing in context from the previous session except what you load now. The break before Design is mandatory (SKILL.md, "Session Architecture"): the loading gate below re-reads every source, and Comprehend Pass 2 is built on not having them loaded. If you are continuing directly from Pass 2 in the same session, stop and start a new one — the loads below assume an empty context and will be skipped as "already known" if it isn't.
 
 **GATE:** Before any design work, load in this order:
 1. Read [references/ARCHITECTURE.md](../ARCHITECTURE.md) — module design philosophy, transformation rules, token budgets
@@ -317,6 +317,7 @@ Write to the build state:
 - "Escalation role name chosen: [name, e.g. 'Engagement Principal']"
 - "Guardrail modules copied: [yes/no]"
 - "BLOCKING gaps resolved: [yes/list remaining]"
+- "No module or addendum assigned an absence, source inventory, or current-state description as content: [yes/list violations]"
 
 **Hard rules — failing any of these fails the GATE:**
 
@@ -324,6 +325,7 @@ Write to the build state:
 - G2_natural_prose_standards must be `always_load` in every agent that has it in their set.
 - Every conditional item must have a `load_when:` trigger meeting the Trigger Discipline (one axis, plain "when X" phrasing, right-side specificity — see ARCHITECTURE.md).
 - No rationale cell in the Ownership and Use-Shape table instructs Build to replace one of the organization's terms with a different phrase. Assigning where a term lives is the table's job; rewriting the vocabulary is not. Any term proposed for replacement comes out of the table and goes to the user as an explicit question at STOP.
+- No module or addendum in the proposal is assigned an absence, a source inventory, or a current-state description as its content. A purpose line reading "what isn't established about X," "what the sources cover on Y," or "how the site currently reads" authorizes the defect a phase upstream, and Build will execute it faithfully without violating any Build rule. Gaps belong in Gaps and Limitations; what the sources contain belongs in the source assignments; the state of the deliverable belongs nowhere. Where such a row is carrying a real behavioral need, invert it: the module teaches what the agent does when it reaches for the thing ("prices come from the business: source them or ask"). See ARCHITECTURE.md, "Synthesis, Not Inventory."
 
 If any of these fail, fix before proceeding to STOP.
 

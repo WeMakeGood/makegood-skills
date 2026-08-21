@@ -65,21 +65,25 @@ A complete context library:
 
 ```
 context-library/
+├── README.md                 # Deployment doc for whoever runs the library
 ├── source-index.md           # Manifest of all sources
 ├── build-state.md            # Progress tracker
 ├── process-log.md            # Reasoning history and decision record
 ├── proposal.md               # Approved structure
+├── guardrails.lock           # Pinned G1/G2 guardrail versions
 ├── modules/
 │   ├── foundation/           # Universal context (all agents)
 │   ├── shared/               # Cross-functional (multiple agents)
 │   └── specialized/          # Domain-specific (single agents)
 ├── addenda/                  # Volatile reference data (on-demand)
-└── agents/                   # Agent definitions with module assignments
+├── agents/                   # Agent definitions with @-include required reading
+├── scripts/                  # build-deploy-bundles.py, vendored into the library
+└── deploy/                   # Generated self-contained bundles (gitignored)
 ```
 
 ## How the build runs
 
-The build runs in 4 phases across 3 sessions. Phase 2 (Comprehend) splits internally into two passes — recognition and synthesis — with a mandatory session break between them.
+The build runs in 4 phases across 4 sessions. Phase 2 (Comprehend) splits internally into two passes — recognition and synthesis — with a mandatory session break between them.
 
 | Phase | What happens | You'll review |
 |-------|-------------|---------------|
@@ -89,9 +93,12 @@ The build runs in 4 phases across 3 sessions. Phase 2 (Comprehend) splits intern
 | **Comprehend Pass 2** | Sources mostly out of context; synthesis with cognitive room for lateral moves | Synthesis outputs and refined agent roles |
 | *(session break)* | | |
 | **Design** | Module architecture, agent definitions, ownership and use-shape table | Complete structural proposal |
+| *(session break)* | | |
 | **Build** | Module writing with per-module quality gates | Finished library |
 
 The two-pass structure exists because single-pass synthesis on a large source set produces sector-applicable rather than organization-specific patterns. Recognition needs sources loaded; synthesis needs sources mostly out of context. The break makes both possible.
+
+Design gets its own session for the same reason, in reverse: it re-reads the full source set to decide which reasoning belongs in which module, which is the context state synthesis had to avoid.
 
 ## What's in this repo
 
@@ -102,9 +109,10 @@ The two-pass structure exists because single-pass synthesis on a large source se
   - `COMPREHENSION_TEMPLATES.md` — Phase 2 artifact templates
   - `phases/` — one self-contained instruction file per build phase, including migration
 - `scripts/` — utility scripts the skill runs during builds
-  - `analyze_sources.py`, `count_tokens.py`, `create_source_index.py`, `validate_library.py`, `verify_module.py`
-- `templates/` — runtime templates the skill copies into a build (e.g., `build-state.md`)
-- `examples/` — representative example output from a real build
+  - `create_source_index.py` (Setup), `count_tokens.py`, `validate_library.py`, `verify_module.py` (Build validation)
+- `templates/` — artifacts the skill copies into a build: `build-deploy-bundles.py`, `guardrails.lock`, the library README, and the G1/G2 reference copies
+
+A finished build of this skill is published separately: the [Make Good context library](https://github.com/WeMakeGood/makegood-context-library) is a complete worked example.
 
 ## Tips
 

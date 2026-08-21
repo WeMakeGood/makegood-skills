@@ -113,6 +113,76 @@ def analyze_module(filepath: Path) -> dict:
         }
 
 
+# Signals for the synthesis scan (section 6). Advisory only: the discrimination
+# between a durable rule and an instantiated fact is a judgment call, and a
+# regex cannot make it. "Never invent a coverage figure" is a rule and belongs;
+# "no coverage figures exist" is an absence inventory and does not. The script
+# reports candidates for a human to run that test on — it never fails a build.
+SYNTHESIS_SIGNALS = [
+    ('provenance', re.compile(
+        r'\*Source:|\bas documented in\b|\bper the (?:transcript|document|source)\b'
+        r'|[\w./-]+\.(?:md|log|csv|docx|txt|pdf)\b', re.I)),
+    ('confidence-grade', re.compile(
+        r'\b(?:well|lightly|thinly|poorly)[- ]evidenced\b|\bmodeled[- ]only\b'
+        r'|\btreat as (?:a )?hypothes\w+|\bno record (?:exists )?of\b', re.I)),
+    ('absence-inventory', re.compile(
+        r'\b(?:is |are |was |were )?not (?:established|recorded|decided|documented)\b'
+        r'|\bdoes not exist\b|\bdo not exist\b|\bnothing establishes\b'
+        r"|^#+ .*\bWhat (?:is not|the .* has not|we don't|we do not|cannot)\b", re.I | re.M)),
+    ('current-state', re.compile(
+        r'\bthe current (?:site|copy|page|deliverable)\b|\bas published\b'
+        r'|\bcurrently (?:reads|says|has|lists|shows)\b|\bpublished nowhere\b', re.I)),
+]
+
+STRIP_COMMENTS = re.compile(r'<!--[\s\S]*?-->')
+
+# Paths into the library are reference data the agent can actually load — an
+# @-include directive, a cross-reference to a module or addendum. They are not
+# source references, and flagging them would train the reader to ignore this
+# section. Blanked before matching so the rest of the line is still scanned.
+LIBRARY_PATHS = re.compile(
+    r'^\s*@\S+|(?:modules|addenda|agents|templates|guardrails)/[\w./-]+')
+
+
+def scan_synthesis_signals(filepath: Path) -> list:
+    """Report lines in a runtime file that may carry build reasoning.
+
+    HTML comments are stripped first: BUILD REMINDERS quote the signals they
+    warn against, and the VERIFICATION log legitimately names source files
+    until it is removed before delivery. Scanning them would flag every
+    mid-build run and train the reader to ignore the section.
+    """
+    try:
+        text = filepath.read_text()
+    except Exception:
+        return []
+    if 'GENERATED' in text[:400]:  # vendored guardrail — upstream's content
+        return []
+    hits = []
+    for lineno, line in enumerate(STRIP_COMMENTS.sub('', text).splitlines(), 1):
+        candidate = LIBRARY_PATHS.sub('', line)
+        names = [name for name, pattern in SYNTHESIS_SIGNALS
+                 if pattern.search(candidate)]
+        if names:
+            hits.append((lineno, '+'.join(names), line.strip()))
+    return hits
+
+
+def find_runtime_files(library_dir: Path) -> list:
+    """Every file a deployed agent reads: modules, addenda, agent definitions.
+
+    Wider than find_modules() — addenda and agent files were never opened by
+    this script, and they are where build reasoning collects, because
+    "reference data" reads as license to list.
+    """
+    files = []
+    for sub in ('modules', 'addenda', 'agents'):
+        base = library_dir / sub
+        if base.exists():
+            files.extend(base.rglob('*.md'))
+    return sorted(set(files))
+
+
 def find_modules(library_dir: Path) -> list:
     """Find all module files in library.
 
@@ -248,6 +318,31 @@ def main():
             print(f"  WARN: {m['filename']} missing Agent Instructions")
         else:
             print(f"  OK: {m['filename']}")
+
+    # 6. Synthesis scan — advisory only.
+    # A context library carries the understanding distilled from the sources,
+    # not the sources themselves, not the current state of the deliverable, not
+    # an inventory of what is absent, not provenance. Those pass the
+    # build-perspective checks above because they carry no build-perspective
+    # phrase. See ARCHITECTURE.md, "Synthesis, Not Inventory."
+    print("\n6. Synthesis Scan (advisory — runtime files: modules, addenda, agents)")
+    runtime_files = find_runtime_files(library_dir)
+    signal_hits = 0
+    for rf in runtime_files:
+        for lineno, name, line in scan_synthesis_signals(rf):
+            signal_hits += 1
+            rel = rf.relative_to(library_dir)
+            print(f"  REVIEW: {rel}:{lineno} [{name}] {line[:90]}")
+    if not runtime_files:
+        print("  SKIP: no modules/, addenda/, or agents/ directory found")
+    elif signal_hits:
+        print(f"  {signal_hits} line(s) to review. Run each through the discrimination test:")
+        print("  does it teach a durable behavior, or instantiate a specific, volatile,")
+        print("  or absent fact? Keep positive rules — \"never invent X\" belongs;")
+        print("  \"X does not exist\" does not. Invert rather than delete where the")
+        print("  behavior is taught nowhere else.")
+    else:
+        print(f"  OK: no synthesis signals in {len(runtime_files)} runtime file(s)")
 
     # Summary
     print()

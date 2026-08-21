@@ -20,7 +20,7 @@ import yaml
 from pathlib import Path
 
 
-DEFAULT_CONTEXT_WINDOW = 200000  # Claude Sonnet 4.5
+DEFAULT_CONTEXT_WINDOW = 200000  # 200K-context models; override with --context-window
 BUDGET_PERCENTAGE = 0.10  # 10% of context window
 
 # Patterns for parsing the 1.6 agent file body shape.

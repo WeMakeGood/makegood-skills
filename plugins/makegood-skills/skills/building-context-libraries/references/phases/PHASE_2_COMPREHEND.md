@@ -117,6 +117,8 @@ The negative-space list is the hardest of the three to produce because it requir
 
 For each negative-space entry, commit to an interpretation: does this absence reveal something about how the organization actually reasons (a finding about the organization), is it a sourcing gap (a finding about the sources), or was the expectation itself wrong (a finding about the agent's framing)? Pass 2 will refine the interpretation; Pass 1 surfaces the candidate.
 
+**Where this artifact stops.** Negative space, the inventory of what the sources contain, and the record of where each finding came from are build reasoning. They belong here, in `_comprehension/`, and they are why comprehension is worth doing. They do not cross into `modules/`, `addenda/`, or `agents/` — an absence inventory in a runtime file primes every concept it lists and goes false the day the gap closes. What crosses is the *behavior* the absence implies: not "no aftercare terms are recorded" but "aftercare terms come from the business — source them or ask, never infer." The crossing is checked at Phase 4, Step 7, check 7. See ARCHITECTURE.md, "Synthesis, Not Inventory."
+
 ### Pass 1, Step 4: Conflicts File (Updated as You Read)
 
 Maintain a single running file: `<OUTPUT_PATH>/_comprehension/conflicts.md`. Use the conflicts template.
@@ -340,6 +342,10 @@ Update build state:
 - **Current phase:** Phase 3 (Design)
 - **Next phase file:** `references/phases/PHASE_3_DESIGN.md`
 
-Phase 3 (Design) follows Pass 2 in the same session if context allows. The mandatory break for Phase 3 is between Pass 1 and Pass 2 (above), not between Pass 2 and Design — Design uses the synthesis artifacts directly.
+## MANDATORY SESSION BREAK
 
-If the Pass 2 + STOP review took most of Session B's context window, start a new session for Design. Design needs the metaprompt transformation rules and architecture reference fresh in context.
+**Design must run in a new session.**
+
+Tell the user: "Pass 2 (synthesis) is complete and reviewed. **Start a new session before Design.** Design re-reads the full source set to decide which organizational reasoning goes in which module — the opposite context state from the one synthesis needed. Say 'Resume building context library' to continue."
+
+The break is not a context-budget convenience; it is a context-state requirement. Design's loading gate reads every source file, and Pass 2's entire structural advantage is that it has not. Running both in one session means one of the two phases is working against its own premise — and the phase that loses is whichever ran second, silently. See SKILL.md, "Session Architecture," for the full session map.

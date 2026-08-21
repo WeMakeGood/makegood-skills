@@ -1,5 +1,19 @@
 # Templates
 
+## Contents
+
+- Process Log Template
+- Build State Template
+- Source Index Template
+- Foundation Module Template
+- Shared Module Template
+- Specialized Module Template
+- Agent Definition Template
+- Addendum Template
+- Proposal Template
+
+---
+
 ## Process Log Template
 
 The process log captures the reasoning chain across the entire build — decisions, corrections, user direction, and the evolution of understanding. Build-state tracks *where you are*. The process log tracks *how you got here and what was decided along the way*.
@@ -99,7 +113,7 @@ Records which skill version produced this library's artifacts and which version 
 - Agent files missing a `## Required Reading` section with `@`-include directives (any pre-1.6 format)
 - A hand-owned behavioral-standards module in `modules/foundation/` (`F0_agent_behavioral_standards.md` pre-rename, `G1_` after) with NO `guardrails.lock` at the library root (pre-1.7 hand-owned guardrails — needs migration to the versioned-dependency system)
 - `guardrails.lock` declaring `F0`, `S0`, or `S0_BACKSTOP` keys, or `F0_`/`S0_`-prefixed files under `modules/` (pre-1.10 guardrail naming — the upstream modules are now `G1`/`G2`; the old tags still resolve, so this is silent rather than broken)
-- build-state records a **Built with skill version** or **Vendored build-deploy-bundles.py version** behind the running skill — OR build-state has no Skill & Tooling Version block at all (pre-1.7 build-state). The library's vendored build script is stale even if its artifact shapes are current; a migration refreshes it. (Confirm the on-disk script version with `<OUTPUT_PATH>/scripts/build-deploy-bundles.py --version` if build-state's record is absent or suspect.)
+- build-state records a **Built with skill version** or **Vendored build-deploy-bundles.py version** behind the running skill — OR build-state has no Skill & Tooling Version block at all (pre-1.7 build-state). The library's vendored build script is stale even if its artifact shapes are current; a migration refreshes it. (Confirm the on-disk script version with `<OUTPUT_PATH>/scripts/build-deploy-bundles.py --version` if build-state's record is absent or suspect. Any library built before 1.11.0 matches this signal — the script's version constant was stale from 1.8.0 through 1.10.0, so the recorded version understates what the library carries. The `script-version-refresh` migration corrects it.)
 - Any other format mismatch between artifacts on disk and the current skill version's expected shapes
 
 A library with migration signals is not necessarily a redo — it may be a maintenance session on a library built with an earlier skill version. Migration is a separate flow from redo (see PHASE_M_MIGRATION.md).
@@ -107,10 +121,10 @@ A library with migration signals is not necessarily a redo — it may be a maint
 **B. Ask the user.** Frame the question around what you found:
 
 - If you found redo signals: "I noticed [signal]. Is this a redo session after a rolled-back build? [yes/no]"
-- If you found migration signals: "I noticed [list signals], indicating this library was built with an earlier skill version. Should we migrate before continuing? Each applicable migration runs in sequence: pre-1.5 tier-grouped → 1.5 YAML manifest → 1.6 `@`-include + table → 1.7 versioned guardrails (`guardrails.lock`). A library missing only `guardrails.lock` runs just the 1.7 guardrails-versioning migration. [migrate/proceed/redo]"
+- If you found migration signals: "I noticed [list signals], indicating this library was built with an earlier skill version. Should we migrate before continuing? [migrate/proceed/redo]" Name the specific migrations that apply by reading PHASE_M_MIGRATION.md's Migration Index — do not enumerate them from memory, and do not describe the sequence as ending where an older skill version's sequence ended. Each applicable migration runs in order; a library matching one trigger runs only that migration.
 - If you found neither: "Is this a redo session after a rolled-back build? [yes/no]"
 
-If the user chooses **migrate**: follow the migration protocol in [references/phases/PHASE_M_MIGRATION.md](../phases/PHASE_M_MIGRATION.md) before continuing the bootstrap below. Migration is a one-time transformation that brings the library's artifacts to the current skill version. The bootstrap resumes after migration.
+If the user chooses **migrate**: follow the migration protocol in [references/phases/PHASE_M_MIGRATION.md](phases/PHASE_M_MIGRATION.md) before continuing the bootstrap below. Migration is a one-time transformation that brings the library's artifacts to the current skill version. The bootstrap resumes after migration.
 
 If the user chooses **redo** OR your scan found a definitive redo signal, follow the redo-session protocol in PHASE_4_BUILD.md before continuing the bootstrap below.
 
@@ -343,6 +357,15 @@ Contamination phrases — if any appear, the sentence is wrong-shaped:
 - "as documented in" / "per the [document type]"
 - Any sentence explaining why content is or isn't in the module
 
+Wrong shapes — these carry no contamination phrase and still do not belong (ARCHITECTURE.md, "Synthesis, Not Inventory"):
+- A table, list, or index reproducing what a source contains
+- The current state of the thing the agent is about to change ("currently," "as published," the copy as it stands)
+- An inventory of what is missing, unknown, undecided, or not established — including section titles beginning "What is not" / "What the organization hasn't"
+- Provenance or confidence carried as content: a `*Source:*` footer, "well evidenced," "modeled-only," "thin"
+- What was ruled out, or what a system can't do where that capability was never in the design
+
+State what to do and where truth lives. "Never invent X" is a rule and belongs; "X does not exist" is an inventory and does not. Do not cut a positive rule because it contains a negation.
+
 Each section was committed to a Section Plan (Phase 4, Step 5) before being written. The plan named:
 - The shape (reasoning context | decision framework | prescriptive rule | cross-reference | reach-beyond signal)
 - The owned content the section needs (with use-shape from the proposal's Ownership and Use-Shape table)
@@ -358,7 +381,9 @@ HIGH-STAKES content (legal names, EINs, addresses, titles, dates, financials): c
 
 DURABILITY:
 - No volatile specifics (counts, prices, named lists). Move to addenda. Process parameters are durable.
-- Guide, don't catalog. Principles, not inventories.
+- Guide, don't catalog. Principles, not inventories — of source contents as much as of programs.
+- Nothing the agent's own output will falsify. For any sentence describing a state: would doing the work make it false?
+- Worked examples in an always-load module must survive the build's open gaps. An example built on a pending or contested fact ships an instruction no conversation can correct.
 - Respect proposal scope. Cross-reference content owned elsewhere; do not restate.
 -->
 
@@ -621,6 +646,15 @@ update_frequency: "[quarterly | annually | on-demand | when-changed]"
 last_updated: YYYY-MM-DD
 ---
 
+<!-- BUILD REMINDERS (remove from final addendum):
+
+This addendum is read by a runtime agent that has only its loaded files and the user's input. It cannot open a source. "Data only" means the facts the agent may state and the pointer to where a volatile fact is authoritative — not a catalogue of what the sources contain, not an inventory of what is unknown or undecided, not a note on how well evidenced something is.
+
+Addenda drift here more than modules do, because "reference data" reads as license to list. Run the same scan the modules get (Phase 4, Step 7, check 7): source inventory, current-state description, absence inventory, provenance or confidence as content.
+
+Provenance lives in the verification log below, which is stripped before delivery. No `*Source:*` footer ships.
+-->
+
 <!-- VERIFICATION LOG (remove before delivery)
 | Data Point | Source File | Exact Source Text |
 |------------|-------------|-------------------|
@@ -635,13 +669,12 @@ last_updated: YYYY-MM-DD
 
 ## [Data Section]
 
-[Tables, lists, rates, bios, catalogs — reference data only.
-No behavioral instructions. No "When X, do Y."
+[Tables, rates, bios, rosters — the currently claimable facts, and where volatile
+truth is authoritative. No behavioral instructions. No "When X, do Y."
 HIGH-STAKES content copied exactly from source.]
 
 ---
 
-*Source: [source files]*
 *Last verified: YYYY-MM-DD*
 ```
 

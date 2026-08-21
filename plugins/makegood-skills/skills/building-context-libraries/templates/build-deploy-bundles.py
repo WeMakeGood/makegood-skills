@@ -68,7 +68,7 @@ def _require_yaml() -> None:
 # into each library, and the library's build-state records this version. A
 # migration that ships a newer script re-vendors it and updates that record.
 # Bump this in lockstep with the skill version whenever the script changes.
-SCRIPT_VERSION = "1.8.0"
+SCRIPT_VERSION = "1.11.0"
 
 INCLUDE_PATTERN = re.compile(r"^\s*@(\S+)\s*$")
 

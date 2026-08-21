@@ -1,6 +1,6 @@
 # Make Good Skills
 
-A single Claude Code plugin bundling all 20 Make Good agent skills — writing, research, client work, web design, and AI development. Built by [Make Good](https://wemakegood.org).
+A single Claude Code plugin bundling all 21 Make Good agent skills — writing, research, client work, web design, and AI development. Built by [Make Good](https://wemakegood.org).
 
 Each skill is also available as a standalone repo at [github.com/WeMakeGood](https://github.com/WeMakeGood) for users who want to install individual skills via ZIP.
 
@@ -11,7 +11,7 @@ Each skill is also available as a standalone repo at [github.com/WeMakeGood](htt
 /plugin install makegood-skills@makegood-skills
 ```
 
-That's it — all 20 skills are now available in Claude Code.
+That's it — all 21 skills are now available in Claude Code.
 
 ## What's included
 
@@ -47,6 +47,7 @@ That's it — all 20 skills are now available in Claude Code.
 ### AI Development
 
 - **`building-context-libraries`** — Transform org documents into agent metaprompt modules
+- **`generating-audience-profiles`** — Audience dimension matrices and activatable sub-profile metaprompts, as upstream input for context libraries
 - **`creating-skills`** — Guided workflow for building new agent skills
 - **`auditing-skills`** — Audit existing skills against current best practices
 

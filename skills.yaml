@@ -15,7 +15,7 @@ skills:
 
   - name: building-context-libraries
     repo: WeMakeGood/building-context-libraries
-    tag: v1.10.0
+    tag: v1.11.0
 
   - name: cleaning-transcripts
     repo: WeMakeGood/cleaning-transcripts
@@ -44,6 +44,10 @@ skills:
   - name: extracting-voice-profiles
     repo: WeMakeGood/extracting-voice-profiles
     tag: v1.1.0
+
+  - name: generating-audience-profiles
+    repo: WeMakeGood/generating-audience-profiles
+    tag: v1.0.0
 
   - name: generating-divi-variables
     repo: WeMakeGood/generating-divi-variables

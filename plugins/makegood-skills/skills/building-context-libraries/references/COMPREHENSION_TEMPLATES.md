@@ -2,7 +2,7 @@
 
 Templates for the artifacts produced during Phase 2 (Comprehend). Pass 1 produces recognition artifacts (per-source notes, signal log, expectations-vs-findings, conflicts). Pass 2 produces synthesis artifacts (pattern-pointers, convergences, cross-domain parallels, agent-needs).
 
-All artifacts live in `<OUTPUT_PATH>/_comprehension/`. The `_` prefix keeps the directory visible to the user but signals it is not part of the runtime library.
+All artifacts live in `<OUTPUT_PATH>/_comprehension/`. The `_` prefix keeps the directory visible to the user but signals it is not part of the runtime library. These artifacts are where negative space, source inventories, and provenance belong; they inform every later phase and none of them cross into `modules/`, `addenda/`, or `agents/` (ARCHITECTURE.md, "Synthesis, Not Inventory").
 
 ```
 <OUTPUT_PATH>/_comprehension/
@@ -17,6 +17,21 @@ All artifacts live in `<OUTPUT_PATH>/_comprehension/`. The `_` prefix keeps the 
 ├── cross-domain-parallels.md          (Pass 2)
 └── agent-needs.md                     (Pass 2)
 ```
+
+---
+
+## Contents
+
+- Pass 1: Recognition Artifacts
+  - Per-Source Notes Template
+  - Signal Log Template
+  - Expectations-vs-Findings Template
+  - Conflicts Template
+- Pass 2: Synthesis Artifacts
+  - Pattern-Pointers Template
+  - Convergences Template
+  - Cross-Domain Parallels Template
+  - Agent-Needs Template
 
 ---
 
@@ -232,6 +247,8 @@ Absence can mean:
 - The agent's expectation was wrong (a finding about the agent's framing)
 
 The implications field is where the agent commits to an interpretation, which Pass 2 will refine.
+
+This list is build reasoning and stays in this file. What reaches a module is the behavior an absence implies — "source it or ask; never infer" — never the enumeration of what is absent.
 
 ---
 

@@ -19,13 +19,13 @@ Inventory all source documents, classify them, identify what domain agents will 
 
 **Before any other work:**
 
-1. **Scan `<OUTPUT_PATH>/` for redo and migration signals.** If `<OUTPUT_PATH>/` exists, list its contents and look for:
-   - **Redo signals:** `_retrospective_archive/`, audit/retrospective/post-mortem documents, partial module/addendum/agent files, or a build-state with "Redo Session: yes."
-   - **Migration signals:** agent files using the pre-1.5 manifest format (tier-grouped `modules:` with `foundation:`/`shared:`/`specialized:`, top-level `addenda:` list).
+1. **Scan `<OUTPUT_PATH>/` for redo and migration signals.** If `<OUTPUT_PATH>/` exists, list its contents and run the triage in TEMPLATES.md, "Session Bootstrap" → Step 0. **Read that signal list rather than working from the summary here** — it is the single statement of what counts as a signal, it covers every shipped migration, and a partial list read from memory passes old-format libraries through as clean.
+
+   In brief, so you know what you are looking for: redo signals are `_retrospective_archive/`, audit or post-mortem documents, partial module/addendum/agent files, or a build-state marked "Redo Session: yes." Migration signals are any mismatch between artifact shapes on disk and what the current skill version expects — agent-file format, missing `guardrails.lock`, pre-rename guardrail keys, or a build-state recording a skill or script version behind the running skill. The bootstrap's list is authoritative on all of them.
 
 2. **Ask the user.** Frame the question around what you found:
    - Redo signals: "Is this a redo session after a previous build was rolled back?"
-   - Migration signals: "I noticed agent files using the pre-1.5 manifest format. This library was built with an earlier skill version. Should we migrate before continuing?"
+   - Migration signals: "I noticed [the specific signals found]. This library was built with an earlier skill version. Should we migrate before continuing?" Name the migrations that apply from PHASE_M_MIGRATION.md's Migration Index — not from memory.
    - Both: surface both and ask which path applies (migration is a separate flow from redo; if both are needed, migrate first).
 
 If **no signals found and user says no/proceed**, proceed to Step 1.

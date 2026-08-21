@@ -10,6 +10,22 @@
 
 ---
 
+## Contents
+
+- What This Phase Does
+- Session Loading Gate
+- Redo-Session Protocol
+- Per-Module Protocol
+- When a Module Fails (Failure-Recovery Protocol)
+- Building Addenda
+- Writing Agent Definitions
+- Final Validation
+- GATE
+- STOP
+- After This Phase
+
+---
+
 ## What This Phase Does
 
 Write all modules, addenda, and agent definitions. One module at a time, each with a commitment gate that prevents content-copying. Then validate the complete library.
@@ -98,6 +114,8 @@ Examples of acceptable pattern names:
 
 The names function as a watch-list. The build agent's structural protections are in the per-module protocol — the names are not the prevention; they are awareness.
 
+If a name the user gives matches an entry in [references/FAILURE_MODES.md](../FAILURE_MODES.md), read that entry. It names the gate that should have caught the failure, which tells you whether the previous attempt skipped the gate or the gate is too weak for this library. Read the entry only — not the archive.
+
 ### Step R4: Confirm Working Set
 
 Confirm to the user:
@@ -163,6 +181,7 @@ Shape: ...
 Why this shape (not another): ...
 Source patterns this section encodes: ...
 Owned content this section needs: ...
+Illustration or worked example: ...
 Quote/individual handling: ...
 
 [Repeat for each section]
@@ -233,6 +252,8 @@ Quote exactly and keep it short — a term or a clause, not a passage. "None" is
 - **Patterns must come from the source files you re-read in Step 3.** Not from comprehension findings. Not from process-log entries. Not from memory of earlier work. The surface is what you got from re-reading the actual sources in this turn.
 - **If a pattern came from comprehension findings rather than the just-read source, mark it explicitly** ("comprehension-derived, not direct from source") and verify it in the source before using it. Comprehension shorthand crowding out source substance is a recurring failure mode; the surface is where that gets caught.
 - **The surface lists patterns, not their content.** "How the org calibrates engagement intensity to client maturity" is a pattern. "The org uses quick wins to avoid overwhelming early-stage clients" is content — and writing the content here means you'll generate the module from your own paraphrase rather than from the source.
+- **An entry names the reasoning a source reveals, never what the source contains.** This step is where source cataloguing originates: "patterns from the just-read sources" reads easily as "list what they hold," and the resulting entry produces a module section that inventories a source instead of thinking with it. The test: could this entry be reconstructed back into the source it came from? Then it is inventory, and the module built on it will be too. Reach for the understanding the source produced instead.
+- **Negative space informs the surface and never appears on it.** What the sources don't cover shapes which patterns matter and where the module points the agent beyond itself. It does not become an entry, because an entry becomes module content — and an inventory of absence in a runtime file primes every concept it lists and goes false the day the gap closes. See ARCHITECTURE.md, "Synthesis, Not Inventory."
 - **The surface is a contract.** What appears in the surface is what the module captures. After writing, you verify (in self-check) that the surface's patterns are present in the module — not just facts.
 
 **Two thinness checks before locking the surface:**
@@ -263,6 +284,7 @@ Shape: [reasoning context | decision framework | prescriptive rule | naming/illu
 Why this shape (not another): [one phrase — the alternative shape that was rejected and why]
 Source patterns this section encodes: [reference Step 4's surface entries by number]
 Owned content this section needs: [content area + use-shape from proposal's Ownership and Use-Shape table]
+Illustration or worked example: [the example this section will use, and why the build's own open gaps cannot overturn it — or "none"]
 Quote/individual handling: [for any source quote or named individual that informed this section, one of two outcomes:
   EXTRACT — the reasoning that will appear, with the explicit note that the speaker framing and any name will not; or
   PRESERVE — the organization's term or phrase carried verbatim into the prose, with the shape it sits inside. Preserve applies to what the organization calls things, not to what a person said about them.]
@@ -275,6 +297,7 @@ The "Why this shape" line surfaces the reasoning path alongside the conclusion. 
 - **Shape is committed to before writing.** If the plan says "reasoning context," writing the section as third-person prose about the organization means the prose drifted from the plan — redo the plan or redo the prose, but do not "edit toward" the right shape. (See the failure-recovery protocol below.)
 - **For shape reference, see ARCHITECTURE.md, "Shape Reference: G1 as a Worked Example."** G1 illustrates how reasoning context, decision framework, and prescriptive rule coexist in one module. When uncertain what shape a section should take, look at G1.
 - **The Ownership and Use-Shape table is authoritative.** If a section needs content that another module owns, the plan names the use-shape from the proposal. Restatement is not a use-shape. If the proposal didn't specify a use-shape and the situation needs one, pause and update the proposal with the user.
+- **Any worked example in an always-load module must outlive the build.** Check each illustration against the build's own open gaps and pending inputs. An example resting on a fact the build has flagged pending, contested, or to-be-confirmed is disqualified — pick one that will not move. Always-load content is rebuilt into the system prompt every turn, so an instruction that goes wrong cannot be corrected in conversation: the agent meets the stale example again on the next turn. This extends the volatile-data rule, which sends changing figures to addenda but says nothing about the example a section teaches with.
 - **Quote and named-individual handling is mandatory whenever a source quote or named individual informed the section.** Commit each to EXTRACT or PRESERVE in the plan. EXTRACT writes the reasoning and drops the speaker framing; a name never appears in the plan as a person-to-attribute. PRESERVE names the organization's term and the shape it will sit inside. Deciding in the plan is what makes either outcome deliberate rather than incidental.
 
 If a section's plan reveals that the section duplicates another module's content, doesn't have a clear shape, or depends on quotes/names you can't extract — that's a structural problem to fix in the plan, not in the prose.
@@ -327,31 +350,43 @@ After writing, verify against the Section Plan and the Substantive Source Surfac
 
 6. **Runtime-test:** Pick three sentences from the module at random. For each, ask: "Would this make sense to a reader who knows nothing about how this module came to exist?" If any of the three doesn't make sense without build context, the module has a contamination pattern that needs structural fixing.
 
+7. **Synthesis scan.** The contamination scan tests referents; this one tests shape, and a sentence can pass check 5 and fail here. Read the prose for five signals:
+
+    - **Source inventory** — a table, list, or index reproducing what a source contains. Test: could an entry be reconstructed back into the source? Then it is inventory, not understanding.
+    - **Current-state description** — the deliverable as it stands, "currently," "as published," present-tense description of what the agent is about to change. Test: would the agent's own output make this false?
+    - **Absence inventory** — what is missing, unknown, undecided, not established. A section title beginning "What is not" or "What the organization hasn't" is one by construction.
+    - **Provenance or confidence as content** — a source citation, a `*Source:*` footer, an evidence grade ("well evidenced," "modeled-only," "thin") attached to a heading or a frame.
+    - **Rejected paths** — "was ruled out," "we avoid," "instead of [the option nobody chose]," or what a system can't do where that capability was never in the design. Rewrite around how the live thing behaves, with an action on each open item.
+
+    Run each hit through the discrimination test in ARCHITECTURE.md, "Synthesis, Not Inventory": durable behavior stays, framed positively; an instantiated fact is cut or inverted to the rule it was standing in for. **Do not strip a positive rule because it contains a negation** — "never invent a coverage figure" is a rule and stays; "no coverage figures exist" is an inventory and goes. Where the cut removes a behavior nothing else teaches, invert rather than delete: "X is not established" becomes "X lives in [the system / a person's decision] — source it or ask; never state it from inference."
+
+    **Route by cause.** If a hit traces back to a Substantive Source Surface entry or a Section Plan section, the plan authorized it — that is structural, and the failure-recovery protocol applies. If it is a sentence the plan never called for, it is drift and the line edit is the fix.
+
 **Substance and discipline checks:**
 
-7. **Single source of truth:** Is any content in this module also stated in another module that already exists? If so, the canonical version stays in its owner module per the Ownership and Use-Shape table; this module cross-references.
+8. **Single source of truth:** Is any content in this module also stated in another module that already exists? If so, the canonical version stays in its owner module per the Ownership and Use-Shape table; this module cross-references.
 
-8. **Volatile check:** Are there any counts, prices, named lists, or other volatile data? Move to addenda.
+9. **Volatile check:** Are there any counts, prices, named lists, or other volatile data? Move to addenda.
 
-9. **HIGH-STAKES check:** Are legal names, EINs, financial figures, credentials copied exactly from sources?
+10. **HIGH-STAKES check:** Are legal names, EINs, financial figures, credentials copied exactly from sources?
 
-10. **Token depth:** Is this module substantive enough? A module under 1,000 tokens probably needs more behavioral guidance. A module at 600 tokens has almost certainly been stripped to facts.
+11. **Token depth:** Is this module substantive enough? A module under 1,000 tokens probably needs more behavioral guidance. A module at 600 tokens has almost certainly been stripped to facts.
 
-11. **Source verification:** Can you trace every fact to a source file? Remove anything you can't verify.
+12. **Source verification:** Can you trace every fact to a source file? Remove anything you can't verify.
 
-12. **Cross-references:** Are connections to related modules explicit?
+13. **Cross-references:** Are connections to related modules explicit?
 
-13. **Audience reasoning check:** If this module governs engagement, qualification, or content production — does it include reasoning about the humans on the other end? Not persona profiles or sector categories, but a needs-based framework: what do the people this agent interacts with or writes for actually need, and how do those needs interact and shift by context?
+14. **Audience reasoning check:** If this module governs engagement, qualification, or content production — does it include reasoning about the humans on the other end? Not persona profiles or sector categories, but a needs-based framework: what do the people this agent interacts with or writes for actually need, and how do those needs interact and shift by context?
 
-14. **Prose check — run G2's practitioner-voice gate against this module's own text.** Read `templates/guardrails/G2_natural_prose_standards.md` if it is not already in context. Ask its first gate of the module you just wrote: who in this organization would write this if AI didn't exist, and would that person actually write these sentences? Then sweep the G2 revision backstop — machine-signature vocabulary and density thresholds — against the module text.
+15. **Prose check — run G2's practitioner-voice gate against this module's own text.** Read `templates/guardrails/G2_natural_prose_standards.md` if it is not already in context. Ask its first gate of the module you just wrote: who in this organization would write this if AI didn't exist, and would that person actually write these sentences? Then sweep the G2 revision backstop — machine-signature vocabulary and density thresholds — against the module text.
 
     A module is prose an agent reads on every task. Prose that reads as machine-generated teaches the agent a machine register, and every output that agent produces inherits it. The library ships G2 to govern what runtime agents write; the same standard governs what the library is written in.
 
     Two things this check does not mean. It does not license narrative or third-person description — shape discipline (check 1) still governs, and instruction shape is still correct. And it does not apply to language carried through from the sources: G2 governs prose written here, not the organization's own words. A preserved phrase is not a candidate for tightening.
 
-If checks 1–6 fail, the module has structural problems. Follow the failure-recovery protocol below — do not regenerate the module by re-running Step 6.
+If checks 1–7 fail, the module has structural problems. Follow the failure-recovery protocol below — do not regenerate the module by re-running Step 6.
 
-If only checks 7–14 fail, line-level edits are appropriate.
+If only checks 8–15 fail, line-level edits are appropriate.
 
 ### Step 8: Update Build State and Process Log
 
@@ -381,7 +416,7 @@ If a planning artifact contained a decision or insight that matters for *later m
 
 ## When a Module Fails (Failure-Recovery Protocol)
 
-A module *fails* when checks 1–6 in self-check don't pass, or when the user reviews the module and identifies structural problems (narrative prose, quote contamination, build-perspective contamination, restated canonical content, missing source substance, wrong shape).
+A module *fails* when checks 1–7 in self-check don't pass, or when the user reviews the module and identifies structural problems (narrative prose, quote contamination, build-perspective contamination, restated canonical content, missing source substance, wrong shape).
 
 The default move is "rewrite differently" — re-run Step 6 with the same plan and hope for a different result. This produces oscillation: the rewrite fixes the named failure mode but introduces a different one, because the underlying planning was wrong but the rewriting started from the same plan.
 
@@ -400,7 +435,7 @@ Be specific. Not "the module didn't pass" — name the pattern:
 - Wrong shape: a section the plan called reasoning context is written as decision framework, or a section that should be reasoning context is written as a flattened gate-set, or vice versa
 - Other: name it specifically
 
-If the failure mode isn't on this list, name it precisely in your own terms before continuing.
+If the failure mode isn't on this list, name it precisely in your own terms before continuing — then check it against [references/FAILURE_MODES.md](../FAILURE_MODES.md), which carries every production failure mode with the gate that was supposed to prevent it. A failure already named there tells you which gate was skipped or is too weak, which is a faster diagnosis than reasoning from the prose.
 
 ### Step F2: Locate the Upstream Cause
 
@@ -453,14 +488,15 @@ This produces a compact record of why the module looks the way it does on its se
 
 After all modules are complete, build the addenda.
 
-Addenda contain **data only** — no behavioral instructions, no decision logic. They are reference material agents consult when a module directs them to.
+Addenda contain **data only** — no behavioral instructions, no decision logic. They are reference material agents consult when a module directs them to. "Data only" means the facts the agent may state and the pointer to where a volatile fact is authoritative. It does not mean a catalogue of what the sources contain, an inventory of what is unknown or undecided, or a note on how well evidenced something is (ARCHITECTURE.md, "Addenda (Reference Data)").
 
 For each addendum:
 1. Re-read the source files that inform it
-2. Extract the data (prices, bios, catalogs, etc.)
-3. Include source attribution
+2. Extract the data (prices, rates, bios, rosters)
+3. Record provenance in the verification log, which is stripped before delivery. A shipped `*Source:*` footer names files the runtime agent cannot open, and it invites the source-catalogue failure alongside it
 4. Specify update frequency ("Review quarterly" / "Update when pricing changes")
 5. Verify all data against sources — addenda get the same verification discipline as modules
+6. Run the synthesis scan (Step 7, check 7) over the addendum text. Addenda are where absence inventories and source catalogues collect, because "reference data" reads as license to list
 
 **Addenda are not second-class modules.** They contain the volatile specifics that modules reference. Inaccurate addenda produce inaccurate agent responses.
 </phase_build_addenda>
@@ -554,7 +590,8 @@ After all modules, addenda, and agent definitions are complete:
 Run each script and fix any issues:
 
 ```bash
-# Validate library structure
+# Validate library structure; section 6 reports synthesis-scan candidates
+# across modules/, addenda/, and agents/ (advisory — it does not fail the run)
 scripts/validate_library.py <OUTPUT_PATH>
 
 # Check token budgets (flags both over-budget AND under-budget agents)
@@ -569,6 +606,8 @@ cd <OUTPUT_PATH> && scripts/build-deploy-bundles.py --check
 
 If the bundle drift check reports DRIFT, run `scripts/build-deploy-bundles.py` (without `--check`) to rebuild. Drift typically appears after iterative edits to agent files or modules during the build.
 
+**The synthesis scan is advisory and still requires a decision on every line it reports.** A regex cannot tell a durable rule from an instantiated fact. Run each reported line through the discrimination test, then record what was cut, what was inverted, and where any relocated understanding now lives — in the process log, not in the runtime files. Keeping a reported line after examining it is a legitimate outcome; leaving it unexamined is not.
+
 ### Quality Checklist
 
 **For each module:**
@@ -577,6 +616,8 @@ If the bundle drift check reports DRIFT, run `scripts/build-deploy-bundles.py` (
 - [ ] Owned content from other modules uses the committed use-shape (cross-reference, subset, invocation, or reach-beyond — never restatement)
 - [ ] No reported speech or named individuals attached to organizational reasoning; preserved terminology matches the plan
 - [ ] No build-perspective contamination ("the source," "the library," "the build," named source files, document-provenance dates, "as documented in")
+- [ ] Synthesis scan clean — no source inventory, current-state description, absence inventory, or provenance/confidence grade; positive rules left intact
+- [ ] Any worked example in an always-load module survives the build's own open gaps
 - [ ] All facts trace to source files
 - [ ] No content duplicated across modules
 - [ ] Cross-references are explicit and correct
@@ -589,7 +630,8 @@ If the bundle drift check reports DRIFT, run `scripts/build-deploy-bundles.py` (
 - [ ] Contains data only — no behavioral instructions
 - [ ] All data verified against sources
 - [ ] Update frequency specified
-- [ ] Source attribution included
+- [ ] Provenance in the verification log only — no shipped `*Source:*` footer
+- [ ] Synthesis scan clean — no source catalogue, absence inventory, or confidence grade
 
 **For each agent definition:**
 - [ ] Role is behavioral (actions), not taxonomic (knowledge areas)
@@ -621,7 +663,7 @@ If the bundle drift check reports DRIFT, run `scripts/build-deploy-bundles.py` (
 - [ ] Single source of truth — no fact in more than one module
 - [ ] All cross-references resolve to real modules
 - [ ] All addenda references resolve to real addenda files
-- [ ] BLOCKING gaps resolved or documented
+- [ ] BLOCKING gaps resolved or documented — in the build record, not rendered as content in `modules/`, `addenda/`, or `agents/`
 - [ ] Build artifacts fully removed from all files
 </phase_build_validate>
 
@@ -683,9 +725,9 @@ The build is complete. The context library is at `<OUTPUT_PATH>/` and ready for 
 ├── guardrails.lock              (pinned G1/G2 versions — the library's record)
 ├── modules/
 │   ├── foundation/
-│   │   └── F0_...md              (vendored from makegood-guardrails; GENERATED banner)
+│   │   └── G1_agent_behavioral_standards.md   (vendored from makegood-guardrails; GENERATED banner)
 │   ├── shared/
-│   │   └── S0_...md              (vendored from makegood-guardrails; GENERATED banner)
+│   │   └── G2_natural_prose_standards.md      (vendored from makegood-guardrails; GENERATED banner)
 │   └── specialized/
 ├── addenda/
 ├── agents/                      (source agent files with @-directives)

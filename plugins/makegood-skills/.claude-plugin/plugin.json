@@ -1,7 +1,7 @@
 {
   "name": "makegood-skills",
-  "version": "2026.08.11",
-  "description": "Aggregator plugin bundling all 20 Make Good Claude Code skills — writing, research, client work, web design, and AI development. Each skill is also available as a standalone repo at github.com/WeMakeGood/<skill-name>.",
+  "version": "2026.08.21",
+  "description": "Aggregator plugin bundling all 21 Make Good Claude Code skills — writing, research, client work, web design, and AI development. Each skill is also available as a standalone repo at github.com/WeMakeGood/<skill-name>.",
   "author": {
     "name": "Make Good",
     "url": "https://wemakegood.org"

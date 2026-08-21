@@ -1,4 +1,4 @@
-# guardrails.lock — pins the behavioral guardrail artifacts (F0, S0, and S0's
+# guardrails.lock — pins the behavioral guardrail artifacts (G1, G2, and G2's
 # spliced backstop) this library uses. Governs ALL agents in this library.
 # Managed by scripts/build-deploy-bundles.py --resolve-guardrails /
 # --update-guardrails.
@@ -10,11 +10,11 @@
 # `declared` is intent (what this library accepts). `resolved` is actuality
 # (what was fetched). For a pinned library the two match.
 #
-# S0_BACKSTOP is the current-generation prose-signature list, versioned
-# separately from the S0 core (it tracks the model landscape, not the prose
+# G2_BACKSTOP is the current-generation prose-signature list, versioned
+# separately from the G2 core (it tracks the model landscape, not the prose
 # philosophy). It has no vendored file of its own — it is spliced into the
-# vendored S0 between BACKSTOP markers at resolve time, so agents receive a
-# single S0 file. Requires S0 >= 2.0.0.
+# vendored G2 between BACKSTOP markers at resolve time, so agents receive a
+# single G2 file. Requires G2 >= 3.0.0 (or S0 >= 2.0.0 on the pre-rename line).
 #
 # TEMPLATE: copied into a new library's root during Phase 4, then populated by
 # --resolve-guardrails (which fills the resolved shas). The declared versions

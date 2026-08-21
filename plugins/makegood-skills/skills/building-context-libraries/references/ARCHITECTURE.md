@@ -1,5 +1,26 @@
 # Context Library Architecture
 
+## Contents
+
+- The Runtime Agent's Perspective
+- Synthesis, Not Inventory
+- Modules Instantiate Organizational Thinking, Not Procedures
+- Shape Reference: G1 as a Worked Example
+- Content Transformation
+- Module Design Philosophy
+- Module Hierarchy
+- Load Discipline
+- Always-Load Delivery
+- Single Source of Truth
+- Content Verification
+- Token Budget Management
+- Module Naming Convention
+- Standard Guardrail Modules
+- Information Gaps
+- Session Architecture
+
+---
+
 ## The Runtime Agent's Perspective
 
 Modules are system prompt components for a runtime agent. The runtime agent reads its system prompt (the modules loaded for it) and a user message — nothing else. It has no awareness of:
@@ -22,6 +43,48 @@ The test for runtime-frame contamination is not whether the sentence contains sp
 - Any sentence that explains why something is or isn't in the module
 
 The runtime agent reads modules as instruction. It is not interested in why one piece of information is here and another is elsewhere; it cannot consult what is elsewhere.
+
+---
+
+## Synthesis, Not Inventory
+
+The runtime frame has a second half. The perspective test above catches sentences whose referents the runtime agent lacks. It does not catch content the agent parses perfectly well and should never have been handed. A line can pass the contamination scan and still be wrong-shaped.
+
+A context library is synthesis. It carries the *understanding* distilled from the sources; it states what to do and where truth lives. Five things it never carries:
+
+- **The sources themselves** — their contents catalogued, enumerated, or tabulated for the agent to reach back into.
+- **The current state of the deliverable** the library exists to help produce — the site as it reads today, the copy as it stands, the published/unpublished split.
+- **Inventories of absence** — what is missing, unknown, undecided, or not yet established.
+- **Provenance and confidence grades** — where a finding came from, how well evidenced it is, how much to trust it.
+- **Alternatives considered and rejected** — what was ruled out, or what a system cannot do where that capability was never in the chosen design. The agent supports the system that exists; a can't-do-X where X was never on the table serves no forward decision, and naming the rejected option raises it.
+
+Two axes explain all five:
+
+- **Instantiation.** Specific content in a system prompt anchors the agent to that content instead of teaching it a way of reasoning — and naming a thing raises it, including when the naming is a prohibition. An absence inventory primes every concept it lists.
+- **Volatility.** A statement the agent's own work will falsify is an instruction with an expiry date. "The portfolio has no descriptions" is false the moment the agent writes one, and nothing downstream catches it. Always-load content is rebuilt into the system prompt every turn, so a correction made in conversation cannot displace it.
+
+### The Discrimination Test
+
+Apply this to any candidate line:
+
+> **Does this teach a durable behavior, or does it instantiate a specific, volatile, or absent fact?**
+
+- **Durable behavior** — "state only what's sourced," "reach for the system or ask," "escalate when X," "never invent Y," "weigh A over B because…" → keep, framed positively.
+- **Instantiated fact** — a source's contents, the current state of the work, a list of what exists, a list of what does not, an evidence grade → remove, or invert to the positive rule.
+
+Three supporting checks: **volatility** — does this go false when the thing is acquired, decided, or published? **priming** — does naming this raise a concept the agent would not otherwise reach for? Silence beats "we don't have this." **provenance** — does the reader need to know where this came from in order to act? Almost never.
+
+Inversion is the move that keeps the behavior while cutting the fact. "X is not established" becomes "X lives in [the system / a person's decision] — source it or ask; never state it from inference." "Here is what is missing" becomes "here is what to do when you reach for it." A rejected-path note becomes how the live thing behaves.
+
+### What This Does Not License
+
+The failure mode when applying this test is over-correction — cutting a legitimate positive rule because it contains a negation. These stay:
+
+- Positive behavioral rules of every kind.
+- Hard prohibitions framed as rules. **"Never invent a coverage figure"** stays; **"no coverage figures exist"** goes.
+- Provisionality taught as behavior: "this voice is a proposal — flag when copy would harden it."
+- Coverage stated positively: "this module covers first contact," not "there is no frame for later stages."
+- Cross-references to other library files. Those are reference data the agent can actually load, not sources.
 
 ---
 
@@ -258,6 +321,10 @@ When you can't determine the exact date, calculate from the source document's da
 
 **The test:** Would this change because the business *grew* (volatile) or only if processes were *redesigned* (durable)?
 
+**The sharper test — self-invalidation.** For any sentence describing a state: would the agent's own output make it false? "Jobs are named and never described" expires the first time the agent describes one. Reframe to the durable habit the state description was standing in for.
+
+**This governs examples, not only data.** A worked example is content. An illustration resting on a fact the build has flagged pending, contested, or to-be-confirmed ships an instruction that goes wrong within weeks — and in always-load content, one no conversation can displace. Pick an example that will not move.
+
 **Wrong (volatile in module):** "Retainers at $3,500/mo and $6,000/mo"
 **Right (module references addendum):** "For current retainer pricing, see addenda/pricing-and-rates.md"
 
@@ -300,6 +367,8 @@ Modules should provide creation and decision guidance, not inventory existing co
 
 **The test:** If the organization added a new program tomorrow, would this module need updating? If yes, you've cataloged instead of guided.
 
+**The second catalogue form is the source set.** A table of what a set of photographs shows, a list of what a transcript covered, a per-file index from a document review — comprehension output reproduced for the agent to reach back into. It carries no source filename, so the contamination scan misses it entirely. The understanding those sources produced belongs in the reasoning of the module that needs it; the enumeration belongs nowhere. **The test:** could an entry be reconstructed back into the source it came from? Then it is inventory, not understanding. See "Synthesis, Not Inventory."
+
 **Exception:** Response patterns can be valuable when they encode the organization's reasoning about *why* to respond that way — not just scripted replies. If a pattern captures organizational thinking ("We respond this way because we prioritize X over Y"), keep it. If it's just a script without reasoning, it's a procedure, not context.
 
 ### Respecting Scope Boundaries
@@ -309,6 +378,8 @@ The proposal defines what content belongs in each module. When writing a module,
 ### Principles Over Prescriptions
 
 Capture decision criteria and principles, not specific tool choices or current-state descriptions. "Our criteria for selecting tools" outlasts "We use Tool X."
+
+Current-state description is the harder half of this rule, because it looks like grounding. Describing the deliverable the agent is about to change — the site as it reads now, the copy as it stands — hands the agent a fact with an expiry date rather than a way of working. See "Synthesis, Not Inventory."
 
 ### Audience Reasoning in Modules
 
@@ -355,9 +426,11 @@ Domain-specific knowledge for particular agent roles.
 | Component | Contains | Changes When |
 |-----------|----------|-------------|
 | **Modules** | Reasoning context, decision frameworks, organizational principles | Processes redesigned |
-| **Addenda** | Data — pricing, bios, catalogs, inventories | Business evolves |
+| **Addenda** | Data — the currently claimable facts, and where volatile truth is authoritative (pricing, rates, bios, rosters) | Business evolves |
 
 Modules reference addenda; addenda don't reference modules.
+
+**"Data only" is not "anything factual."** An addendum carries the facts the agent may state and the pointer to where a volatile fact lives. It does not carry a catalogue of what the sources contain, an inventory of what is unknown or undecided, a provenance footer, or the alternatives a decision ruled out — those fail "Synthesis, Not Inventory" in an addendum exactly as they fail it in a module. Where general knowledge would mislead an agent about how the live system behaves, write how it behaves and what to do about it; the reasoning that rejected the other options belongs to the proposal. Addenda drift here more than modules do, because "reference data" reads as license to list.
 
 ---
 
@@ -469,7 +542,7 @@ count_tokens.py reports against the standard bundle only — the all-inclusive v
 
 ### The Optionality Problem
 
-Both Claude.ai's RAG-style retrieval over uploaded project files and Claude Code's `@`-include expansion present uploaded/referenced files as *optional context* rather than *required context* at the model layer. The model has the architectural option to not engage with the file content, even when the prompt says "you must read this." Eden's testing surfaced exactly this: an agent treated mandatory-read prose instructions as discretionary tool work, sometimes skipping the load entirely.
+Both Claude.ai's RAG-style retrieval over uploaded project files and Claude Code's `@`-include expansion present uploaded/referenced files as *optional context* rather than *required context* at the model layer. The model has the architectural option to not engage with the file content, even when the prompt says "you must read this." Testing surfaced exactly this: an agent treated mandatory-read prose instructions as discretionary tool work, sometimes skipping the load entirely.
 
 The skill's response is to make peace with this and design around it, not pretend it's solvable at the prompt level. The classification names which content governs every output; the delivery mechanism gets that content into the system prompt without asking the model to participate. Where the runtime is reliable (Claude Code with `@`, Claude.ai with the bundle as a project file plus uploaded conditional addenda for retrieval), the standard bundle works. Where the runtime is unreliable (no fetch, no retrieval, or known-flaky retrieval for specific content), the all-inclusive bundle removes the runtime variable.
 
@@ -666,9 +739,13 @@ When working sources lack needed information:
 
 **Never invent information to fill gaps.** A thin module with verified facts is better than a rich module with hallucinations.
 
+**Gaps are build reasoning and stay in the build.** The gap register, the proposal, and build-state carry them; `modules/`, `addenda/`, and `agents/` never render them. A gap reaches the runtime library only by inversion — as the positive rule for what the agent does when it reaches for the missing thing ("prices and terms come from the business: source them or ask, never infer"), never as the fact that something is missing. See "Synthesis, Not Inventory."
+
 ---
 
 ## Session Architecture
+
+The session map — which phases run in which session, and why each break exists — is stated once in SKILL.md, "Session Architecture." This section covers why the architecture is built that way.
 
 ### Why Sessions Exist
 

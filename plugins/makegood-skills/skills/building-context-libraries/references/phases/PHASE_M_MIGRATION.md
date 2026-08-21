@@ -8,6 +8,23 @@
 
 ---
 
+## Contents
+
+- What This Phase Does
+- When This Phase Runs
+- Migration Index
+- Migration Session Setup
+- Migration: agent-manifest-load-discipline (1.4.x → 1.5.0)
+- Migration: agent-include-and-bundles (1.5.x → 1.6.0)
+- Migration: guardrails-versioning (1.6.x → 1.7.0)
+- Migration: g2-backstop-splice (1.7.x → 1.8.0)
+- Migration: guardrail-g-namespace (1.9.x → 1.10.0)
+- Migration: script-version-refresh (1.10.x → 1.11.0)
+- After Migration
+- Adding a New Migration
+
+---
+
 ## What This Phase Does
 
 Brings library artifacts to the current skill version when the bootstrap detects format mismatches. The phase is invoked only when needed, runs its applicable migrations in order, and returns control to the bootstrap.
@@ -42,28 +59,11 @@ Each migration has: a name, a from-version, a to-version, what triggers it, and 
 | 1.6.x | 1.7.0 | `guardrails-versioning` | Library has a hand-owned behavioral-standards module (`F0_` pre-rename, `G1_` after) in `modules/foundation/` but no `guardrails.lock` at the root (hand-owned guardrails, not yet a versioned dependency) |
 | 1.7.x | 1.8.0 | `g2-backstop-splice` | Build-state records a skill/script version behind 1.8.0 (the generic tooling-stale signal — no artifact-shape change; the 1.8 script adds G2-backstop splice support and the `--check` upstream-newer notice) |
 | 1.9.x | 1.10.0 | `guardrail-g-namespace` | `guardrails.lock` declares `F0`, `S0`, or `S0_BACKSTOP` keys, and/or `modules/foundation/F0_agent_behavioral_standards.md` / `modules/shared/S0_natural_prose_standards.md` exist |
+| 1.10.x | 1.11.0 | `script-version-refresh` | The vendored `scripts/build-deploy-bundles.py` reports `--version` below 1.11.0, or build-state records a script version below 1.11.0. Every library built before 1.11.0 matches, because the script's `SCRIPT_VERSION` constant was stale from 1.8.0 through 1.10.0 |
 
-When a new migration ships, add a row above. Migrations below this point are the actual migration content.
+When a new migration ships, add a row above. Migrations below this point are the actual migration content, in version order.
 
-### `guardrail-g-namespace` (1.9.x → 1.10.0)
-
-The guardrail modules were renamed upstream: `F0` → `G1`, `S0` → `G2`, `S0_BACKSTOP` → `G2_BACKSTOP`. The `F`/`S` prefixes were context-library tier markers that meant nothing in the guardrails repo and collided with libraries using `F`/`S`/`D` for their own modules.
-
-**This migration is optional in the strict sense** — the upstream `f0-v*` and `s0-v*` tags were retained, so an un-migrated lock keeps resolving successfully. It resolves *silently*, though: nothing tells the library that newer versions exist under different keys, because the old tags stop at F0 2.1.0 and S0 2.0.1. A library that never migrates is pinned to the pre-rename line forever.
-
-**Steps:**
-
-1. In `guardrails.lock`, rename the keys in both `declared` and `resolved`: `F0` → `G1`, `S0` → `G2`, `S0_BACKSTOP` → `G2_BACKSTOP`. Set versions to `G1: 3.0.0`, `G2: 3.0.0`, `G2_BACKSTOP: 2.0.0` — content-identical to F0 2.1.0 / S0 2.0.1 / backstop 1.1.0, so this is zero-behavior-change.
-2. Update the `vendored:` and `spliced_into:` paths to the new filenames. **Keep the tier directories** — `modules/foundation/` and `modules/shared/` are the library's namespace, not the guardrails repo's, and the rename does not touch them.
-3. Rename the vendored module files on disk to match.
-4. Update every reference to the old identifiers across `modules/`, `agents/`, and `addenda/` — including `@`-include directives in Required Reading, which break silently if the path is wrong.
-5. Re-vendor the build script from the skill's `templates/build-deploy-bundles.py` (1.10.0+ knows the new constants; earlier versions look for `S0_backstop.md` upstream and fail).
-6. Run `--resolve-guardrails` and confirm the splice lands: the vendored G2 file should contain the backstop body between its `BACKSTOP:BEGIN/END` markers.
-7. Run `validate_library.py` and confirm it still passes.
-
-**Verification:** `--resolve-guardrails` prints a migration notice whenever it sees pre-rename keys. Its absence after migration is the signal that step 1 took.
-
-**Libraries on pre-1.5 versions** run all applicable migrations in sequence: `agent-manifest-load-discipline` (1.4.x → 1.5.0), then `agent-include-and-bundles` (1.5.x → 1.6.0), then `guardrails-versioning` (1.6.x → 1.7.0). The bootstrap detects each signal and presents the migration plan as a single user-facing operation — internally it's separate migrations applied in order, which preserves the append-only architecture.
+**A library several versions behind runs every applicable migration in sequence**, in Migration Index order. Read the applicable set off the index above rather than reciting a sequence — the set grows with each release, and a hard-coded chain goes stale silently the next time one ships. The bootstrap presents the plan as a single user-facing operation; internally it is separate migrations applied in order, which preserves the append-only architecture.
 
 ---
 
@@ -469,6 +469,45 @@ Post-migration guardrail update: [declined | adopted G1 2.0.0, G2 2.0.1, g2-back
 
 ---
 
+## Migration: guardrail-g-namespace (1.9.x → 1.10.0)
+
+The guardrail modules were renamed upstream: `F0` → `G1`, `S0` → `G2`, `S0_BACKSTOP` → `G2_BACKSTOP`. The `F`/`S` prefixes were context-library tier markers that meant nothing in the guardrails repo and collided with libraries using `F`/`S`/`D` for their own modules.
+
+**This migration is optional in the strict sense** — the upstream `f0-v*` and `s0-v*` tags were retained, so an un-migrated lock keeps resolving successfully. It resolves *silently*, though: nothing tells the library that newer versions exist under different keys, because the old tags stop at F0 2.1.0 and S0 2.0.1. A library that never migrates is pinned to the pre-rename line forever.
+
+**Steps:**
+
+1. In `guardrails.lock`, rename the keys in both `declared` and `resolved`: `F0` → `G1`, `S0` → `G2`, `S0_BACKSTOP` → `G2_BACKSTOP`. Set versions to `G1: 3.0.0`, `G2: 3.0.0`, `G2_BACKSTOP: 2.0.0` — content-identical to F0 2.1.0 / S0 2.0.1 / backstop 1.1.0, so this is zero-behavior-change.
+2. Update the `vendored:` and `spliced_into:` paths to the new filenames. **Keep the tier directories** — `modules/foundation/` and `modules/shared/` are the library's namespace, not the guardrails repo's, and the rename does not touch them.
+3. Rename the vendored module files on disk to match.
+4. Update every reference to the old identifiers across `modules/`, `agents/`, and `addenda/` — including `@`-include directives in Required Reading, which break silently if the path is wrong.
+5. Re-vendor the build script from the skill's `templates/build-deploy-bundles.py` (1.10.0+ knows the new constants; earlier versions look for `S0_backstop.md` upstream and fail).
+6. Run `--resolve-guardrails` and confirm the splice lands: the vendored G2 file should contain the backstop body between its `BACKSTOP:BEGIN/END` markers.
+7. Run `validate_library.py` and confirm it still passes.
+
+**Verification:** `--resolve-guardrails` prints a migration notice whenever it sees pre-rename keys. Its absence after migration is the signal that step 1 took.
+
+---
+
+## Migration: script-version-refresh (1.10.x → 1.11.0)
+
+No artifact shape changed in 1.11.0. This migration exists because the build script's `SCRIPT_VERSION` constant went stale: it read 1.8.0 from the 1.8.0 release through 1.10.0, while the script's code changed twice in that window (the guardrail-key rename in 1.10.0, and the `--check` all-clear fix). Every library built in that window therefore records a script version that understates what it carries — and a library built with 1.9.x or earlier carries code that is genuinely behind.
+
+The consequence is the bootstrap's tooling-stale signal reading wrong in both directions: a current library reports as stale forever, and a genuinely stale script cannot be distinguished from a current one. The migration re-establishes a truthful record.
+
+**Steps:**
+
+1. Check what the library carries: `<OUTPUT_PATH>/scripts/build-deploy-bundles.py --version`. Any answer below 1.11.0 means the record cannot be trusted — the constant, not the code, is what was stale.
+2. Re-vendor the script from the skill's `templates/build-deploy-bundles.py`. If the library was built with 1.10.0, this is a no-op on behavior and corrects the version the script reports. If it was built earlier, it also brings the guardrail-key constants and the `--check` fix.
+3. Set build-state's **Vendored build-deploy-bundles.py version** to the value `--version` now reports, and **Built with skill version** to the running skill version.
+4. Run `cd <OUTPUT_PATH> && scripts/build-deploy-bundles.py --check`. Bundles built by the older script are byte-identical where the code was identical; a DRIFT report here means the earlier script produced different output and the bundles need rebuilding (`scripts/build-deploy-bundles.py`, then `--all-inclusive` if the library uses that variant).
+
+**Verification:** `--version` reports the running skill's version, and build-state's two version lines match it. The bootstrap stops offering this migration.
+
+**This migration is required before trusting any future tooling-stale signal.** A library that skips it keeps a false version record, and the next migration keyed to version comparison will misfire on it.
+
+---
+
 ## After Migration
 
 Run `python scripts/count_tokens.py <OUTPUT_PATH>/modules <OUTPUT_PATH>/agents` to confirm:
@@ -496,7 +535,7 @@ When a new format change ships in a future skill version:
 1. Add a row to the Migration Index above with the new migration's name, from-version, and to-version.
 2. Add a `## Migration: [name] ([from] → [to])` section below, structured the same way as existing migrations: trigger, why required, steps, validation, log entry.
 3. Add the trigger pattern to the bootstrap's directory scan (TEMPLATES.md, "Session Bootstrap" → migration signals).
-4. Update the validation script(s) to detect the old format and refuse with a pointer to PHASE_M_MIGRATION.md.
+4. Add detection to whichever script reads the affected artifact, and be specific about which one that is. `count_tokens.py` is the format gate for agent files — it parses Required Reading and the Conditional Loads table, and it refuses (exit 1) on a pre-1.6 manifest or a hard-rule violation. `validate_library.py` inspects modules, addenda, and agent files for structure and reports advisory findings; it does not refuse. A migration that changes agent-file shape belongs in the first; one that changes module or addendum shape belongs in the second. Saying "the validation scripts" without naming one leaves the detection unwritten.
 
 **If the skill version bump changes the build script**, bump `SCRIPT_VERSION` in `templates/build-deploy-bundles.py` to match, and ensure the migration re-vendors the script and updates build-state's version lines (as M3.4 does generally). The script is a version-locked artifact: a library can be fully current on artifact *shapes* yet carry a stale script. That is itself a migration trigger — see the bootstrap's "build-state records a skill or script version behind the running skill" signal. A migration whose only effect is refreshing the script is legitimate; not every migration changes artifact shapes.
 
